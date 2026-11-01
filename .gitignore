@@ -1,0 +1,33 @@
+# === OS / editors ===
+.DS_Store
+Thumbs.db
+.vs/
+.idea/
+
+# === Local logs / temp files ===
+MarsNeedsWater-create.log
+.ccgs-*
+**/.ccgs-*
+
+# === Unity (MarsNeedsWater/) ===
+/MarsNeedsWater/[Ll]ibrary/
+/MarsNeedsWater/[Tt]emp/
+/MarsNeedsWater/[Oo]bj/
+/MarsNeedsWater/[Bb]uild/
+/MarsNeedsWater/[Bb]uilds/
+/MarsNeedsWater/[Ll]ogs/
+/MarsNeedsWater/[Uu]ser[Ss]ettings/
+/MarsNeedsWater/[Mm]emory[Cc]aptures/
+/MarsNeedsWater/PlaytestLogs/
+/MarsNeedsWater/.vs/
+/MarsNeedsWater/.idea/
+/MarsNeedsWater/*.csproj
+/MarsNeedsWater/*.sln
+/MarsNeedsWater/*.slnx
+/MarsNeedsWater/*.pidb
+/MarsNeedsWater/*.userprefs
+*.apk
+*.aab
+*.unitypackage
+
+# claude-gaming-studio/ keeps its own .gitignore (applies within that folder).

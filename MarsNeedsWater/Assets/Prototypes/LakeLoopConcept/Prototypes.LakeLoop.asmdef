@@ -1,0 +1,14 @@
+{
+    "name": "Prototypes.LakeLoop",
+    "rootNamespace": "Prototypes.LakeLoop",
+    "references": ["Unity.InputSystem"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
