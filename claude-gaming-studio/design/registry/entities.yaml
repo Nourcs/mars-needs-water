@@ -54,7 +54,7 @@
 #   in any other shape is reported as unsupported layout, with its number.
 
 version: 1
-last_updated: ""
+last_updated: "2026-11-02"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -94,7 +94,127 @@ entities: []
 # Attribute fields: value_gold, weight, stackable, category, and any stat
 #   modifiers that another system (e.g., economy, crafting) might reference.
 
-items: []
+items:
+  - name: spoon
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    category: hand_tool
+    volume_L: 0.015
+    scoop_cooldown_s: 1.25
+    owned_at_start: true
+    real_world_ref: "Tablespoon"
+    added: 2026-11-02
+    revised: 2026-11-02
+  - name: jerrycan_10l
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    category: tank
+    capacity_L: 10
+    owned_at_start: true
+    real_world_ref: "10 L jerrycan"
+    added: 2026-11-02
+    revised: 2026-11-02
+  - name: bucket
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    category: hand_tool
+    price_cr: 8
+    volume_L: 10
+    scoop_cooldown_s: 1
+    trip_target_s: "5 (puddle) / 20 (pond)"
+    prereq: none
+    real_world_ref: "10 L pail"
+    added: 2026-11-02
+    revised: 2026-11-02
+  - name: barrel_100l
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    category: tank
+    price_cr: 220
+    capacity_L: 100
+    prereq: bucket
+    real_world_ref: "100 L water barrel"
+    added: 2026-11-02
+    revised: 2026-11-02
+  - name: drum_200l
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    category: tank
+    price_cr: 260
+    capacity_L: 200
+    prereq: barrel_100l
+    real_world_ref: "200 L steel drum"
+    added: 2026-11-02
+    revised: 2026-11-02
+  - name: hand_pump
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    category: machine
+    price_cr: 380
+    prereq: drum_200l
+    rate_Lps: 1.25
+    real_world_ref: "Diaphragm hand pump ~75 L/min"
+    added: 2026-11-02
+    revised: ""
+  - name: electric_motor
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    category: machine
+    price_cr: 1100
+    rate_Lps: 8
+    prereq: hand_pump
+    real_world_ref: "2-inch 1.5 kW transfer pump"
+    added: 2026-11-02
+    revised: 2026-11-02
+  - name: ibc_tank
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    category: tank
+    price_cr: 40000
+    capacity_L: 1000
+    prereq: electric_pump_2
+    real_world_ref: "1,000 L IBC tote"
+    added: 2026-11-02
+    revised: 2026-11-02
+  - name: electric_pump_2
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    category: machine
+    price_cr: 15000
+    rate_Lps: 8
+    prereq: electric_motor
+    real_world_ref: "Second 2-inch transfer pump"
+    added: 2026-11-02
+    revised: 2026-11-02
+  - name: plaque
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    category: joke_item
+    price_cr: 100000
+    prereq: ibc_tank
+    real_world_ref: "Engraved office plaque"
+    added: 2026-11-02
+    revised: ""
 
 # Example:
 #
@@ -123,7 +243,113 @@ items: []
 #   output_range[min, max], added
 # Optional: expression (the actual formula), notes
 
-formulas: []
+formulas:
+  - name: simulation_step
+    status: active
+    source: design/gdd/game-state-and-simulation.md
+    referenced_by:
+      - design/gdd/game-state-and-simulation.md
+    variables:
+      - dt
+      - frameDt
+      - maxCatchUp
+      - acc
+      - alpha
+    output_range: [0, 5]
+    expression: "acc = min(acc + frameDt, maxCatchUp); while acc >= dt: Tick(), acc -= dt; alpha = acc / dt"
+    notes: "Output = ticks per frame (5 at defaults). alpha (0-1) is read by presentation systems (Drawdown, HUD) to interpolate between ticks. All rates elsewhere are per second."
+    added: 2026-11-02
+    revised: ""
+  - name: withdraw
+    status: active
+    source: design/gdd/water-source-model.md
+    referenced_by:
+      - design/gdd/water-source-model.md
+    variables:
+      - amount
+      - remaining
+      - granted
+      - drainedEpsilon
+    output_range: [0, remaining]
+    expression: "granted = min(max(amount, 0), remaining); remaining -= granted; if remaining <= drainedEpsilon then remaining = 0"
+    notes: "Called by Hand Tools (tick step 1) and Hose/Storage Network (step 2, already split across pumps). NaN amount counts as 0."
+    added: 2026-11-02
+    revised: ""
+  - name: drawdown_pct
+    status: active
+    source: design/gdd/water-source-model.md
+    referenced_by:
+      - design/gdd/water-source-model.md
+    variables:
+      - start
+      - remaining
+    output_range: [0, 100]
+    expression: "(start - remaining) / start * 100"
+    notes: "Per source; start is the copy saved at new game. Drawdown thresholds and the play log's lake_drained_pct use the lake's value."
+    added: 2026-11-02
+    revised: ""
+
+  - name: payout
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    variables:
+      - litres
+      - credits_per_litre
+      - region_multiplier
+      - contract_multiplier
+    output_range: [0.001, null]
+    expression: "litres * credits_per_litre * region_multiplier * contract_multiplier"
+    notes: "Paid by Shipping's direct CreditLaunch(litres) call at liftoff (tick step 2c), never by a listener. Rounded once to whole millicredits. Non-finite or <= 0 litres ignored. MVP: credits_per_litre 10, multipliers 1. Unbounded above."
+    added: 2026-11-02
+    revised: ""
+  - name: flow_solve
+    status: active
+    source: design/gdd/hose-storage-and-flow-network.md
+    referenced_by:
+      - design/gdd/hose-storage-and-flow-network.md
+      - design/gdd/water-source-model.md
+    variables:
+      - rate_p
+      - hoseCap_p
+      - dt
+      - space_G
+      - got_s
+    output_range: [0, 2]
+    expression: "d_p = min(rate_p, hoseCap_p)*dt; scale by min(1, space_G/D_G) per pool; then by got_s/D_s per source; deposit entry tank first"
+    notes: "Tick step 2. Space applied before source so full pools never draw water. Output = litres per pump per tick at 10 Hz, max 2."
+    added: 2026-11-02
+    revised: ""
+  - name: launch_load
+    status: active
+    source: design/gdd/shipping-and-launch.md
+    referenced_by:
+      - design/gdd/shipping-and-launch.md
+      - design/gdd/hose-storage-and-flow-network.md
+    variables:
+      - pad_pool_contents
+      - cargo_capacity
+    output_range: [0, 1500]
+    expression: "min(pad_pool_contents, cargo_capacity)"
+    notes: "0 is rejected as nothing_to_ship. LaunchCompleted(litres) raised at liftoff, 3 s after the lever."
+    added: 2026-11-02
+    revised: ""
+  - name: time_to_afford
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    variables:
+      - price
+      - credits
+      - rate_eff
+      - credits_per_litre
+    output_range: [0, null]
+    expression: "max(0, price - floor(credits)) / (rate_eff * credits_per_litre * region_multiplier * contract_multiplier); infinite when rate_eff = 0"
+    notes: "Estimate only. The pacing rule (each step from the bucket on longer than the last) is checked on the pacing simulator (tools/pacing/sim3.py)."
+    added: 2026-11-02
+    revised: ""
 
 # Example:
 #
@@ -156,7 +382,132 @@ formulas: []
 #
 # Required fields: name, status, source, referenced_by, value, unit, added
 
-constants: []
+constants:
+  - name: sim_tick_rate
+    status: active
+    source: design/gdd/game-state-and-simulation.md
+    referenced_by:
+      - design/gdd/game-state-and-simulation.md
+    value: 10
+    unit: Hz
+    added: 2026-11-02
+    revised: ""
+  - name: sim_max_catch_up
+    status: active
+    source: design/gdd/game-state-and-simulation.md
+    referenced_by:
+      - design/gdd/game-state-and-simulation.md
+    value: 0.5
+    unit: s
+    added: 2026-11-02
+    revised: ""
+  - name: input_to_number_latency_budget
+    status: active
+    source: design/gdd/game-state-and-simulation.md
+    referenced_by:
+      - design/gdd/game-state-and-simulation.md
+    value: 0.2
+    unit: s
+    added: 2026-11-02
+    revised: ""
+  # Real-scale rule: real-world volumes. Economy GDD may tune within real ranges.
+  - name: earth_total_water
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+      - design/gdd/water-source-model.md
+    value: 1.386e21
+    unit: L
+    added: 2026-11-02
+    revised: 2026-11-02
+  - name: delivery_delay
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    value: 4
+    unit: s
+    added: 2026-11-02
+    revised: ""
+  - name: pad_crate_spots
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    value: 4
+    unit: spots
+    added: 2026-11-02
+    revised: ""
+  - name: farm_pond_start_volume_mvp
+    status: active
+    source: design/gdd/water-source-model.md
+    referenced_by:
+      - design/gdd/water-source-model.md
+      - design/gdd/economy-progression-and-shop.md
+    value: 20000
+    unit: L
+    added: 2026-11-02
+    revised: ""
+  - name: puddle_start_volume_mvp
+    status: active
+    source: design/gdd/water-source-model.md
+    referenced_by:
+      - design/gdd/water-source-model.md
+      - design/gdd/economy-progression-and-shop.md
+    value: 40
+    unit: L
+    added: 2026-11-02
+    revised: ""
+
+  - name: discharge_hose_cap
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+      - design/gdd/hose-storage-and-flow-network.md
+    value: 10
+    unit: L/s
+    added: 2026-11-02
+    revised: ""
+  - name: discharge_hose_length
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/hose-storage-and-flow-network.md
+    value: 20
+    unit: m
+    added: 2026-11-02
+    revised: ""
+  - name: launch_cycle
+    status: active
+    source: design/gdd/shipping-and-launch.md
+    referenced_by:
+      - design/gdd/shipping-and-launch.md
+      - design/gdd/economy-progression-and-shop.md
+    value: 15
+    unit: s
+    added: 2026-11-02
+    revised: ""
+  - name: rocket_cargo_capacity_mvp
+    status: active
+    source: design/gdd/shipping-and-launch.md
+    referenced_by:
+      - design/gdd/shipping-and-launch.md
+      - design/gdd/economy-progression-and-shop.md
+    value: 1500
+    unit: L
+    added: 2026-11-02
+    revised: ""
+  - name: credits_per_litre
+    status: active
+    source: design/gdd/economy-progression-and-shop.md
+    referenced_by:
+      - design/gdd/economy-progression-and-shop.md
+    value: 10
+    unit: cr/L
+    added: 2026-11-02
+    revised: ""
 
 # Example:
 #

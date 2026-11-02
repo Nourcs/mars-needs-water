@@ -97,6 +97,7 @@ payoff. Sensation is second because the physical loop (pillar 2) has to feel goo
    delivered water-equivalent volume, fulfil colony contracts. Automated launching is built and
    maintained by hand (for example, laying the feed line to the pad), never bought as a button.
 5. **Upgrade progression:** a shop of machines, each a step change in scale, unlocking new regions.
+6. **Real-scale rule (Nour, 2026-11-02):** every water source holds its real-world volume (MVP: a 20,000 L farm pond; later real lakes, reservoirs and glaciers). A corporate **Earth counter** starts at all of Earth's water, about 1.386 × 10²¹ L (332.5 million cubic miles), and ticks down with every shipment. It is never emptied: after the whole campaign the player has taken a sliver, and the corporation celebrates it anyway (Pillar 4).
 
 ---
 
@@ -265,16 +266,19 @@ Supporting principles:
 
 Asset standards (from Toy-to-Titan): each machine tier is at least 2× its predecessor's footprint
 (machines only; hand tools stay hand-sized);
-interactive parts use one consistent accent colour and can be found within 1 second; chunky,
+interactive parts (handles, valves, sockets, triggers) use the employer's safety orange and can be
+found within 1 second; chunky,
 grabbable handles, valves and hoses.
 
-Accent layer (from Corporate Postcard): signage, milestone screens and UI use cheerful brand colours
-(teal, sunshine yellow); every milestone pairs a celebration with the loss it caused; signage carries
+Accent layer (from Corporate Postcard): signage, milestone screens and UI use cheerful warm brand colours
+(sunshine yellow, cream, a muted corporate navy), never a saturated cool hue, so water keeps that
+slot to itself; every milestone pairs a celebration with the loss it caused; signage carries
 jokes without voice-over.
 
 **Colour philosophy:** water is the only fully saturated cool hue in the world; once taken, it's gone
 from the palette. Exposed beds are bone, ochre and rust. The employer's safety orange appears only on
-the player's own machinery, so the culprit is always the brightest thing in view.
+the player's own tools and machinery (which is also where every interactive part lives), so the
+culprit is always the brightest thing in view.
 
 Pipeline: flat-shaded low-poly, one shared palette texture, URP, one world-height stain-band shader,
 stylised flat water planes (no photoreal fluid). The band shader is prototyped in the MVP lake.
@@ -380,8 +384,9 @@ unless networking is proven early).*
 - Can 2 players sync water volume and one machine reliably in Unity? *Answered by the network test.*
 - How close is Holy Crop? *Answered by a direct comparison before store-page work.*
 - Credit prices and upgrade costs: *tuned by playtest against the Pacing Targets.*
+- **Voice Sound Packs (Nour, 2026-11-02):** players record their own voice for footsteps, menus, water draining, rocket launches and music, and share them with friends in co-op. Strong fit for co-op physical comedy and the satire; clashes with the quiet, uncanny Bathtub Ring mood unless it stays opt-in. Needs: a pillar case, a check of prior art, and answers on mic permissions, how many sound slots, and what friends hear from each other's packs. *Planned with the co-op update, not the MVP.*
 - How big is the final colony contract? The GDD's 1 trillion litres conflicts with a 15–25 hour
-  campaign. *Answered in the Economy/Progression GDD.*
+  campaign. Under the real-scale rule, contracts use real numbers; the Earth counter is the satire scale, not a goal. *Answered in the Economy/Progression GDD.*
 
 ---
 
