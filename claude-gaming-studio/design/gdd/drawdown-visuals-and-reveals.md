@@ -31,7 +31,7 @@ Each tick, right after the Water Source step, this system reads every source's d
 2. **Thresholds (farm pond, MVP):** 1%, 2.5%, 5%, then every 10% to 100%. The puddle has none (it is a hand-scale source; it just drops and dries). Threshold lists are data (Economy table, `source` rows).
 3. **Threshold events:** at tick step 2e, for each threshold newly passed, this system raises `DrawdownThreshold(source, pct)`, in ascending order, and records it as passed. Thresholds never un-pass (water never returns).
 4. **Stain bands:** each passed threshold paints a band at that threshold's waterline height: a darker, slightly greenish line 3–6 cm tall on all wet surfaces, plus a dry-mud tint above the current waterline. Implementation: one world-height stain-band shader reading a list of band heights (3-day spike; fallback: flat decal strips placed at the baked heights).
-5. **Basin requirements (level asset):** a 1:25 shallow shelf at the pump-intake viewpoint so the 1% (about 1 cm) drop reads as about 25 cm of exposed mud; 1:8 beach lips at the 2–3 main viewpoints; bathtub-like walls elsewhere; a deep central pit for the last 5–10%. (From the Water Source GDD.)
+5. **Basin requirements (level asset), as outcomes:** graybox the pond (about 6 × 5 m, 1 m deep), bake the curve, then shape slopes so that at 1% at least 25 cm of mud shows on the intake shelf from the hand-pump handle (slope = 25 cm ÷ the height drop at 1%, about 1:35–1:40), every 10% band exposes at least 0.8 m of shoreline at each named viewpoint (hand-pump handle, raised launch-pad deck, bucket beach; 1:8 beach lips), and a deep central pit holds the last 5–10%. (From the Water Source GDD, Visual/Audio Requirements.)
 6. **Reveals:** authored objects in the basin, each with a reveal height. When the water plane drops below it, the system raises `Reveal(id)` once and plays the reveal beat. MVP: 2 reveals, the **dock with a "Swim Safe" sign** at about 10% and a **shopping cart** at about 20%. Objects exist from the start under the water (visible through it if the water is clear enough to tease them).
 7. **Lakebed swap:** at 10%, the exposed shelf swaps from a wet-mud material to a cracked, drying mud (one material swap in the MVP).
 8. **Wet shine:** newly exposed surfaces look wet and dry out over 60 s (shader parameter by exposure time).
@@ -46,7 +46,7 @@ Per threshold and reveal: **Pending → Passed** (once, never back). Saved: pass
 | System | This system gives | This system takes |
 |---|---|---|
 | Game State | Drawdown slice (passed thresholds, reveals); `DrawdownThreshold`, `Reveal` | Tick step 2e (after Water Source at 2d); `alpha` |
-| Water Source Model | — | Remaining volume, drawdown %, `SourceDrained` |
+| Water Source Model | — | `Available`, `Start`, `DrawdownPct`, `SourceDrained` |
 | Economy | — | Threshold lists per source |
 | Corporate Radio | Events | — |
 | Hose/Storage Network | Waterline height (for the intake hose end to follow) | — |
@@ -129,7 +129,7 @@ None. The HUD may show the pond's drained percentage as confirmation only.
 - **AC-04 [EditMode]** GIVEN a baked curve, THEN it is strictly increasing with remaining volume; a non-monotonic bake fails.
 - **AC-05 [EditMode]** GIVEN the water plane drops below the dock's reveal height, THEN `Reveal(dock)` is raised once and never again.
 - **AC-06 [PlayMode]** GIVEN an electric pump running, WHEN rendered heights are sampled every frame for 10 s, THEN height never increases and never jumps by more than one tick's change.
-- **AC-07 [PlayMode]** GIVEN the 1% threshold passed, THEN at least 20 cm of exposed mud shows on the intake shelf from the pump position.
+- **AC-07 [PlayMode]** GIVEN the 1% threshold passed, THEN at least 20 cm of exposed mud shows on the intake shelf seen from the hand-pump handle viewpoint (design target 25 cm).
 - **AC-08 [Manual]** GIVEN an MVP session, THEN no gap between visible changes exceeds 5 minutes (from the play log and Nour's notes).
 - **AC-09 [Manual]** GIVEN a player who stepped away for 2 minutes at the 10% band, THEN they can tell the pond dropped from the stain band alone.
 
@@ -142,5 +142,5 @@ None. The HUD may show the pond's drained percentage as confirmation only.
 | Question | Owner | Resolve by |
 |---|---|---|
 | Stain-band shader vs decals | technical-artist | 3-day spike |
-| Real 1 m-deep pond gives about 0.1 m per 10% band; is it readable without deepening the basin (the Water Source guidance asks ≥ 0.25 m)? | level-designer | Graybox |
+| Real 1 m-deep pond gives about 0.1 m height per 10% band; confirm the outcome rule (≥ 0.8 m of shoreline exposed per band at each viewpoint) reads in the graybox | level-designer | Graybox |
 | More reveals between 30% and 100% (Water Source list) | level-designer | After the MVP |

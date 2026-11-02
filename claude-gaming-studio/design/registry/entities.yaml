@@ -271,10 +271,10 @@ formulas:
       - granted
       - drainedEpsilon
     output_range: [0, remaining]
-    expression: "granted = min(max(amount, 0), remaining); remaining -= granted; if remaining <= drainedEpsilon then remaining = 0"
-    notes: "Called by Hand Tools (tick step 1) and Hose/Storage Network (step 2, already split across pumps). NaN amount counts as 0."
+    expression: "if amount == 0 return 0; if amount < 0 or NaN or infinite: warn, return 0; if drained return 0; granted = min(amount, remaining); if remaining - granted <= drainedEpsilon then granted = remaining; remaining -= granted; if remaining == 0 then drained = true, lastGrant = granted"
+    notes: "Called by Hand Tools (tick step 1) and Hose/Storage Network (step 2b, one call per source, already split across pumps). The leftover below drainedEpsilon (1e-6 L) is granted to the caller, so water is conserved exactly. SourceDrained(source, lastGrantLitres) is raised at step 2d."
     added: 2026-11-02
-    revised: ""
+    revised: 2026-11-02
   - name: drawdown_pct
     status: active
     source: design/gdd/water-source-model.md

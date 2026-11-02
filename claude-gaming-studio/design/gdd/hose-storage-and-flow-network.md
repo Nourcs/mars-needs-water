@@ -106,8 +106,8 @@ deposit a_p into p's pool, entry tank first, then along links in connection orde
 | hoseCap_p | double (L/s) | 1–20 | data file (Economy) | Flow cap of the discharge hose on p (MVP 10) |
 | dt | double (s) | 0.033–0.2 | Game State | Tick length (0.1 at 10 Hz) |
 | space_G | double (L) | 0 and up | calculated | Capacity minus contents of pool G |
-| got_s | double (L) | 0–D_s | Water Source `Withdraw` | Water actually granted |
-| a_p | double (L) | 0 to rate_p × dt | calculated | Litres pump p moves this tick |
+| got_s | double (L) | 0 to D_s + 1e-6 | Water Source `Withdraw` | Water actually granted (may exceed D_s by at most 1e-6 L when it empties the source; Water Source rule 4) |
+| a_p | double (L) | 0 to rate_p × dt (+ its share of ≤ 1e-6 L) | calculated | Litres pump p moves this tick. A pool may end up to 1e-6 L over capacity; it counts as Full and `pool_level` is clamped to 1 for display |
 
 **Output Range:** each pump moves 0 to `min(rate, hoseCap) × dt` per tick (0.8 L per tick for an electric pump at 10 Hz). Space is applied before the source so that a full pool never takes water out of a source; the source split is proportional (Water Source GDD rule 5).
 

@@ -42,7 +42,7 @@ The player holds one hand tool at a time. Each tool has a volume and a cycle tim
 |---|---|---|
 | Empty | held = 0 | Holding (scoop) |
 | Holding | 0 < held < capacity | Full (scoop), Empty (pour all), Holding (partial pour) |
-| Full | held = capacity | Holding or Empty (pour) |
+| Full | held ≥ capacity (a grant that empties a source may exceed the request by up to 1e-6 L; Water Source rule 4) | Holding or Empty (pour) |
 
 ### Interactions with Other Systems
 
@@ -80,6 +80,8 @@ The **hand_rate** formula is defined as:
 
 - **If the player scoops at a source with less than the tool's space**: the tool takes what is left; the source drains (`SourceDrained`).
 - **If a scoop and a pump draw from the same source in one tick**: the scoop is served first (step 1), per Water Source rule 5.
+- **If the player pours into a source** (puddle or pond): rejected (`cannot_deposit`); Water Source has no way to add water, and the tool keeps its water.
+- **If the player scoops at a Drained source**: rejected (`source_dry`), checked by Hand Tools through Water Source `State` (Hand Tools owns this rejection).
 - **If the player pours into a full container**: rejected (`pool_full`); the tool keeps its water; a dull "full" clunk plays.
 - **If the player pours a full bucket into a jerrycan with 3 L of space**: 3 L goes in, 7 L stays in the bucket.
 - **If the player switches tools while holding water**: each tool keeps its own held water.
@@ -133,6 +135,7 @@ The **hand_rate** formula is defined as:
 - **AC-02 [EditMode]** GIVEN an empty bucket at a puddle with 4 L, WHEN a scoop applies, THEN the bucket holds 4 L and `SourceDrained` is raised.
 - **AC-03 [EditMode]** GIVEN a full bucket, WHEN a scoop is requested, THEN `RequestRejected(tool_full)`.
 - **AC-04 [EditMode]** GIVEN a drained source, WHEN a scoop is requested, THEN `RequestRejected(source_dry)`.
+- **AC-05b [EditMode]** GIVEN a bucket holding 5 L, WHEN a pour into the pond is requested, THEN `RequestRejected(cannot_deposit)`, and the pond and the bucket are unchanged.
 - **AC-05 [EditMode]** GIVEN a bucket with 10 L and a jerrycan with 3 L of space, WHEN a pour applies, THEN the jerrycan is full and the bucket keeps 7 L.
 - **AC-06 [EditMode]** GIVEN a spoon scoop and a pump on one source with 0.01 L left, WHEN the tick runs, THEN the spoon gets 0.01 L and the pump 0.
 - **AC-07 [EditMode]** GIVEN the spoon holds 15 mL and the bucket 6 L, WHEN the player switches tools and saves and loads, THEN both values are unchanged.

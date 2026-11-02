@@ -191,7 +191,7 @@ Global rows include: `credits_per_litre` 10, `delivery_delay` 4 s, `pad_crate_sp
 The pond outlasts the ladder (about 70% left at the IBC). The spoon moves about 0.72 L a minute.
 
 **What the real-scale rule costs, and how it is handled:**
-- A real hand pump (1.25 L/s) moves only about 0.5% of the pond during its whole stage (about a 5 mm drop on a 20 m² pond). **Drawdown keeps the 1% threshold and the 1:25 shelf at the pump-intake viewpoint** so the first centimetre reads as 25 cm of exposed mud, which arrives around the motor purchase.
+- A real hand pump (1.25 L/s) moves only about 0.5% of the pond during its whole stage (about a 5 mm drop on a 20 m² pond). **Drawdown keeps the 1% threshold and a shallow intake shelf** shaped from the baked basin so that 1% shows at least 25 cm of exposed mud from the hand-pump handle (Water Source basin outcomes); it arrives around the motor purchase.
 - A real tablespoon cannot visibly lower even the puddle. The spoon gives honest local feedback instead (ripple, a scoop mark in the mud at the puddle edge); the puddle visibly drops from the bucket on.
 - A real 4 L/s electric pump would leave 9–11 minutes between 10% bands. 8 L/s (a real 2-inch pump) keeps them inside the 5-minute target.
 

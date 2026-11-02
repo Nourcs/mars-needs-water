@@ -35,7 +35,7 @@ The radio listens to domain events and plays one line at a time from authored li
 | `DrawdownThreshold` | 4 | 1 per threshold (1%, 2.5%, 5%, 10%, 20%, 30%) | "Ten percent! Accounting has asked me to say: wow." |
 | Milestone (derived by the radio) | 4 | 1 per milestone: first `LaunchCompleted`, first `Purchased` of each pump, first `SourceDrained` | "First launch! Mars thanks you. Mars is very far away, but it thanks you." |
 | `Purchased` | 3 | 1 per item + 3 generic | "The Hand Pump. Ten times the gratitude." |
-| `SourceDrained` | 3 | 2 (puddle), 2 generic | "The puddle has been fully optimised." |
+| `SourceDrained` | 3 | 2 (puddle), 2 generic, plus 1 that reads `lastGrantLitres` | "The puddle has been fully optimised." / "{lastGrantLitres} litres of progress. Thank you." |
 | `LaunchCompleted` | 2 | 12 full lines + 8 short stingers | "Another shipment! Your contribution is noted. Somewhere." |
 | Idle / nag | 1 | 6 (unopened crate after 60 s, no launch for 3 min) | "Your crate misses you." |
 

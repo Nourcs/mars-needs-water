@@ -52,3 +52,6 @@ Remaining non-blocking: AC-R1 field-level schema (Save & Load ADR); off-main-thr
 
 ### Amendment — 2026-11-02 (from the Economy design review, no re-review)
 Rule 12 gains one sentence: simulation systems may change Placement through four direct calls (Rule 5b): `Placement.Spawn`, `Remove`, `Move` and `SetHands`, used only by Economy (crates, unboxing) and the Network (storage swap) in the MVP. Rule 1's Economy slice line now lists crate records (Inbound/Landed/Opened, landed tick). No event or AC changed; status stays Approved.
+
+### Amendment — 2026-11-02 (from the Water Source design review; Nour chose "Fix now, amend Game State")
+Rule 1: the Water Source slice is `{id, start, remaining, drained}` per source; the start copy is the one exception to "start volumes never in state", so tuning the pond never shifts a saved drawdown %. Rule 7: `SourceDrained(source, lastGrantLitres)` (the radio's last-drop line reads the final grant). AC-R1 is unchanged in wording and checks against the amended Rule 1 list. Status stays Approved.
