@@ -17,3 +17,15 @@ Revised-Content-Hash: design/gdd/hand-tools.md d4cffd0bac43f863ca1d0786bc3a56ee1
 Revised-Content-Hash: design/registry/entities.yaml 3699ba8284a65f0f34d18c0aec6dd3f3697fd140
 
 Status after revision: In Review. A fresh /design-review decides whether it is Approved.
+
+## Re-review — 2026-11-04 — Verdict: NEEDS REVISION (then fixed and Approved)
+Review mode: full (fresh re-review)
+Specialists: 2 fresh reviewers (doc-specific pair)
+Reviewed-Content-Hash: design/gdd/hand-tools.md d4cffd0bac43f863ca1d0786bc3a56ee1038ab57
+Prior verdict resolved: Yes (2026-11-02 blockers confirmed fixed)
+
+Fixes from this re-review applied 2026-11-04 (decisions in Nour's review notes, round 1/1b/2), plus a cross-doc pass across Economy, Hose, Pumps, Shipping, Save, HUD, FPC and Game State.
+Revised-Content-Hash: design/gdd/hand-tools.md 2f30e1b66a1275dbe5f1404ee0c05eb48a916627
+Revised-Content-Hash: design/registry/entities.yaml 3699ba8284a65f0f34d18c0aec6dd3f3697fd140
+
+Status after revision: Approved (2026-11-04).

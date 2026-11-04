@@ -17,3 +17,15 @@ Revised-Content-Hash: design/gdd/hud.md 1fa21353e8ae56af028995ddd145723dd3696948
 Revised-Content-Hash: design/registry/entities.yaml 3699ba8284a65f0f34d18c0aec6dd3f3697fd140
 
 Status after revision: In Review. A fresh /design-review decides whether it is Approved.
+
+## Re-review — 2026-11-04 — Verdict: NEEDS REVISION (then fixed and Approved)
+Review mode: full (fresh re-review)
+Specialists: 2 fresh reviewers (doc-specific pair)
+Reviewed-Content-Hash: design/gdd/hud.md 1fa21353e8ae56af028995ddd145723dd3696948
+Prior verdict resolved: Yes (2026-11-02 blockers confirmed fixed)
+
+Fixes from this re-review applied 2026-11-04 (decisions in Nour's review notes, round 1/1b/2), plus a cross-doc pass across Economy, Hose, Pumps, Shipping, Save, HUD, FPC and Game State.
+Revised-Content-Hash: design/gdd/hud.md d555fa9f05723db56d2daa95bae95e9ecb489e59
+Revised-Content-Hash: design/registry/entities.yaml 3699ba8284a65f0f34d18c0aec6dd3f3697fd140
+
+Status after revision: Approved (2026-11-04).

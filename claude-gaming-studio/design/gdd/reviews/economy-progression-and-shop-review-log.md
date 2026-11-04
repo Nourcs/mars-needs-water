@@ -37,3 +37,16 @@ Status after revision: In Review. A fresh /design-review decides whether it is A
 
 ### Amendment — 2026-11-02 (from the batch design review; Nour chose "bucket 6 cr + toggle")
 Bucket price 8 → 6 cr (40 scoops; Rule 9 note). Simulator re-run: bucket 0:55, puddle dry 1:45, barrel 1:50, drum 2:53, hand pump 4:18, motor 7:00, pump2 10:15, IBC 15:40; longest gap 2:42; full mode IBC 17:37 (gap 3:29); lazy IBC 27:20 (gaps 6:15, 5:45). AC-21 spoon step 45–90 s in the sim; AC-33 bucket window 0:50–1:30. `NextItemProgress.litresShort` subtracts the pad pool (shortfall owned by Economy, displayed by HUD); new AC-36. `launch_cycle` lives in the Economy table (globals). Status stays In Review.
+
+## Re-review — 2026-11-04 — Verdict: NEEDS REVISION (then fixed and Approved)
+Review mode: full (fresh re-review)
+Specialists: 2 fresh reviewers (doc-specific pair)
+Reviewed-Content-Hash: design/gdd/economy-progression-and-shop.md 92a7b9366293523d3d15e9177a1186a43cb938ff
+Prior verdict resolved: Yes (2026-11-02 blockers confirmed fixed)
+
+Fixes from this re-review applied 2026-11-04 (decisions in Nour's review notes, round 1/1b/2), plus a cross-doc pass across Economy, Hose, Pumps, Shipping, Save, HUD, FPC and Game State.
+A separate verification pass checked the fixes and found a few small follow-ups (round 2); all applied the same day.
+Revised-Content-Hash: design/gdd/economy-progression-and-shop.md 6033f3c89dfbaaad0b2f3263f175e7bdd8f5b93e
+Revised-Content-Hash: design/registry/entities.yaml 3699ba8284a65f0f34d18c0aec6dd3f3697fd140
+
+Status after revision: Approved (2026-11-04).

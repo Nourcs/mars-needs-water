@@ -35,3 +35,15 @@ Status after revision: In Review. A fresh /design-review decides whether it is A
 ### Amendment — 2026-11-02 (from the batch design review)
 Basin outcomes: 0.8 m shoreline only for the 10–30% bands at the launch-pad viewpoint; below that ≥ 6 cm vertical band separation; lip slopes from the curve. Shopping cart reveal ~15%. Pacing times updated for the 6 cr bucket. Drawdown dependency rows read Available/Start (fraction remaining/start). Pillar name capitalised.
 Revised-Content-Hash: design/gdd/water-source-model.md 4c4940325e5796ddbb359049354024be12bf18ee
+
+## Re-review — 2026-11-04 — Verdict: APPROVED WITH NITS (then fixed and Approved)
+Review mode: full (fresh re-review)
+Specialists: 2 fresh reviewers (doc-specific pair)
+Reviewed-Content-Hash: design/gdd/water-source-model.md 4c4940325e5796ddbb359049354024be12bf18ee
+Prior verdict resolved: Yes (2026-11-02 blockers confirmed fixed)
+
+Fixes from this re-review applied 2026-11-04 (decisions in Nour's review notes, round 1/1b/2), plus a cross-doc pass across Economy, Hose, Pumps, Shipping, Save, HUD, FPC and Game State.
+Revised-Content-Hash: design/gdd/water-source-model.md 2b7c4bc5fc0718a8e2e7ac907ea7ad7d51063c8c
+Revised-Content-Hash: design/registry/entities.yaml 3699ba8284a65f0f34d18c0aec6dd3f3697fd140
+
+Status after revision: Approved (2026-11-04).

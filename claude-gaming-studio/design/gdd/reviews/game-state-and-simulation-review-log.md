@@ -58,3 +58,7 @@ Rule 1: the Water Source slice is `{id, start, remaining, drained}` per source; 
 
 ### Amendment — 2026-11-02 (from the batch design review of 8 GDDs; Nour chose "Fix all")
 Rule 1: Pumps slice is `{id, kind, motorFitted, leverOn, cableSocket|null}` per pump; Running/Stalled/Dry derived at 2a; crank flag never saved. Rule 3: tick-boundary convention (a timer of n ticks started in tick N fires at its owner's step in N+n; a change in tick M is first seen by requests at step 1 of M+1). Rule 12: range measured from the eye point with per-target ranges in data; one pure-C# `PlacementValidator` shared by the ghost and step 1; `PickUp` of a Network node calls `Network.DetachAll(nodeId)`. No event or AC changed; status stays Approved.
+
+## Amendment — 2026-11-04 (no re-review; status stays Approved)
+Cross-doc amendments from the re-reviews of the other 11 MVP docs: Rule 1 Pumps slice adds `cableEndPose`; Rule 12 lists the direct callers (Hand Tools SetHands; Pumps Remove/SetHands and cable-end calls; Network Remove then Move for SwapStorage, SetHands); hands items add `HoseEnd(hoseId,endIdx)` and `CableEnd(pumpId)`; hose-end and cable-end positions are stored by their owners.
+Revised-Content-Hash: design/gdd/game-state-and-simulation.md 15ba9616e84564c7510fd709355c9d3ed8d54dbc

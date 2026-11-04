@@ -1,8 +1,8 @@
 # Corporate Radio
 
-> **Status**: In Review
+> **Status**: Approved (2026-11-04)
 > **Author**: Nour + agents
-> **Last Updated**: 2026-11-02
+> **Last Updated**: 2026-11-04
 > **Last Verified**: 2026-11-02
 > **Implements Pillar**: Pillar 4 (Bleak Corporate Satire); Pillar 3 (The World Shows the Damage)
 
@@ -34,34 +34,35 @@ The radio listens to domain events and plays one line at a time from authored li
 | `Reveal` | 5 | 1 per reveal (dock ~10%, shopping cart ~15%) + 3 generic | "Look at that! The pond is giving back. Heritage assets recovered." |
 | End beat (milestone, derived) | 5 | 2 (one after the first full drum + IBC launch, one if the farm pond runs dry first) | "The quarter is closed. The pond has been fully monetised. Please continue." |
 | `DrawdownThreshold` | 4 | 1 per threshold for 1%, 2.5%, 5%, 10%, 20%, 30%; 3 generic for 40% to 100% | "Ten percent! Accounting has asked me to say: wow." |
-| Milestone (derived by the radio) | 4 | 1 per milestone: first `LaunchCompleted`, first `Purchased` of each pump item (hand pump, electric motor, second electric pump), first `SourceDrained` of each source | "First launch! Mars thanks you for your 6 credits. Mars is very far away, but it thanks you." |
-| `Purchased` | 3 | 1 per item + 3 generic | "The Hand Pump. Ten times the gratitude." |
-| `SourceDrained` | 3 | 2 (puddle), 2 generic, plus 1 that shows `lastGrantLitres` | "The puddle has been fully optimised." / "{lastGrantLitres} litres of progress. Thank you." |
+| Milestone (derived by the radio) | 4 | 2: first `LaunchCompleted`; first pump purchase (the first `Purchased` of an item in `pump_items`) | "First launch! Mars thanks you for your 6 credits. Mars is very far away, but it thanks you." |
+| `SourceDrained` (one-off per source, not a milestone) | 4 | 1 per source: puddle (shows `lastGrantLitres`, Water Source onboarding beat); pond (plays only if the end beat has already played, Rule 13) | "{lastGrantLitres} litres of progress. Thank you." / "The pond has been fully optimised." |
+| `Purchased` | 3 | 1 per item except the hand pump, + 3 generic (the shop order is linear, Economy Rule 6, so the hand pump is always the first pump and plays the first-pump milestone instead) | "The electric motor. Hands-free gratitude." |
 | `LaunchCompleted` | 2 | 12 full lines + 12 stingers | "Another shipment! Your contribution is noted. Somewhere." |
 | Nag | 1 | 3 crate nags + 3 full-pad nags | "Your crate misses you." / "The rocket is ready when you are. It is always ready." |
 
-2. **One event, at most one request.** Each event the radio receives makes at most one request. When an event is also a milestone, the milestone line replaces the base line (the first launch plays only the first-launch line, not a launch line as well). A pump milestone is simply a `Purchased` whose item is a pump item that has no played milestone yet, so the radio needs no memory beyond its played-lines record. The first-launch line shows the payout, computed from `LaunchCompleted.litres` with Economy's pure payout formula (`payout_mc` divided by 1,000, rounded down to whole credits); a 0.6 L spoon launch shows "6 credits", the price of the bucket (Shipping anchor moment).
+2. **One event, at most one request.** Each event the radio receives makes at most one request. When an event is also a milestone, the milestone line replaces the base line (the first launch plays only the first-launch line, not a launch line as well). The first-pump milestone is the first `Purchased` whose item is in `pump_items` (data file: hand pump, electric motor, second electric pump); later pump purchases play their own `Purchased` lines, so the radio needs no memory beyond its played-lines record. A `SourceDrained` is never a milestone: it is a one-off per source (priority 4). The puddle's line shows `lastGrantLitres`; the pond's drain plays the end beat if it has not played, otherwise the pond's drained line (Rule 13). The first-launch line shows the payout, computed from `LaunchCompleted.litres` with Economy's pure payout formula (`payout_mc` divided by 1,000, rounded down to whole credits); a 0.6 L spoon launch shows "6 credits", the price of the bucket (Shipping anchor moment).
 3. **One line at a time, and a protected queue.** If a line is playing, new requests queue, stamped with their event's tick. The queue holds 3 (`queue_max`). When it is full and a request arrives:
-   - if the incoming request has a priority below or equal to the lowest queued priority of 3 or less, the incoming request is dropped;
+   - if the incoming request has priority 3 or less and the queue holds only priority 4 and 5 requests, the incoming request is dropped;
+   - else if the incoming request has a priority below or equal to the lowest queued priority of 3 or less, the incoming request is dropped;
    - otherwise the oldest request with the lowest priority of 3 or less is evicted;
-   - requests of priority 4 and 5 (thresholds, milestones, reveals, end beat) are never evicted and never go stale; if the queue holds only such requests, it grows past `queue_max` for them.
-   A request of priority 3 or less that has waited 100 ticks (10 s) is dropped as stale news.
-4. **Played means received.** A one-off line (milestone, threshold, reveal, end beat) is marked played when its event arrives at the step 3 flush of tick N, not when its audio ends. A save at step 4 of the same tick therefore always agrees with what the radio will play, and a protected request is never lost.
-5. **Launch lines, stingers and the light (electric stage).** Every launch gets a reaction (the Pillar 4 test). The flood is the electric stage: from the motor (~7:00) to the IBC (~15:40) there are about 25 launches, one every 15 to 25 s, overlapping four thresholds, both reveals and two purchases. The early hand stages have only about 6 launches in the first 5 minutes. When a launch request reaches the front of the queue (decided at play time, not at queue time):
+   - requests of priority 4 and 5 (thresholds, milestones, reveals, end beat) are never evicted and never go stale; if the queue holds only such requests, it grows past `queue_max` for incoming priority 4 and 5 requests.
+   A request of priority 3 or less that has waited 100 ticks (10 s) is dropped as stale news. A launch request that is dropped (on arrival or as stale) or evicted still blinks the radio's light once, in the tick it is dropped or evicted, so every launch gets a reaction (Rule 5).
+4. **Played means received.** A one-off line (milestone, source drained, threshold, reveal, end beat) is marked played when its event arrives at the step 3 flush of tick N, not when its audio ends. A save at step 4 of the same tick therefore always agrees with what the radio will play, and a protected request is never lost.
+5. **Launch lines, stingers and the light (electric stage).** Every launch gets a reaction (the Pillar 4 test). The flood is the electric stage: from the motor (~7:00) to the IBC (~15:40) there are about 28 launches, one every 15 to 25 s, overlapping five thresholds (1% at about 7:06, then 2.5%, 5%, 10% and 20%), both reveals and two purchases. The early hand stages have only about 6 launches in the first 5 minutes. When a launch request reaches the front of the queue (decided at play time, not at queue time):
    - if the last full launch line was 45 s or more ago (`stinger_window`), a full line plays;
    - else if the last spoken launch reaction (full line or stinger) was 30 s or more ago (`stinger_min_interval`), a stinger plays (1 to 3 words: "Received!", "Thank you!", "Noted.");
    - else the radio's light blinks once with a click and nothing is spoken. The blink counts as the launch's reaction.
-   In the reference run this gives about 15 full lines, 12 stingers and 8 light-only launches.
+   In the reference run (sim3, eager mode) this gives approximately 11 full lines, 6 to 8 stingers and 9 to 11 light-only launches out of 28. Light-only reactions are about a third of the electric stage, which is the AC-19 watch item; `stinger_min_interval` stays at 30 s. Launch requests dropped or evicted from the queue also blink the light (Rule 3).
 6. **No repeats.** Within a pool, a line is not reused until all others have played (shuffle bag), and never twice in a row across a reshuffle. Shuffles use a `System.Random` owned by the radio, never shared with the simulation.
 7. **Figures in subtitles only.** Lines may show litres, credits, item names or the Earth counter ("…1,385,999,999,999,999,998,800 litres to go!"). Values come from the event payload or a read of state. The number appears only in the subtitle; the voice clip says something generic ("that many litres", "your credits"), so every clip can be pre-recorded.
 8. **Simulation clock.** All radio timers (stale age, stinger window and interval, gap, nag delays, reveal delay, line duration) run on an injected radio clock that reads Game State's tick count, so time advances only while Running. Durations in seconds become whole ticks with `max(1, round(s/dt))` (Game State Rule 8). A timer of n ticks started in tick N fires in tick N+n (Game State Rule 3). On `Paused` the radio pauses its audio source; on `Resumed` it resumes it. The radio state is not changed by a pause.
 9. **Line duration and subtitles.** A line occupies the radio for `display_time = max(audio_duration, 1.5 s + 50 ms per character)`, with `audio_duration` read from the pool data, not from the audio source. This works at volume 0 and in EditMode tests. Subtitles show for the same time. They are on by default and can be turned off in settings.
 10. **Gaps.** After any line, 2 s of silence before the next.
-11. **Reveal delay.** A reveal line starts 1.8 s (`reveal_delay`, 1.5 to 2 s) after its `Reveal` event, so the player hears Drawdown's quiet sting and sees the object first, and the cheer comes second. The reveal request waits at the front of the queue during the delay.
+11. **Reveal delay.** A reveal line starts 1.8 s (`reveal_delay`, 1.5 to 2 s) after its `Reveal` event, so the player hears Drawdown's quiet sting and sees the object first, and the cheer comes second. The reveal request waits at the front of the queue during the delay. While the head request is a reveal inside its delay, the radio is in the Idle, reveal pending state and no other line starts, even one that is already due. For reveal lines only, the reveal delay overrides the 0.5 s start target (Game Feel). The company jingle plays inside this delay, after the sting, so it adds no time.
 12. **Nags.** Nags are checked only when the radio is Idle with an empty queue, so they never queue or go stale.
     - **Crate nag:** fires once per crate, when the crate is still unopened 600 ticks (60 s) after its `landedTick` (Economy AC-31). It is exempt from the 90 s silence rule.
-    - **Full-pad nag:** fires when the pad pool is full (read from the Network slice) and 600 ticks (60 s) have passed since that pool's latest `PoolFull` with no `LaunchCompleted` since. It also needs 90 s with no other line, and fires at most once until the next launch. It never fires while the player is filling the pad, however long that takes (the hand-pump stage can run 160 to 290 s between launches).
-13. **End beat.** The radio derives the end beat itself: the first `LaunchCompleted` whose litres are at least the drum + IBC pool capacity (1,200 L, read from the tuning table), or, if that has not happened, the farm pond's `SourceDrained` (Economy Rule 14 and its pond-dry edge case). It plays once.
+    - **Full-pad nag:** the pad pool is the Network pool that holds the pad tank, the tank on the storage spot (found by spot through Placement, Hose Rule 5). The nag fires when the pad pool is full (read from the Network slice) and 600 ticks (60 s) have passed since that pool's latest `PoolFull` with no `LaunchCompleted` since. It also needs 90 s with no other line, and fires at most once until the next launch. It never fires while the player is filling the pad, however long that takes (the hand-pump stage can run 160 to 290 s between launches). After a load or a pool rebuild the Network sets the Full flag without raising `PoolFull`, so the radio reads the pad pool then and, if it is Full, sets `padFullTick` to the tick of the load or rebuild.
+13. **End beat.** The radio derives the end beat itself: the first `LaunchCompleted` whose litres are at least `end_beat_capacity − 1e-6` (the Network's Full tolerance, Hose Rule 9; `end_beat_capacity` is the drum + IBC pool capacity, 1,200 L, in the radio data file), or, if that has not happened, the farm pond's `SourceDrained` (Economy Rule 14 and its pond-dry edge case). It plays once. A pond `SourceDrained` that arrives after the end beat has played plays the pond's drained line instead.
 14. **Ducking.** While the radio speaks, other audio ducks by 4 dB.
 15. **Never blocks play.** The radio never pauses the game, never needs input, and can be turned down or off in settings.
 16. **Satire rule for writing:** the radio only ever celebrates. It never mentions harm directly; the irony comes from what the player sees at the same moment.
@@ -70,9 +71,10 @@ The radio listens to domain events and plays one line at a time from authored li
 
 | State | Condition | Can go to |
 |---|---|---|
-| Idle | No line playing, queue empty | Speaking (request arrives and is due, or a nag fires) |
+| Idle | No line playing, queue empty | Speaking (request arrives and is due, or a nag fires); Idle, reveal pending (a `Reveal` arrives) |
+| Idle, reveal pending | No line playing; the head request is a reveal inside its `reveal_delay` (Rule 11); other requests may be queued behind it, and none starts | Speaking (the delay ends and the reveal line starts) |
 | Speaking | A line is playing, for its `display_time` | Gap (line ends) |
-| Gap | 2 s silence | Speaking (a queued request is due); Idle |
+| Gap | 2 s silence | Speaking (a queued request is due); Idle, reveal pending (the head request is a reveal still inside its delay); Idle |
 
 The light-only launch reaction does not change state. A pause freezes the current state and its timers (Rule 8).
 
@@ -83,8 +85,8 @@ Saved: only the stable string IDs of one-off lines that have played (milestones,
 | System | This system gives | This system takes |
 |---|---|---|
 | Game State | Played-lines record (for save) | Events: `LaunchCompleted`, `Purchased`, `DrawdownThreshold`, `Reveal`, `SourceDrained`, `PoolFull`, `Paused`, `Resumed`; the tick count (radio clock); a read of credits and totals. The radio derives milestones and the end beat itself (there is no Milestone event) and keeps its played-lines record outside simulation state. |
-| Economy | — | Item names and kinds; the pure payout formula; crate records (`landedTick`, opened or not); Earth counter; drum + IBC capacity |
-| Hose, Storage & Flow Network | — | Pad pool contents and capacity; `PoolFull` |
+| Economy | — | Item names and kinds; the pure payout formula; crate records (`landedTick`, opened or not); Earth counter (the radio's `end_beat_capacity` and `pump_items` live in its own data file and must match Economy's tuning table) |
+| Hose, Storage & Flow Network | — | Pad pool (the pool holding the tank on the storage spot, found through Placement): contents, capacity and Full flag; `PoolFull` |
 | Drawdown Visuals & Reveals | — | `DrawdownThreshold`, `Reveal` (threshold and reveal data are Drawdown's) |
 | Water Source | — | `SourceDrained(source, lastGrantLitres)` |
 | Save & Load | Played one-off line IDs (presentation block) | The same on load |
@@ -96,7 +98,7 @@ Saved: only the stable string IDs of one-off lines that have played (milestones,
 
 The **line_choice** rule is defined as:
 
-`next = highest priority due request (ties: oldest); if next is LaunchCompleted: if now − last_full_launch_line ≥ stinger_window then pool = full launch lines; else if now − last_launch_reaction ≥ stinger_min_interval then pool = stingers; else blink light, no line; line = shuffle_bag(pool).draw()`
+`head = highest priority queued request (ties: oldest); if head is a Reveal and now < head.tick + reveal_delay: no line starts (Idle, reveal pending); else next = highest priority due request (ties: oldest); if next is LaunchCompleted: if now − last_full_launch_line ≥ stinger_window then pool = full launch lines; else if now − last_launch_reaction ≥ stinger_min_interval then pool = stingers; else blink light, no line; line = shuffle_bag(pool).draw()`
 
 The **display_time** rule is defined as:
 
@@ -118,7 +120,11 @@ The **full_pad_nag** condition is defined as:
 | queue_max | int | 2–5 | data file | Default 3 (priority 4–5 may exceed it) |
 | audio_duration | double (s) | 0.3–8 | pool data file | Per line |
 | subtitle_min, per_char | double (s) | 1.0–2.5, 0.03–0.08 | data file | Defaults 1.5 s and 0.05 s |
-| padFullTick | long (ticks) | — | runtime | Tick of the latest `PoolFull` for the pad pool |
+| padFullTick | long (ticks) | — | runtime | Tick of the latest `PoolFull` for the pad pool, or of the latest load or pool rebuild that found the pad pool Full |
+| head.tick | long (ticks) | — | runtime | Tick of the head request's event |
+| reveal_delay | double (s) | 1.5–2 | data file | Default 1.8 s |
+| end_beat_capacity | double (L) | 200–1,200 | data file | Default 1,200 L (drum + IBC pool); compared with the Full tolerance 1e-6 L |
+| pump_items | set of item IDs | — | data file | Hand pump, electric motor, second electric pump |
 | full_pad_nag_delay | double (s) | 30–180 | data file | Default 60 s |
 | idle_gate | double (s) | 60–180 | data file | Default 90 s |
 
@@ -127,7 +133,7 @@ The **full_pad_nag** condition is defined as:
 ## Edge Cases
 
 - **If a threshold and a reveal happen in the same tick**: the reveal plays first (priority 5) after its 1.8 s delay; the threshold line queues and is never dropped.
-- **If three launches happen during a long reveal line**: queue limits apply to the launch requests only; any launch request that waits 100 ticks is dropped. Thresholds and milestones queued behind the reveal always play.
+- **If three launches happen during a long reveal line**: queue limits apply to the launch requests only; any launch request that waits 100 ticks is dropped and blinks the light once. Thresholds and milestones queued behind the reveal always play.
 - **If the player buys and launches at once**: the purchase line plays first.
 - **If a one-off line's event arrives just before a save**: it is already marked played, so it is not replayed after loading, even if its audio had not started.
 - **If the game is paused mid-line**: the audio pauses and the radio clock stops; on resume the line continues and no queued request has aged.
@@ -135,7 +141,11 @@ The **full_pad_nag** condition is defined as:
 - **If a line's figure is huge (Earth counter)**: the subtitle shows digit groups; the voice clip is generic ("a great many litres to go").
 - **If a threshold above 30% passes**: it draws from the 3 generic threshold lines (shuffle bag); it is still a one-off by its own ID (for example `threshold_40`).
 - **If several thresholds pass in one tick** (Game State edge case): each makes its own protected request, in ascending order.
-- **If the pond runs dry before the first full drum + IBC launch**: the pond-dry end-beat line plays; the other end-beat line never plays.
+- **If the pond runs dry before the first full drum + IBC launch**: the pond-dry end-beat line plays; the other end-beat line never plays, and neither does the pond's drained line.
+- **If the pond runs dry after the end beat has played**: the pond's drained line plays (priority 4, one-off).
+- **If the puddle runs dry**: its one-off line plays with `lastGrantLitres` in the subtitle, rounded to one decimal (9.19 L shows as "9.2 litres of progress").
+- **If a priority 1 to 3 request arrives at a full queue of priority 4 and 5 requests**: it is dropped; if it is a launch, the light blinks once.
+- **If a game is loaded, or the pools are rebuilt, with the pad pool already Full**: no `PoolFull` arrives, so `padFullTick` is set to that tick and the full-pad nag can fire 600 ticks later.
 - **If the pool for an event is empty** (missing content): nothing plays; one warning is logged per pool; a one-off is still marked played.
 
 ## Dependencies
@@ -162,12 +172,12 @@ The **full_pad_nag** condition is defined as:
 ## Visual/Audio Requirements
 
 - A chunky company radio on a post by the launch pad with a small light that glows while it speaks and blinks once (with a soft click) for a light-only launch reaction; the voice is positional near the pad and also mixed lightly into the player's ears so it's always audible.
-- A three-note company jingle before one-off lines (milestones, thresholds, reveals, end beat).
-- MVP: placeholder voice (Nour's recording or text-to-speech) for about 70 lines, all with generic spoken figures; final voice cast later.
+- A three-note company jingle before one-off lines (milestones, source drained, thresholds, reveals, end beat). For a reveal it plays inside the 1.8 s reveal delay, after Drawdown's sting; for other one-off lines it plays at the start of the line, inside its `display_time`. It never adds time, so the AC-04 and AC-14 ticks are unchanged.
+- MVP: placeholder voice (Nour's recording or text-to-speech) for about 60 lines, all with generic spoken figures; final voice cast later.
 
 ## Game Feel
 
-- A line should start within 0.5 s of its event when the radio is free, except reveal lines, which start 1.8 s after the reveal (Rule 11).
+- A line should start within 0.5 s of its event when the radio is free, except reveal lines, which start 1.8 s after the reveal (Rule 11). The reveal delay overrides this target for reveals only, and no other line starts while it runs.
 - Lines are short: full lines 2–6 s of audio, stingers under 1 s of audio (on screen for at least the subtitle minimum).
 
 ## UI Requirements
@@ -195,11 +205,11 @@ Tests use `FakeRadioClock` (settable tick count, dt 0.1 s), `StubLinePools` (fix
 - **AC-01 [EditMode]** GIVEN an idle radio and no launch milestone played, WHEN the first `LaunchCompleted(0.6)` is delivered at tick 0, THEN exactly one request is made, it is the first-launch milestone line, no launch-pool line plays, and its subtitle reads "6 credits".
 - **AC-02 [EditMode]** GIVEN an idle radio and the first-launch milestone played, WHEN `LaunchCompleted` is delivered, THEN one full launch line is chosen.
 - **AC-03 [EditMode]** GIVEN a full launch line started at tick 0, WHEN a launch is due at tick 300, THEN a stinger plays; WHEN another launch is due at tick 400, THEN only the light blinks and `SpyRadioAudio` records no play; WHEN another is due at tick 450, THEN a full line plays.
-- **AC-04 [EditMode]** GIVEN `Reveal(dock)` and `DrawdownThreshold(pond, 10)` delivered in tick 0, THEN the reveal line starts at tick 18 (display time 25 ticks) and the threshold line starts at tick 63, after the 20-tick gap.
-- **AC-05 [EditMode]** GIVEN a queue holding priorities 2, 2, 3, WHEN a priority 3 request arrives, THEN the older priority 2 request is evicted; GIVEN a queue holding priorities 3, 3, 3, WHEN a priority 2 request arrives, THEN the incoming request is dropped.
+- **AC-04 [EditMode]** GIVEN `Reveal(dock)` and `DrawdownThreshold(pond, 10)` delivered in tick 0, THEN no line starts in ticks 0 to 17 (Idle, reveal pending), the reveal line starts at tick 18 (display time 25 ticks) and the threshold line starts at tick 63, after the 20-tick gap; the jingle plays inside the reveal delay and adds no ticks.
+- **AC-05 [EditMode]** GIVEN a queue holding priorities 2, 2, 3, WHEN a priority 3 request arrives, THEN the older priority 2 request is evicted, and if it is a launch request the light blinks once in that tick and `SpyRadioAudio` records no play; GIVEN a queue holding priorities 3, 3, 3, WHEN a priority 2 request arrives, THEN the incoming request is dropped; GIVEN a queue holding priorities 4, 5, 4, WHEN a priority 2 launch request arrives, THEN it is dropped, the queue still holds 3 requests and the light blinks once.
 - **AC-06 [EditMode]** GIVEN a queue holding 3 priority 4 requests, WHEN a priority 4 request arrives, THEN the queue holds 4 and none is dropped.
-- **AC-07 [EditMode]** GIVEN a priority 2 request queued at tick 0 behind a long line, THEN it is still queued at tick 99 and dropped unplayed at tick 100; GIVEN a priority 4 request queued at tick 0, THEN it is still queued at tick 1,000.
-- **AC-08 [EditMode]** GIVEN a pool of 12 full launch lines, WHEN 13 launches arrive 500 ticks apart, THEN launches 1 to 12 use each line exactly once and launch 13's line differs from launch 12's.
+- **AC-07 [EditMode]** GIVEN a priority 2 request queued at tick 0 behind a long line, THEN it is still queued at tick 99 and dropped unplayed at tick 100 (if it is a launch request, the light blinks once at tick 100); GIVEN a priority 4 request queued at tick 0, THEN it is still queued at tick 1,000.
+- **AC-08 [EditMode]** GIVEN the first-launch milestone already played and a pool of 12 full launch lines, WHEN 13 launches arrive 500 ticks apart, THEN launches 1 to 12 use each line exactly once and launch 13's line differs from launch 12's.
 - **AC-09 [EditMode]** GIVEN `DrawdownThreshold(pond, 10)` delivered at step 3 of tick N, WHEN a save is taken at step 4 of tick N and loaded, THEN `threshold_10` is in the played block, no 10% line plays after load, and the save holds no shuffle-bag data.
 - **AC-10 [EditMode]** GIVEN the radio volume is 0, WHEN a milestone fires, THEN its subtitle shows for its display time and the line is marked played.
 - **AC-11 [EditMode]** GIVEN a line playing from tick 0 and a priority 2 request queued at tick 10, WHEN `Paused` is delivered, 300 s of wall time pass with `FakeRadioClock` at tick 20, and `Resumed` is delivered, THEN `SpyRadioAudio` records pause then resume, and the request is still queued.
@@ -207,14 +217,18 @@ Tests use `FakeRadioClock` (settable tick count, dt 0.1 s), `StubLinePools` (fix
 - **AC-13 [EditMode]** GIVEN `StubStateView` with the pad pool filling (not full) and no launch for 3,000 ticks, THEN no nag plays; GIVEN `PoolFull(pad)` at tick 0, no launch and no line since tick -1,000, THEN a full-pad nag plays at tick 600, and none at tick 601 to 5,000.
 - **AC-14 [EditMode]** GIVEN a line of 60 characters with 1.0 s audio, THEN the radio stays Speaking for 45 ticks and `SpySubtitleSink` shows it for 45 ticks; GIVEN a 4.0 s line of 20 characters, THEN 40 ticks.
 - **AC-15 [EditMode]** GIVEN `DrawdownThreshold(pond, 40)`, THEN a line from the 3 generic threshold lines plays and `threshold_40` is marked played.
-- **AC-16 [EditMode]** GIVEN the IBC owned and drum + IBC capacity 1,200 L, WHEN `LaunchCompleted(1200)` is delivered, THEN the end-beat line plays once; WHEN the farm pond's `SourceDrained` arrives later, THEN no end-beat line plays.
+- **AC-16 [EditMode]** GIVEN the IBC owned and `end_beat_capacity` 1,200 L, WHEN `LaunchCompleted(1199.9999995)` is delivered, THEN the end-beat line plays once (likewise for `LaunchCompleted(1200)`); WHEN the farm pond's `SourceDrained` arrives later, THEN no end-beat line plays and the pond's drained line plays once; GIVEN a fresh radio, WHEN `LaunchCompleted(1199.99)` is delivered, THEN no end-beat line plays.
 - **AC-17 [EditMode]** GIVEN an empty pool for `Purchased`, WHEN `Purchased` fires twice, THEN nothing plays and exactly one warning is logged.
 - **AC-18 [PlayMode]** GIVEN an idle radio, WHEN `Purchased` fires, THEN audio starts within 0.5 s and `SpyRadioAudio` records a −4 dB duck.
 - **AC-19 [Manual]** GIVEN a 15–20 minute MVP session, WHEN Nour plays it, THEN the radio never feels like noise in the electric stage (7:00 to 15:40), the dock and shopping-cart reveals each land as a joke after the sting, and no nag plays while they are filling the pad (MVP test b, satire check).
+- **AC-20 [EditMode]** GIVEN no drained line played, WHEN `SourceDrained(puddle, 9.19)` is delivered, THEN exactly one priority 4 request is made, it is the puddle's drained line (not a milestone), its subtitle contains "9.2 litres of progress", and the puddle's drained line ID is marked played.
+- **AC-21 [EditMode]** GIVEN the end beat not played, WHEN the farm pond's `SourceDrained` is delivered, THEN the pond-dry end-beat line plays once and the pond's drained line does not play.
+- **AC-22 [EditMode]** GIVEN `pump_items` = {hand pump, electric motor, second electric pump} and no pump bought, WHEN `Purchased(hand pump)` and later `Purchased(electric motor)` are delivered, THEN the first plays the first-pump milestone line and the second plays the electric motor's `Purchased` line.
+- **AC-23 [EditMode]** GIVEN a load at tick 5,000 with the pad pool (the pool holding the tank on the storage spot) Full, no `PoolFull` delivered, no launch and no line since tick 4,000, THEN `padFullTick` = 5,000, no full-pad nag plays at tick 5,599 and a full-pad nag plays at tick 5,600.
 
 ## Creative Alignment (CD-GDD-ALIGN)
 
-**Verdict: APPROVED (self-check, 2026-11-02; batch design review 2026-11-02 found NEEDS REVISION, revised the same day).** Pillar 4 is carried entirely by the gap between the radio's cheer and the drained landscape; Rule 16 keeps it from preaching, and every launch still gets a reaction (line, stinger or light). Pillar 3: thresholds and reveals are the radio's biggest moments, protected from being dropped, and reveal lines wait for the sting. Watch item: launch-line fatigue in the electric stage (Rule 5).
+**Verdict: APPROVED (self-check, 2026-11-02; batch design review 2026-11-02 found NEEDS REVISION, revised the same day).** Pillar 4 is carried entirely by the gap between the radio's cheer and the drained landscape; Rule 16 keeps it from preaching, and every launch still gets a reaction (line, stinger or light). Pillar 3: thresholds and reveals are the radio's biggest moments, protected from being dropped, and reveal lines wait for the sting. Watch item: launch-line fatigue in the electric stage (Rule 5; about 9 to 11 of its 28 launches are light-only).
 
 ## Open Questions
 

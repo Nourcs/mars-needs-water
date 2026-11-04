@@ -46,17 +46,17 @@ Mars Needs Water is a first-person incremental game about physically draining Ea
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
 | 1 | Game State & Simulation (inferred; includes Play Log events) | Core | MVP | Approved | design/gdd/game-state-and-simulation.md | — |
-| 2 | First-Person Controller & Interaction | Core | MVP | In Review | design/gdd/first-person-controller-and-interaction.md | Game State |
-| 3 | Economy, Progression & Shop | Economy | MVP | In Review | design/gdd/economy-progression-and-shop.md | Game State |
-| 4 | Water Source Model | Gameplay | MVP | In Review | design/gdd/water-source-model.md | Game State, Economy |
-| 5 | Hose, Storage & Flow Network | Gameplay | MVP | In Review | design/gdd/hose-storage-and-flow-network.md | Game State, Interaction, Water Source Model, Economy |
-| 6 | Hand Tools (spoon, bucket) | Gameplay | MVP | In Review | design/gdd/hand-tools.md | Interaction, Water Source Model, Hose/Storage Network, Economy |
-| 7 | Pumps & Machines (hand pump, electric motor) | Gameplay | MVP | In Review | design/gdd/pumps-and-machines.md | Hose/Storage Network, Interaction, Game State, Economy |
-| 8 | Shipping & Launch | Gameplay | MVP | In Review | design/gdd/shipping-and-launch.md | Hose/Storage Network, Economy, Interaction |
-| 9 | Drawdown Visuals & Reveals | Gameplay | MVP | In Review | design/gdd/drawdown-visuals-and-reveals.md | Water Source Model (events); glacier faces as Water Source nodes in VS |
-| 10 | Corporate Radio | Narrative | MVP | In Review | design/gdd/corporate-radio.md | Game State (events, incl. drawdown and reveals) |
-| 11 | Save & Load (minimal JSON) | Persistence | MVP | In Review | design/gdd/save-and-load.md | Game State |
-| 12 | HUD (credits, tank level) | UI | MVP | In Review | design/gdd/hud.md | Hose/Storage Network, Economy |
+| 2 | First-Person Controller & Interaction | Core | MVP | Approved | design/gdd/first-person-controller-and-interaction.md | Game State |
+| 3 | Economy, Progression & Shop | Economy | MVP | Approved | design/gdd/economy-progression-and-shop.md | Game State |
+| 4 | Water Source Model | Gameplay | MVP | Approved | design/gdd/water-source-model.md | Game State, Economy |
+| 5 | Hose, Storage & Flow Network | Gameplay | MVP | Approved | design/gdd/hose-storage-and-flow-network.md | Game State, Interaction, Water Source Model, Economy |
+| 6 | Hand Tools (spoon, bucket) | Gameplay | MVP | Approved | design/gdd/hand-tools.md | Interaction, Water Source Model, Hose/Storage Network, Economy |
+| 7 | Pumps & Machines (hand pump, electric motor) | Gameplay | MVP | Approved | design/gdd/pumps-and-machines.md | Hose/Storage Network, Interaction, Game State, Economy |
+| 8 | Shipping & Launch | Gameplay | MVP | Approved | design/gdd/shipping-and-launch.md | Hose/Storage Network, Economy, Interaction |
+| 9 | Drawdown Visuals & Reveals | Gameplay | MVP | Approved | design/gdd/drawdown-visuals-and-reveals.md | Water Source Model (events); glacier faces as Water Source nodes in VS |
+| 10 | Corporate Radio | Narrative | MVP | Approved | design/gdd/corporate-radio.md | Game State (events, incl. drawdown and reveals) |
+| 11 | Save & Load (minimal JSON) | Persistence | MVP | Approved | design/gdd/save-and-load.md | Game State |
+| 12 | HUD (credits, tank level) | UI | MVP | Approved | design/gdd/hud.md | Hose/Storage Network, Economy |
 | 13 | Audio Feedback (inferred; MVP placeholder pour/pump/launch sounds owned by Hand Tools, Pumps, Shipping) | Audio | Vertical Slice | Not Started | — | Game State (events) |
 | 14 | Ice Harvesting | Gameplay | Vertical Slice | Not Started | — | Interaction, Game State, Economy, Water Source Model (glacier face = source node) |
 | 15 | Ice Handling & Processing | Gameplay | Vertical Slice | Not Started | — | Ice Harvesting, Hose/Storage Network |
