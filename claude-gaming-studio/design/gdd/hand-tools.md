@@ -2,13 +2,13 @@
 
 > **Status**: In Review
 > **Author**: Nour + agents
-> **Last Updated**: 2026-11-02
+> **Last Updated**: 2026-11-02 (revised after the 2026-11-02 batch design review)
 > **Last Verified**: 2026-11-02
-> **Implements Pillar**: Pillar 1 (Start Tiny, End Enormous); Pillar 2 (Hands-On Craft)
+> **Implements Pillar**: Pillar 1 (Start Tiny, End Enormous); Pillar 2 (Hands on the Machinery)
 
 ## Summary
 
-Hand Tools are the spoon and the bucket: the player scoops water from a source, carries it, and pours it into the active storage container. Every scoop is a request applied on the next tick, so the water taken from the source always equals the water held and poured. They are the first 4–5 minutes of the game, and the bucket stays useful after pumps arrive.
+Hand Tools are the spoon and the bucket: the player scoops water from a source, carries it, and pours it into the active storage container. Every scoop is a request applied on the next tick, so the water taken from the source always equals the water held and poured. They carry the first 4 minutes or so of the game (hand pump at about 4:18), and the bucket stays useful after pumps arrive.
 
 > **Quick reference** — Layer: `Core gameplay` · Priority: `MVP` · Key deps: `Water Source Model`, `Hose, Storage & Flow Network`, `Economy`
 
@@ -18,7 +18,7 @@ The player holds one hand tool at a time. Each tool has a volume and a cycle tim
 
 ## Player Fantasy
 
-**"Start with a spoon."** The joke and the promise of the game in one object: you are sent to drain a planet's water with a tablespoon. Each scoop is tiny and honest (a ripple, a scoop mark in the mud), the bucket feels like a huge upgrade, and the 10 L jerrycan fills on every trip so you are always running back to launch. When the hand pump arrives you feel how far you have come.
+**"Start with a spoon."** The joke and the promise of the game in one object: you are sent to drain a planet's water with a tablespoon. Each scoop is tiny and honest (a ripple, a scoop mark in the mud), and 40 of them buy you a bucket. The bucket feels like a huge upgrade: you fill the 10 L jerrycan, launch, and wait for the next rocket, which is exactly why the 100 L barrel then feels like never waiting. When the hand pump arrives you feel how far you have come.
 
 - **Anchor moment:** the first bucket scoop: a heavy slosh, the camera dips with the weight, and the puddle visibly drops.
 - **Tone:** comic but sincere effort (Pillars 1 and 2). No auto-scoop, no hold-to-repeat in the MVP.
@@ -27,33 +27,56 @@ The player holds one hand tool at a time. Each tool has a volume and a cycle tim
 
 ### Core Rules
 
-1. **One tool in hand.** The player switches between owned tools whose crate has been opened (Economy rule 8) with number keys or the scroll wheel. Switching takes 0.3 s. A tool that holds water keeps it while put away (held water is per tool).
-2. **Scoop:** pressing Use while aiming at a source within 2 m submits `Scoop(tool, source)`. At the next tick (step 1), the tool receives `Withdraw(source, capacity − held)`. A scoop with a full tool, or at a drained source, is rejected (`tool_full`, `source_dry`). The animation plays at once (Game State latency rule); the tool's scoop cooldown (spoon 1.25 s, bucket 1 s; Economy table) limits how often a scoop can be submitted. Trip times are level-design targets, never timers.
-3. **Spoon:** 15 mL capacity, 1.25 s per scoop. The spoon holds one scoop, so the loop is scoop, turn, pour. The spoon stage is set up with the 10 L jerrycan beside the puddle so a scoop-pour cycle is about 1.25 s.
-4. **Bucket:** 10 L capacity, one scoop fills it. Carrying a full bucket slows walking to 75% speed. A trip (scoop, walk to storage, pour, walk back) is about 5 s at the puddle and about 20 s from the farm pond at the MVP layout; these are level-design targets, not timers.
-5. **Pour:** pressing Use while aiming at a storage container within 2 m submits `Pour(tool, container)`, applied at tick step 1 with the network's pour rule (`poured = min(held, space)`; the rest stays in the tool). Pouring takes 0.8 s for the bucket, 0.3 s for the spoon.
-6. **Puddle first:** the level places the 40 L starter puddle beside the storage spot so the spoon stage needs no walking; the bucket stage starts at the puddle and moves to the farm pond when the puddle dries (about 2 minutes in).
+1. **One tool in hand.** The player switches between usable tools with the tool-switch input (bindings live in the First-Person Controller's binding table). A tool is **owned** from purchase (or from the start, for the spoon) and **usable** only once its crate is Opened (Economy rule 8). Switching sends `SelectTool` (Requests, below). The 0.3 s switch is a viewmodel animation, not a timer in state; during it the input gate sends no Scoop or Pour for that player. A tool that leaves the hands for any reason (`SelectTool`, an unboxing `Placement.SetHands`, picking up another item) is **stowed**: it has no pose in the world and keeps its own held water.
+2. **Scoop:** pressing Use while aiming at a source within 2 m of the eye point (pose + eye height; Game State Rule 12) submits `Scoop(issuer, tool, source)`. At the next tick (step 1), after validation, the tool receives `Withdraw(source, capacity − held)`. The animation and sound play at once on the press (Game State latency rule); the tool's scoop cooldown (spoon 1.25 s, bucket 1 s; Economy table) limits how often a scoop can be sent. Trip times are level-design targets, never timers.
+3. **Spoon:** 15 mL capacity, 1.25 s per scoop. The spoon holds one scoop, so the loop is scoop, aim, pour. The bucket costs 6 cr, which is 40 spoon scoops (0.6 L) launched (Economy rule 9). **Level rule:** the 10 L jerrycan stands beside the puddle so that the scooping spot and the jerrycan are inside one view; a scoop-pour cycle needs no turn and takes about 1.25 s.
+4. **Bucket:** 10 L capacity, one scoop fills it. While the bucket is Full, walking slows to 75% speed (the controller applies it from the Hand Tools state; First-Person Controller AC-01). A trip (scoop, walk to storage, pour, walk back) is about 5 s at the puddle and about 20 s from the farm pond at the MVP layout; these are level-design targets, not timers.
+5. **Pour:** pressing Use while aiming at a storage container within 2 m of the eye point submits `Pour(issuer, tool, container)`, applied at tick step 1 with the network's pour rule (`poured = min(held, pool space)`; the rest stays in the tool; water enters the tank aimed at, then flows along its links, Hose rule 5). Pouring takes 0.8 s for the bucket and 0.3 s for the spoon.
+6. **Puddle first:** the level places the 40 L starter puddle beside the storage spot so the spoon stage needs no walking; the bucket stage starts at the puddle and moves to the farm pond when the puddle dries (about 1:45 at the reference pace).
 7. **Spilling:** none in the MVP. Water in a tool is never lost (no tipping, no evaporation).
 8. **Bucket stays useful:** after pumps arrive, the bucket can still top off a tank or be poured into the drum. Nothing removes it.
+9. **Ownership and grants.** At purchase Economy calls `HandTools.Grant(player, tool)` directly in the same step 1 (Game State 5b), which adds the tool's held entry at 0 L. That is ownership only. The tool becomes usable when its crate is Opened, and it arrives in the issuer's hands through `Placement.SetHands` (Economy rule 8); the tool previously in hands is stowed with its water. `Purchased` is a notification and never changes this slice.
+10. **Input gate (presentation, per player).** One component decides when a Use or switch press becomes a request. All times use the presentation clock.
+    - **Scoop cooldown** starts when a Scoop request is sent, whatever its result (a rejected scoop still uses its cooldown). It blocks only further Scoops.
+    - **Pour lock** lasts the pour time (bucket 0.8 s, spoon 0.3 s) from when a Pour is sent. It blocks both Scoop and Pour. The scoop cooldown does not block a Pour, so a spoon cycle is scoop at 0 s, pour at about 0.5 s, next scoop at 1.25 s.
+    - **Switch lock** lasts 0.3 s from a `SelectTool` press and blocks Scoop and Pour.
+    - **Buffer:** a Use press up to 0.15 s before a cooldown or lock ends is kept and sent the moment it ends. Only one press is buffered; earlier presses are dropped with no request and no queueing.
+    - In co-op the host will re-check cooldowns; in the MVP the gate is the only check.
+11. **Near-empty display.** A held amount at or below 1e-6 L counts as Empty for prompts and display ("0.0 / 10 L", Scoop prompt). The residue is kept in the slice and counted in conservation.
+12. **Spoonful counter.** While the spoon is in hand, a small "Spoonful #N" line shows beside the held amount, where N counts accepted spoon scoops since the session was loaded. It is presentation only, never saved, and restarts on load (accepted). At N = 10, 25 and 40 a one-off crosshair quip shows for 3 s from the Hand Tools string table (placeholder copy: "Spoonful #10. The shareholders are moved."; "Spoonful #25. Hydration targets: in sight."; "Spoonful #40. That is a bucket. Go launch it.").
+
+### Requests (owned here)
+
+Every request carries its issuer's `PlayerId` (0 in the MVP) and is validated at step 1. Rejections raise `RequestRejected(issuer, reason)` and change nothing. Checks run in the order listed; the first failure is the reason. The player-facing text for each code lives in the First-Person Controller's rejection-text column.
+
+| Request | Sent by | Effect when accepted | Rejection codes (in check order) |
+|---|---|---|---|
+| `SelectTool(issuer, tool)` | Controller, on the tool-switch input (FPC row 7) | Hand Tools calls `Placement.SetHands(issuer, tool)`; the old hand tool is stowed with its water. Selecting the tool already in hands is accepted with no call and no event | `not_owned` (tool not in the Hand Tools slice), `crate_unopened` (owned, crate not Opened), `hands_full` (hands hold a non-tool item: hose end, cable end, crate, pump; drop it first) |
+| `Scoop(issuer, tool, source)` | Controller, Use on a source | `got = Withdraw(source, capacity − held)`; `held += got` | `too_far` (eye point to the source's scoop point over 2 m), `not_in_hand` (tool is not the hands item), `tool_full` (held ≥ capacity), `source_dry` (Water Source `State` is Drained). No `Withdraw` call is made for any rejection |
+| `Pour(issuer, tool, container)` | Controller, Use on a container or source | Network pour rule; `held −= poured` | `too_far`, `not_in_hand`, `tool_empty` (held ≤ 1e-6), `cannot_deposit` (target is a source; defensive, since Use on a source always sends Scoop), then the Network's `not_installed` (container on the staging spot, Network rule 13) and `pool_full` (Network rule 9) |
 
 ### States and Transitions
 
 | State | Condition | Can go to |
 |---|---|---|
-| Empty | held = 0 | Holding (scoop) |
-| Holding | 0 < held < capacity | Full (scoop), Empty (pour all), Holding (partial pour) |
+| Empty | held ≤ 1e-6 L | Holding or Full (scoop) |
+| Holding | 1e-6 < held < capacity | Full (scoop), Empty (pour all), Holding (partial pour) |
 | Full | held ≥ capacity (a grant that empties a source may exceed the request by up to 1e-6 L; Water Source rule 4) | Holding or Empty (pour) |
+
+Separately, each owned tool is In hands or Stowed (Placement hands item).
 
 ### Interactions with Other Systems
 
 | System | This system gives | This system takes |
 |---|---|---|
-| Game State | Held water per tool (Hand Tools slice); scoop and pour requests | Tick step 1 |
-| Water Source Model | `Withdraw` calls (step 1, before pumps) | Water granted |
-| Hose/Storage Network | Pour requests | Litres accepted |
-| Economy | — | Volume and cycle per tool; `Purchased(bucket)` |
-| Interaction | — | Aim target and Use input |
-| Drawdown, Audio | Scoop and pour events for ripples, scoop marks, sounds | — |
+| Game State | Held water per tool (Hand Tools slice); `Grant` method; validation of `SelectTool`, `Scoop`, `Pour` | Tick step 1 |
+| Placement (Game State Rule 12) | `Placement.SetHands(issuer, tool)` direct call on an accepted `SelectTool` | Hands item (which tool is in hands; whether hands hold a non-tool item); issuer pose for range |
+| Water Source Model | `Withdraw` calls (step 1, before pumps) | Water granted; `State` for `source_dry` |
+| Hose/Storage Network | Pour requests | Litres accepted; `pool_full` |
+| Economy | — | Volume, scoop cooldown, pour time per tool; `Grant` call at purchase; crate state (usable once Opened); unboxed tool arrives via `Placement.SetHands` |
+| First-Person Controller & Interaction | Prompt state (Scoop, Pour, Full), Full flag for the 75% speed, rejection codes | Aim target, Use and tool-switch input (binding table), rejection text |
+| HUD | Held amount, spoonful counter, quips | — |
+| Drawdown, Audio | Presentation cues on press (ripple, scoop mark, sounds); not domain events | — |
 
 ## Formulas
 
@@ -65,10 +88,10 @@ The **scoop** formula is defined as:
 | Variable | Type | Range | Source | Description |
 |----------|------|-------|--------|-------------|
 | capacity | double (L) | 0.01–12 | data file (Economy) | Tool capacity (spoon 0.015, bucket 10) |
-| held | double (L) | 0–capacity | Game State | Water in the tool |
-| got | double (L) | 0–capacity | Water Source | Water granted |
+| held | double (L) | 0 to capacity + 1e-6 | Game State | Water in the tool |
+| got | double (L) | 0 to capacity − held + 1e-6 | Water Source | Water granted (may exceed the request by up to `drainedEpsilon` = 1e-6 L when it empties the source) |
 
-**Output Range:** 0 to capacity per scoop. A bucket at a puddle with 4 L left gets 4 L.
+**Output Range:** 0 to capacity − held + 1e-6 per scoop. A bucket at a puddle with 4 L left gets 4 L; at a puddle with 10.0000005 L it gets 10.0000005 L and is Full.
 
 The **hand_rate** formula is defined as:
 
@@ -78,21 +101,25 @@ The **hand_rate** formula is defined as:
 
 ## Edge Cases
 
-- **If the player scoops at a source with less than the tool's space**: the tool takes what is left; the source drains (`SourceDrained`).
+- **If the player scoops at a source with less than the tool's space**: the tool takes what is left; the source drains and Water Source raises `SourceDrained(source, lastGrantLitres)` once at step 2d of the same tick.
 - **If a scoop and a pump draw from the same source in one tick**: the scoop is served first (step 1), per Water Source rule 5.
-- **If the player pours into a source** (puddle or pond): rejected (`cannot_deposit`); Water Source has no way to add water, and the tool keeps its water.
-- **If the player scoops at a Drained source**: rejected (`source_dry`), checked by Hand Tools through Water Source `State` (Hand Tools owns this rejection).
-- **If the player pours into a full container**: rejected (`pool_full`); the tool keeps its water; a dull "full" clunk plays.
+- **If the player pours into a source** (puddle or pond): rejected (`cannot_deposit`); Water Source has no way to add water, and the tool keeps its water. Normal input cannot reach this (Use on a source sends Scoop); the check is defensive.
+- **If the player scoops at a Drained source**: rejected (`source_dry`), checked by Hand Tools through Water Source `State` before any `Withdraw` call.
+- **If a full tool scoops at a Drained source**: rejected `tool_full` (checked before `source_dry`).
+- **If the player pours into a full container**: rejected (`pool_full`, Network); the tool keeps its water; a dull "full" clunk plays.
 - **If the player pours a full bucket into a jerrycan with 3 L of space**: 3 L goes in, 7 L stays in the bucket.
+- **If a pour leaves a sub-microlitre residue** (10.0000005 L into 10 L of space): 5e-7 L stays in the bucket, shown as "0.0 / 10 L" with the Scoop prompt; the residue is kept.
 - **If the player switches tools while holding water**: each tool keeps its own held water.
+- **If a crate unboxes a tool while another hand tool is in hands**: the old tool is stowed with its water and the new tool is in hands.
+- **If the player tries to select a tool while carrying a hose end, crate or pump**: rejected `hands_full`.
 - **If the player saves while holding water**: held water is saved and restored exactly.
-- **If the player spams Use faster than the cycle**: extra presses are ignored (no queueing); no request is sent.
-- **If the player aims at nothing valid**: the Use press does nothing and the crosshair shows no prompt.
+- **If the player spams Use faster than the cycle**: presses before the buffer window are dropped; one press within 0.15 s of the end is sent when the cooldown ends.
+- **If the player aims at nothing valid**: the Use press sends nothing and the crosshair shows no prompt.
 
 ## Dependencies
 
-**Upstream:** Game State (Hard, slice and step 1), Water Source Model (Hard, `Withdraw`), Hose/Storage Network (Hard, pour rule), Economy (Hard, tool values), First-Person Controller & Interaction (Hard, aim and Use).
-**Downstream:** Drawdown Visuals (Soft, ripples and scoop marks), Audio (Soft), Onboarding (Soft, the spoon is the tutorial), Save & Load (Hard).
+**Upstream:** Game State (Hard, slice, step 1 and Placement `SetHands`), Water Source Model (Hard, `Withdraw` and `State`), Hose/Storage Network (Hard, pour rule), Economy (Hard, tool values, `Grant`, crate state), First-Person Controller & Interaction (Hard, aim, Use, binding table, rejection text).
+**Downstream:** HUD (Soft, held amount and counter), Drawdown Visuals (Soft, ripples and scoop marks), Audio (Soft), Onboarding (Soft, the spoon is the tutorial), Save & Load (Hard).
 
 ## Tuning Knobs
 
@@ -100,10 +127,13 @@ The **hand_rate** formula is defined as:
 |---|---|---|---|
 | Spoon capacity / cycle | 15 mL / 1.25 s | 10–30 mL / 1–2 s | Economy table |
 | Bucket capacity | 10 L | 8–12 L | Economy table |
-| Full-bucket walk speed | 75% | 60–90% | Weight feel; affects trip time |
-| Use range | 2 m | 1.5–3 m | — |
+| Pour time (lock) | bucket 0.8 s / spoon 0.3 s | 0.2–1.2 s | Economy table |
+| Full-bucket walk speed | 75% | 60–90% | Controller carry multiplier; affects trip time |
+| Use range (eye point) | 2 m | 1.5–3 m | — |
 | Bucket trip at MVP layout | ~5 s puddle / ~20 s pond | 3–8 s / 15–30 s | Level-design targets |
-| Tool switch time | 0.3 s | 0.2–0.5 s | — |
+| Tool switch time | 0.3 s | 0.2–0.5 s | Presentation lock |
+| Input buffer | 0.15 s | 0–0.25 s | 0 turns buffering off |
+| Spoonful quip counts | 10 / 25 / 40 | any, at most 3 | String table |
 
 ## Visual/Audio Requirements
 
@@ -115,43 +145,72 @@ The **hand_rate** formula is defined as:
 
 - Animation and sound start on the press, before the tick.
 - The bucket should feel heavy but never tiring: slower walk, not slower turning.
+- A buffered press feels like a hit, not a miss: the 0.15 s buffer keeps the spoon rhythm from dropping inputs.
 
 ## UI Requirements
 
-- Crosshair prompt: "Scoop", "Pour", or "Full". The held amount appears beside the crosshair while holding ("7.0 / 10 L").
+- Crosshair prompt: "Scoop", "Pour", or "Full". The held amount appears beside the crosshair while holding ("7.0 / 10 L"); at or below 1e-6 L it shows "0.0".
+- "Spoonful #N" line and the three quips while the spoon is in hand (Rule 12).
+- The cue to launch the spoon water is the shared shortfall line, not a Hand Tools prompt: Economy's `NextItemProgress.litresShort` counts the pad pool, so the HUD reads "Enough aboard: LAUNCH to afford" once 0.6 L is in the jerrycan, and the LAUNCH lever hover reads "Launch: pays N cr" (Shipping).
 
 ## Cross-References
 
 | This document | References | Why |
 |---|---|---|
-| Rules 2, 5 | `design/gdd/game-state-and-simulation.md` | Step-1 requests; AC-X1 |
-| Rule 2, Edge Cases | `design/gdd/water-source-model.md` | `Withdraw`, caller order, spoon feedback |
-| Rule 5 | `design/gdd/hose-storage-and-flow-network.md` | Pour rule |
-| Values | `design/gdd/economy-progression-and-shop.md` | Tool volumes, cycles, storage ladder |
+| Rules 1, 2, 5, 9, Requests | `design/gdd/game-state-and-simulation.md` | Step-1 requests, Rule 3 tick boundaries, Rule 5b direct calls, Rule 12 eye point and `SetHands`; AC-X1, AC-E20 |
+| Rule 2, Requests, Edge Cases | `design/gdd/water-source-model.md` | `Withdraw`, `drainedEpsilon`, caller order, `State`, `SourceDrained` at 2d |
+| Rule 5 | `design/gdd/hose-storage-and-flow-network.md` | Pour rule, `pool_full`, entry tank (rules 5, 9) |
+| Values, Rules 1, 3, 9 | `design/gdd/economy-progression-and-shop.md` | Tool volumes, cycles, bucket 6 cr, crate states, `litresShort` |
+| Rules 1, 4, Requests | `design/gdd/first-person-controller-and-interaction.md` | Binding table, rejection text, carry speed |
 
 ## Acceptance Criteria
 
-- **AC-01 [EditMode]** GIVEN an empty bucket at a pond with 20,000 L, WHEN a scoop applies, THEN the bucket holds 10 L and the pond 19,990 L.
-- **AC-02 [EditMode]** GIVEN an empty bucket at a puddle with 4 L, WHEN a scoop applies, THEN the bucket holds 4 L and `SourceDrained` is raised.
-- **AC-03 [EditMode]** GIVEN a full bucket, WHEN a scoop is requested, THEN `RequestRejected(tool_full)`.
-- **AC-04 [EditMode]** GIVEN a drained source, WHEN a scoop is requested, THEN `RequestRejected(source_dry)`.
-- **AC-05b [EditMode]** GIVEN a bucket holding 5 L, WHEN a pour into the pond is requested, THEN `RequestRejected(cannot_deposit)`, and the pond and the bucket are unchanged.
-- **AC-05 [EditMode]** GIVEN a bucket with 10 L and a jerrycan with 3 L of space, WHEN a pour applies, THEN the jerrycan is full and the bucket keeps 7 L.
-- **AC-06 [EditMode]** GIVEN a spoon scoop and a pump on one source with 0.01 L left, WHEN the tick runs, THEN the spoon gets 0.01 L and the pump 0.
-- **AC-07 [EditMode]** GIVEN the spoon holds 15 mL and the bucket 6 L, WHEN the player switches tools and saves and loads, THEN both values are unchanged.
-- **AC-08 [EditMode]** GIVEN 100 scoop-and-pour cycles, THEN source loss equals storage gain exactly (relative 1e-9).
-- **AC-09 [PlayMode]** GIVEN the player presses Use at a source, THEN the scoop sound plays in the same frame and held water updates by the next tick.
-- **AC-10 [PlayMode]** GIVEN the player presses Use 5 times within one spoon cycle, THEN exactly one scoop request is sent.
-- **AC-11 [Manual]** GIVEN the MVP layout, WHEN a typical player does bucket trips from the pond to the storage spot, THEN a trip takes 15–25 s.
-- **AC-12 [Manual]** GIVEN the first bucket scoop at the puddle, THEN the player can see the puddle drop.
+**Test doubles:** `FakeTuningTable` (spoon 0.015 L, 1.25 s scoop cooldown, 0.3 s pour; bucket 10 L, 1 s, 0.8 s), `StubWaterSource` (settable remaining and State, real grant rule with `drainedEpsilon` 1e-6, records every `Withdraw` call), `StubNetwork` (pour rule `min(held, space)` with settable space, raises `pool_full`), `StubEconomy` (owned tools and crate states), `StubPlacement` (settable hands item and issuer pose, records `SetHands` calls), `EventBusSpy`, `RequestSpy` (requests sent by the input gate), `LogSpy`, `FakeClock`, `FakeInput`, `AudioSpy`, `StubSave` (round-trips the Hand Tools and Placement slices). Player is issuer 0, within range, tool in hands, unless stated.
+
+**Scoop**
+- **AC-01 [EditMode]** GIVEN an empty bucket and `StubWaterSource` pond at 20,000 L, WHEN a scoop applies, THEN the bucket holds 10 L, the pond 19,990 L, and exactly 1 `Withdraw(pond, 10)` is recorded.
+- **AC-02 [EditMode]** GIVEN an empty bucket and the puddle at 4 L, WHEN a scoop applies at step 1 of tick T, THEN the bucket holds 4 L, the puddle is 0 and Drained, and `EventBusSpy` records `SourceDrained(puddle, 4.0)` exactly once, at step 2d of tick T.
+- **AC-03 [EditMode]** GIVEN a bucket holding 10 L and the pond at 20,000 L, WHEN a scoop is requested, THEN `RequestRejected(0, tool_full)`, 0 `Withdraw` calls, and the pond is 20,000 L.
+- **AC-04 [EditMode]** GIVEN an empty bucket and a Drained puddle, WHEN a scoop is requested, THEN `RequestRejected(0, source_dry)` and 0 `Withdraw` calls.
+- **AC-05 [EditMode]** GIVEN a bucket holding 10 L and a Drained puddle, WHEN a scoop is requested, THEN the reason is `tool_full` (not `source_dry`) and 0 `Withdraw` calls.
+- **AC-06 [EditMode]** GIVEN an empty bucket and the puddle at 10.0000005 L, WHEN a scoop applies, THEN the bucket holds 10.0000005 L (±1e-12), the puddle is 0, and the state is Full; WHEN a second scoop is requested, THEN `RequestRejected(0, tool_full)`, no further `Withdraw` call, and `LogSpy` records no warning.
+- **AC-07 [EditMode]** GIVEN `StubPlacement` puts the issuer's eye point 2.5 m from the puddle's scoop point, WHEN a scoop is requested, THEN `RequestRejected(0, too_far)` and 0 `Withdraw` calls; at 1.9 m, THEN the scoop applies.
+- **AC-08 [EditMode]** GIVEN a spoon scoop and a pump on one source with 0.01 L left, WHEN the tick runs, THEN the spoon gets 0.01 L and the pump 0.
+
+**Pour**
+- **AC-09 [EditMode]** GIVEN a bucket holding 5 L, WHEN a pour into the pond is requested, THEN `RequestRejected(0, cannot_deposit)`, and the pond and the bucket are unchanged.
+- **AC-10 [EditMode]** GIVEN a bucket with 10 L and a jerrycan with 3 L of space, WHEN a pour applies, THEN the jerrycan is full and the bucket keeps 7 L.
+- **AC-11 [EditMode]** GIVEN a bucket with 10.0000005 L and a jerrycan with 10 L of space, WHEN a pour applies, THEN the jerrycan is full, the bucket keeps 5e-7 L (±1e-12), its state is Empty, the display reads "0.0 / 10 L" and the prompt at a source is "Scoop"; WHEN a pour is requested, THEN `RequestRejected(0, tool_empty)`.
+- **AC-12 [EditMode]** GIVEN a bucket with 10 L and a drum on the storage spot holding 150 of 200 L, WHEN a pour applies, THEN the drum holds 160 L and the bucket 0 L. GIVEN a full pool, THEN `RequestRejected(0, pool_full)` (Network AC-12).
+- **AC-13 [EditMode]** GIVEN a spoon, the puddle at 40 L and an empty jerrycan, WHEN 100 scoop-and-pour cycles apply, THEN puddle loss = jerrycan gain = 1.5 L (relative 1e-9) and the spoon holds 0 L.
+
+**Tool selection and grants**
+- **AC-14 [EditMode]** GIVEN the spoon in hands holding 0.015 L and the bucket owned with its crate Opened, WHEN `SelectTool(0, bucket)` applies, THEN `StubPlacement` records `SetHands(0, bucket)` and the spoon still holds 0.015 L. GIVEN the bucket crate Landed, THEN `RequestRejected(0, crate_unopened)` and no `SetHands`. GIVEN the bucket not owned, THEN `not_owned`. GIVEN the hands item is a hose end, THEN `hands_full`. GIVEN `SelectTool(0, spoon)` with the spoon in hands, THEN no `SetHands` call, no rejection and no event.
+- **AC-15 [EditMode]** GIVEN the bucket in hands, WHEN `SelectTool(0, spoon)` applies, THEN `SetHands(0, spoon)` is recorded and the stowed bucket keeps its water.
+- **AC-16 [EditMode]** GIVEN a new game, WHEN Economy calls `Grant(0, bucket)` at step 1, THEN the slice holds a bucket entry at 0 L before step 2a, and a scoop with the bucket is rejected (`not_in_hand`) until its crate is Opened and `SetHands(0, bucket)` runs. GIVEN `EventBusSpy` replays `Purchased(0, bucket, crate)` with no `Grant` call, THEN the slice is unchanged.
+- **AC-17 [EditMode]** GIVEN the spoon holds 0.015 L and the bucket 6 L, bucket in hands, WHEN `StubSave` saves and loads, THEN both values are unchanged and the hands item is the bucket.
+- **AC-18 [EditMode]** GIVEN a bucket holding 10 L, THEN Hand Tools reports Full (the controller applies 0.75); GIVEN 7 L, THEN Holding (no slow).
+
+**Input gate** (EditMode, `FakeClock`, `FakeInput`, `RequestSpy`, spoon aimed at the puddle unless stated)
+- **AC-19 [EditMode]** GIVEN Use presses at 0, 0.2, 0.4, 0.6 and 1.0 s, THEN exactly 1 Scoop is sent (at 0 s); WHEN a further press comes at 1.15 s, THEN a second Scoop is sent at 1.25 s, not before.
+- **AC-20 [EditMode]** GIVEN a full spoon, WHEN Use is pressed at 0 s, THEN a Scoop is sent (rejected later as `tool_full`) and a press at 0.5 s sends nothing (the rejected scoop used its cooldown).
+- **AC-21 [EditMode]** GIVEN a spoon scoop sent at 0 s and the jerrycan aimed at, WHEN Use is pressed at 0.5 s, THEN a Pour is sent at 0.5 s (the scoop cooldown does not block pours). GIVEN a bucket Pour sent at 0 s, WHEN Use presses at 0.3 and 0.6 s, THEN nothing is sent; WHEN a press comes at 0.8 s, THEN a request is sent.
+- **AC-22 [EditMode]** GIVEN a tool-switch press at 0 s, WHEN Use is pressed at 0.1 s, THEN nothing is sent and the press is dropped (outside the 0.15 s buffer); WHEN Use is pressed at 0.2 s, THEN it is buffered and the request is sent at 0.3 s.
+
+**Presentation and playtest**
+- **AC-23 [PlayMode]** GIVEN the player presses Use at a source, THEN `AudioSpy` records the scoop sound in the same frame, and the held amount updates within 0.2 s (2 ticks).
+- **AC-24 [PlayMode]** GIVEN the spoon in hands, WHEN 40 spoon scoops are accepted, THEN the crosshair reads "Spoonful #40" and the quips showed once each at 10, 25 and 40.
+- **AC-25 [Manual]** GIVEN the MVP layout, WHEN Nour times 5 bucket trips from the pond to the storage spot with a stopwatch, THEN the median is 15–25 s. (Water Source estimates 12–14 s on flat ground; if this fails, adjust the layout or `TRIP_POND` in the simulator and re-run it.)
+- **AC-26 [Manual]** GIVEN the first bucket scoop at the puddle, WHEN screenshots are taken from the storage spot before and after, THEN the puddle edge recedes by at least 10 cm (Water Source AC-24).
+- **AC-27 [Manual]** GIVEN a first-time tester (not Nour) on a fresh MVP run, WHEN the play log is read, THEN the bucket is in hand within 60–90 s of play time.
 
 ## Creative Alignment (CD-GDD-ALIGN)
 
-**Verdict: APPROVED (self-check, 2026-11-02).** Pillar 1 starts literally with a spoon; Pillar 2 keeps every hand-stage litre physical. Watch item: the spoon stage is set to the concept's 60–90 s joke (about 75 s in the Economy pacing simulator, bucket at 8 cr); if it drags in playtest, lower the bucket price.
+**Verdict: APPROVED (self-check, 2026-11-02; batch design review found NEEDS REVISION, revised the same day).** Pillar 1 starts literally with a spoon; Pillar 2 ("Hands on the Machinery") keeps every hand-stage litre physical. The spoon window is now set by Nour's D1: the bucket costs 6 cr (40 scoops, 0.6 L), bought at about 0:55 in the simulator (in hand about 1:07) and about 70 s at a real 1.6 s cycle, inside the concept's 60–90 s. The no-turn jerrycan layout and the shortfall line carry the rest. Watch item: AC-27 with a first-time tester.
 
 ## Open Questions
 
 | Question | Owner | Resolve by |
 |---|---|---|
-| Hold-to-repeat scooping for the spoon (accessibility) | ux-designer | `/ux-design` |
+| Hold-to-repeat scooping for the spoon (accessibility); the "Hold actions: Hold / Toggle" setting (D2) does not cover scooping, which has no hold | ux-designer | `/ux-design` |
 | Spilling when running with a full bucket (more craft, more friction) | game-designer | First MVP playtest |

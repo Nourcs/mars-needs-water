@@ -17,7 +17,7 @@ The rule for how much water is left in each source and how it leaves. In the MVP
 
 The Water Source Model is the rule for how much water is left in each body of water the player works, and how it leaves. Each source (in the MVP, a small **starter puddle** on the launch-pad apron and the **farm pond**) starts with a designed volume and loses exactly what the player takes, by spoon, bucket or pump, until it is empty. It never refills. Other systems take water through one operation, `Withdraw`, which returns what was actually taken, and read it through `Available`, `Start`, `DrawdownPct` and `State`. It knows nothing about pipes, tanks or pumps; the Hose/Storage Network decides how much pumps pull each tick, and Drawdown Visuals & Reveals turns the remaining volume into a visible waterline, stain bands and reveals.
 
-The player meets this system directly: it is the thing they are taking apart. Without it, nothing in the world could shrink, and Pillar 3 ("the world shows the damage") would have nothing to show.
+The player meets this system directly: it is the thing they are taking apart. Without it, nothing in the world could shrink, and Pillar 3 ("The World Shows the Damage") would have nothing to show.
 
 *Framing: both the data layer and its player effect (recommended for `Gameplay`). No existing ADR to cite. Fantasy: direct.*
 
@@ -72,7 +72,7 @@ States are derived from `remaining` and the drained flag whenever they are read,
 | Economy, Progression & Shop | — | Start volume per source id (copied at new game) |
 | Hand Tools | `Withdraw` for scoops; `State` for its own `source_dry` rejection | Scoop withdrawals at step 1 |
 | Hose, Storage & Flow Network | `Available`, `Withdraw` | Pump demand already split across pumps (step 2b) |
-| Drawdown Visuals & Reveals | `Available`, `Start`, `DrawdownPct`, `SourceDrained` | — |
+| Drawdown Visuals & Reveals | `Available`, `Start` (Drawdown works from remaining/start in litres), `SourceDrained` | — |
 | Corporate Radio | `SourceDrained(source, lastGrantLitres)` (the "last drop" line) | — |
 | Save & Load | The slice (`id, start, remaining, drained`) | — |
 | Ice Harvesting (Vertical Slice) | `Withdraw` all-or-nothing for a block (not built in MVP) | Block size in water-equivalent litres |
@@ -107,10 +107,10 @@ The **drawdown_pct** formula is defined as:
 **Output Range:** 0 to 100.
 **Example:** a 20,000 L pond with 9,000 L left is 55% drained.
 
-**MVP sizes: puddle 40 L, farm pond 20,000 L** (both real-world sizes under the real-scale rule; the pond's final volume is the baked basin figure within 18,000–25,000 L). Check against the Economy GDD's pacing simulator (spoon 15 mL scoops into a 10 L jerrycan to ~1:14, bucket with 10 L → 100 L → 200 L storage to ~4:38, hand pump 1.25 L/s to ~7:20, electric 8 L/s, second electric pump at ~10:35, IBC at ~16:00):
+**MVP sizes: puddle 40 L, farm pond 20,000 L** (both real-world sizes under the real-scale rule; the pond's final volume is the baked basin figure within 18,000–25,000 L). Check against the Economy GDD's pacing simulator (spoon 15 mL scoops into a 10 L jerrycan to ~0:55, bucket with 10 L → 100 L → 200 L storage to ~4:18, hand pump 1.25 L/s to ~7:00, electric 8 L/s, second electric pump at ~10:15, IBC at ~15:40):
 - Typical session: the pond is about 30% drained at about 16 minutes, when the IBC arrives (model includes lever, rocket-cycle and delivery time). The pond outlasts the ladder, unlike the prototype's 6,000 L lake.
-- Hand work moves about 0.25% of the pond by the time the hand pump is bought, and the hand pump about another 0.5%, which is why the puddle exists. A real spoon moves about 0.72 L in a minute, too little to lower even the puddle visibly, so the spoon shows local feedback (ripple, scoop mark); the puddle visibly drops from the first bucket trip (~1:26) and is dry at about 2:04.
-- **Requirement on Drawdown (not optional):** the real hand pump drains only about 0.5% of the pond in its whole stage (a few millimetres). The pond must have drawdown thresholds at **1%, 2.5% and 5%** (about 7:25, 8:05 and 9:07), then every 10%. The basin must meet the visibility outcomes in Visual/Audio Requirements. Gaps between visible changes stay at or under about 2.7 minutes for the reference player (about 6.3 minutes for a lazy launcher; Economy GDD), inside the 5-minute requirement (Drawdown rule 9).
+- Hand work moves about 0.25% of the pond by the time the hand pump is bought, and the hand pump about another 0.5%, which is why the puddle exists. A real spoon moves about 0.72 L in a minute, too little to lower even the puddle visibly, so the spoon shows local feedback (ripple, scoop mark); the puddle visibly drops from the first bucket trip (~1:07) and is dry at about 1:45.
+- **Requirement on Drawdown (not optional):** the real hand pump drains only about 0.5% of the pond in its whole stage (a few millimetres). The pond must have drawdown thresholds at **1%, 2.5% and 5%** (about 7:06, 7:45 and 8:48), then every 10%. The basin must meet the visibility outcomes in Visual/Audio Requirements. Gaps between visible changes stay at or under about 2.7 minutes for the reference player (about 5:45 for a lazy launcher, counting the shopping-cart reveal at about 15%; Economy GDD and Drawdown Rule 10), inside the 5-minute requirement (Drawdown Rule 10).
 
 *Formulas and sizing from `systems-designer`; puddle and basin reasoning from `level-designer`; revised after design review 1.*
 
@@ -145,7 +145,7 @@ The **drawdown_pct** formula is defined as:
 |---|---|---|
 | Hose, Storage & Flow Network (`design/gdd/hose-storage-and-flow-network.md`) | Hard | `Available`, `Withdraw` |
 | Hand Tools (`design/gdd/hand-tools.md`) | Hard | `Withdraw` for scoops; `State` for `source_dry` |
-| Drawdown Visuals & Reveals (`design/gdd/drawdown-visuals-and-reveals.md`) | Hard | `Available`, `Start`, `DrawdownPct`, `SourceDrained` |
+| Drawdown Visuals & Reveals (`design/gdd/drawdown-visuals-and-reveals.md`) | Hard | `Available`, `Start` (fraction remaining/start), `SourceDrained` |
 | Corporate Radio (`design/gdd/corporate-radio.md`) | Soft | `SourceDrained(source, lastGrantLitres)` |
 | Save & Load (`design/gdd/save-and-load.md`) | Hard | Slice |
 | Ice Harvesting (VS), Regions (Alpha), Network Spike | Hard | Glacier faces as sources; dormant sources; synced volume |
@@ -163,23 +163,24 @@ The **drawdown_pct** formula is defined as:
 ## Visual/Audio Requirements
 
 - The water plane's height must always follow the remaining volume through a curve baked from the basin (owned by Drawdown and the level asset), and must be interpolated between ticks with Game State's `alpha`, so it never steps.
-- **Basin outcomes for the level (targets, not slopes):** graybox the pond at about 6 × 5 m at the surface and 1 m deep, bake the volume-to-height curve, then shape slopes to meet these at each named viewpoint:
+- **Basin outcomes for the level (targets, not slopes):** graybox the pond at about 6 × 5 m at the surface and 1 m deep, bake the volume-to-height curve, then shape slopes from the curve to meet these at the named viewpoints:
   - at 1% drained, at least 25 cm of exposed mud on the intake shelf seen from the hand-pump handle (Drawdown AC-07 tests ≥ 20 cm); shelf slope = 25 cm ÷ the height drop at 1% from the baked curve (about 1:35–1:40 on a 25–30 m² surface);
-  - every 10% band exposes at least 0.8 m of shoreline at each viewpoint (1:8 beach lips);
+  - at the launch-pad viewpoint only, the 10%, 20% and 30% bands each expose at least 0.8 m of shoreline on the lip facing the pad deck; lip slope = band drop ÷ 0.8 m from the baked curve (about 1:12 for the 10% band, which drops about 6.7 cm), not a fixed ratio;
+  - from 40% to 100%, adjacent bands are at least 6 cm apart vertically on the walls, so they read as separate rings from the pad deck (Drawdown AC-17);
   - a deep central pit holds the last 5–10%, so the finale is a puddle again.
-- **Named viewpoints:** (1) the hand-pump handle on the shelf top, within 3 m of the original shoreline so the 6 m suction hose reaches the pit; (2) the launch pad, where the player stands through the electric stage, with the pad deck raised 1.5–2 m and a 1:8 lip on the shore facing it so stain bands read from about 18 m; (3) the bucket beach.
+- **Named viewpoints:** (1) the hand-pump handle on the shelf top, within 3 m of the original shoreline so the 6 m suction hose reaches the pit; (2) the launch pad, where the player stands through the electric stage, with the pad deck raised 1.5–2 m and a lip on the shore facing it, sloped from the curve (Drawdown Rule 6), so stain bands read from about 18 m; (3) the bucket beach.
 - **Starter puddle:** a pothole puddle on the pad apron beside the storage spot: a shallow skirt about 1.6 × 1.2 m with a 1:15 rim holding about 30 L, so each bucket pulls the edge back about 10 cm, and a central pothole about 15 cm deep holding the last 7–10 L, so the final bucket dip is believable.
 - **Scooping:** a splash, ripple and a scoop mark in the mud per scoop. A spoon cannot visibly lower the puddle (real 15 mL scoops); the puddle visibly drops per bucket trip. On the pond, hand tools move nothing visible, which is the joke.
 - **Pumping:** continuous; the waterline creeps visibly within a minute at electric scale; the intake hums, then sputters when the source is Low.
 - **Drained:** a wet-mud surface, a final drip sound, and a beat of silence before the radio line.
-- Reveal placement per band is owned by Drawdown Visuals & Reveals (level designer suggestions recorded there: dock and "Swim Safe" sign at 10%, cart and rowboat at 20–30%, a car at 50%, a wreck and a corporate pipe intake at 70–80%, the pit, last puddle and a company time capsule at 90–100%).
+- Reveal placement per band is owned by Drawdown Visuals & Reveals (level designer suggestions recorded there: dock and "Swim Safe" sign at 10%, shopping cart at about 15%, rowboat at 20–30%, a car at 50%, a wreck and a corporate pipe intake at 70–80%, the pit, last puddle and a company time capsule at 90–100%).
 
 *`art-director` not consulted for this section; visual requirements come from the concept's Visual Identity Anchor and the `level-designer`. Review at `/art-bible`.*
 
 ## Game Feel
 
 - **Every scoop registers immediately:** the splash, sound and tool weight appear the same frame as the input; the litres commit on the next tick (Game State latency budget, ≤ 0.2 s).
-- **The puddle is the first "I did that" moment:** spoon scoops leave marks and ripples; each bucket trip visibly lowers it (first visible drop at about 1:26); the bucket takes the last drop at about 2 minutes.
+- **The puddle is the first "I did that" moment:** spoon scoops leave marks and ripples; each bucket trip visibly lowers it (first visible drop at about 1:07); the bucket takes the last drop at about 1:45.
 - **The pond should feel too big for your hands and just right for your pumps:** no visible change from hand work, then a waterline that creeps where you can see it once the electric motor runs.
 
 ## UI Requirements

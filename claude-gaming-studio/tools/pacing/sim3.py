@@ -5,7 +5,7 @@ from the hand pump on; lazy = launch 20 s after the pool fills.
 Usage: python3 sim3.py [mode=eager|full|lazy] [item=price ...]"""
 import sys
 DT=0.1
-LADDER=[["bucket",8],["barrel_100l",220],["drum_200l",260],["hand_pump",380],
+LADDER=[["bucket",6],["barrel_100l",220],["drum_200l",260],["hand_pump",380],
         ["electric_motor",1100],["electric_pump_2",15000],["ibc_tank",40000]]
 INSTALL={"bucket":0,"barrel_100l":8,"drum_200l":10,"hand_pump":25,"electric_motor":15,"electric_pump_2":25,"ibc_tank":25}
 CAP={"barrel_100l":100,"drum_200l":200,"ibc_tank":1200}

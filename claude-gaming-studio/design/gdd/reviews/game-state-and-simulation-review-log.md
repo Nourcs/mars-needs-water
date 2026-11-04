@@ -55,3 +55,6 @@ Rule 12 gains one sentence: simulation systems may change Placement through four
 
 ### Amendment — 2026-11-02 (from the Water Source design review; Nour chose "Fix now, amend Game State")
 Rule 1: the Water Source slice is `{id, start, remaining, drained}` per source; the start copy is the one exception to "start volumes never in state", so tuning the pond never shifts a saved drawdown %. Rule 7: `SourceDrained(source, lastGrantLitres)` (the radio's last-drop line reads the final grant). AC-R1 is unchanged in wording and checks against the amended Rule 1 list. Status stays Approved.
+
+### Amendment — 2026-11-02 (from the batch design review of 8 GDDs; Nour chose "Fix all")
+Rule 1: Pumps slice is `{id, kind, motorFitted, leverOn, cableSocket|null}` per pump; Running/Stalled/Dry derived at 2a; crank flag never saved. Rule 3: tick-boundary convention (a timer of n ticks started in tick N fires at its owner's step in N+n; a change in tick M is first seen by requests at step 1 of M+1). Rule 12: range measured from the eye point with per-target ranges in data; one pure-C# `PlacementValidator` shared by the ghost and step 1; `PickUp` of a Network node calls `Network.DetachAll(nodeId)`. No event or AC changed; status stays Approved.

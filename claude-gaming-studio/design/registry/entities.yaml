@@ -122,9 +122,12 @@ items:
     status: active
     source: design/gdd/economy-progression-and-shop.md
     referenced_by:
+      - design/gdd/hand-tools.md
+      - design/gdd/hud.md
+      - design/gdd/shipping-and-launch.md
       - design/gdd/economy-progression-and-shop.md
     category: hand_tool
-    price_cr: 8
+    price_cr: 6  # was 8; changed by economy-progression-and-shop.md, batch review 2026-11-02 (Nour)
     volume_L: 10
     scoop_cooldown_s: 1
     trip_target_s: "5 (puddle) / 20 (pond)"
@@ -285,9 +288,9 @@ formulas:
       - remaining
     output_range: [0, 100]
     expression: "(start - remaining) / start * 100"
-    notes: "Per source; start is the copy saved at new game. Drawdown thresholds and the play log's lake_drained_pct use the lake's value."
+    notes: "Per source; start is the copy saved at new game. Used by the HUD and the play log's lake_drained_pct. Drawdown thresholds compare litres instead: remaining <= start*(1 - t/100) + 0.001 L (Drawdown GDD)."
     added: 2026-11-02
-    revised: ""
+    revised: 2026-11-02
 
   - name: payout
     status: active
@@ -310,6 +313,7 @@ formulas:
     referenced_by:
       - design/gdd/hose-storage-and-flow-network.md
       - design/gdd/water-source-model.md
+      - design/gdd/pumps-and-machines.md
     variables:
       - rate_p
       - hoseCap_p
@@ -317,10 +321,10 @@ formulas:
       - space_G
       - got_s
     output_range: [0, 2]
-    expression: "d_p = min(rate_p, hoseCap_p)*dt; scale by min(1, space_G/D_G) per pool; then by got_s/D_s per source; deposit entry tank first"
-    notes: "Tick step 2. Space applied before source so full pools never draw water. Output = litres per pump per tick at 10 Hz, max 2."
+    expression: "d_p = min(rate_p, hoseCap_p)*dt; scale by min(1, space_G/D_G) per pool; then by got_s/D_s per source; space_G = Full ? 0 : max(0, cap - contents); deposit pad tank first, then the linked tank"
+    notes: "Tick step 2b. Space applied before source so full pools never draw water. Output = litres per pump per tick at 10 Hz, max 2."
     added: 2026-11-02
-    revised: ""
+    revised: 2026-11-02
   - name: launch_load
     status: active
     source: design/gdd/shipping-and-launch.md
@@ -332,9 +336,9 @@ formulas:
       - cargo_capacity
     output_range: [0, 1500]
     expression: "min(pad_pool_contents, cargo_capacity)"
-    notes: "0 is rejected as nothing_to_ship. LaunchCompleted(litres) raised at liftoff, 3 s after the lever."
+    notes: "Below min_launch (0.001 L) is rejected as nothing_to_ship. Checks: too_far, pad_busy, nothing_to_ship. LaunchCompleted(litres) raised at 2c of tick N+30 for a lever at tick N."
     added: 2026-11-02
-    revised: ""
+    revised: 2026-11-02
   - name: time_to_afford
     status: active
     source: design/gdd/economy-progression-and-shop.md
@@ -497,8 +501,9 @@ constants:
       - design/gdd/economy-progression-and-shop.md
     value: 1500
     unit: L
+    safe_range: [1200, 5000]
     added: 2026-11-02
-    revised: ""
+    revised: 2026-11-02
   - name: credits_per_litre
     status: active
     source: design/gdd/economy-progression-and-shop.md
@@ -506,6 +511,78 @@ constants:
       - design/gdd/economy-progression-and-shop.md
     value: 10
     unit: cr/L
+    added: 2026-11-02
+    revised: ""
+  - name: min_launch
+    status: active
+    source: design/gdd/shipping-and-launch.md
+    referenced_by:
+      - design/gdd/shipping-and-launch.md
+      - design/gdd/economy-progression-and-shop.md
+    value: 0.001
+    unit: L
+    added: 2026-11-02
+    revised: ""
+  - name: power_cable_length
+    status: active
+    source: design/gdd/pumps-and-machines.md
+    referenced_by:
+      - design/gdd/pumps-and-machines.md
+      - design/gdd/economy-progression-and-shop.md
+      - design/gdd/first-person-controller-and-interaction.md
+    value: 30
+    unit: m
+    added: 2026-11-02
+    revised: ""
+  - name: power_post_sockets
+    status: active
+    source: design/gdd/pumps-and-machines.md
+    referenced_by:
+      - design/gdd/pumps-and-machines.md
+      - design/gdd/economy-progression-and-shop.md
+    value: 2
+    unit: sockets
+    added: 2026-11-02
+    revised: ""
+  - name: drum_inlets
+    status: active
+    source: design/gdd/hose-storage-and-flow-network.md
+    referenced_by:
+      - design/gdd/hose-storage-and-flow-network.md
+      - design/gdd/pumps-and-machines.md
+      - design/gdd/economy-progression-and-shop.md
+    value: 2
+    unit: sockets
+    notes: "One twin-port fitting, fitted once with FitInlet. IBC has 1 inlet; each tank has 1 link socket."
+    added: 2026-11-02
+    revised: ""
+  - name: eye_height
+    status: active
+    source: design/gdd/first-person-controller-and-interaction.md
+    referenced_by:
+      - design/gdd/hand-tools.md
+      - design/gdd/hose-storage-and-flow-network.md
+      - design/gdd/first-person-controller-and-interaction.md
+      - design/gdd/game-state-and-simulation.md
+      - design/gdd/pumps-and-machines.md
+      - design/gdd/shipping-and-launch.md
+    value: 1.6
+    unit: m
+    notes: "Range origin = recorded pose + eye height. Ranges per target: crank 1.5 m, levers 3 m, default 2 m."
+    added: 2026-11-02
+    revised: ""
+  - name: tap_threshold
+    status: active
+    source: design/gdd/first-person-controller-and-interaction.md
+    referenced_by:
+      - design/gdd/hand-tools.md
+      - design/gdd/economy-progression-and-shop.md
+      - design/gdd/first-person-controller-and-interaction.md
+      - design/gdd/hud.md
+      - design/gdd/pumps-and-machines.md
+    value: 0.25
+    unit: s
+    notes: "Shorter press = tap; longer starts a hold with a ring. Hold actions setting: Hold (default) / Toggle."
     added: 2026-11-02
     revised: ""
 

@@ -42,7 +42,7 @@ The player meets the shop and the prices directly; the tuning table is infrastru
 ### Core Rules
 
 1. **One currency: credits.** Water and, later, ice both count as water-equivalent litres. There is no second currency (anti-pillar).
-2. **Credits are paid only on a launch.** At liftoff Shipping calls `CreditLaunch(litres)` directly (tick step 2c, same tick as the shipped total), and the player receives `litres × credits_per_litre × region_multiplier × contract_multiplier`. Water in a tank or a bucket pays nothing until it is launched. In the MVP, `credits_per_litre` = 10 and both multipliers = 1. A contract multiplies the payout for the litres it covers; it never pays for the same litres twice. `CreditLaunch` ignores and logs any `litres` that is not finite or is ≤ 0, so credits can never become NaN or fall.
+2. **Credits are paid only on a launch.** At liftoff Shipping calls `CreditLaunch(litres)` directly (tick step 2c, same tick as the shipped total), and the player receives `litres × credits_per_litre × region_multiplier × contract_multiplier`. Water in a tank or a bucket pays nothing until it is launched. In the MVP, `credits_per_litre` = 10 and both multipliers = 1. A contract multiplies the payout for the litres it covers; it never pays for the same litres twice. `CreditLaunch` ignores and logs any `litres` that is not finite or is ≤ 0, so credits can never become NaN or fall. The payout is also exposed as a pure read-only function, `Economy.PayoutFor(litres)` (millicredits), which `CreditLaunch` uses and presentation (the radio's first-launch line, the lever hover "Launch: pays N cr") may call; it never changes state.
 3. **Credits are whole numbers underneath.** Credits are stored as a whole number of millicredits (64-bit integer; 1 cr = 1,000 mc). Each payout is rounded to the nearest millicredit once, when it is credited. `floor(credits)` is integer division, so a run of tiny launches that adds up to exactly 5 cr is exactly 5 cr (no 4.9999 that floors to 4). The 64-bit range (about 9 × 10¹⁵ cr) is far beyond any real-scale region. This is the Economy's requirement on the number-representation ADR, which confirms the type before implementation.
 4. **The tuning table** is one data file, read as a whole only by this system; others read their own rows through it.
    - **Row kinds:** `tool`, `machine`, `tank`, `source`, `contract`, `region`, `global`.
@@ -56,7 +56,7 @@ The player meets the shop and the prices directly; the tuning table is infrastru
    - **Opening:** the player holds Use on a Landed crate for 1 s (prying the lid; presentation), which submits `OpenCrate(issuer, crateId)`. It is validated at step 1: rejected with `too_far` (outside interact range) or `already_open`. On success the crate is **Opened** (it stays as an empty crate until a drone takes it), and the item comes out: a hand tool goes straight into the issuer's hands (`Placement.SetHands`); a placeable item (barrel, drum, pump, motor kit, IBC) is created by `Placement.Spawn` at the crate's pose, with its `crateContents`. A printed spec sheet (one real-world stat and the catalogue line) flutters out and stays as a prop.
    - **Usable only once opened:** owning systems treat an owned item as usable only after its crate is Opened (they read the crate state from the Economy slice). Ownership itself (shop states, AC-E20) changes at purchase.
    - **Saving:** crate records are part of the slice, so a save during delivery resumes the same tick count on load. Time from ORDER to holding the item, with the player at the pad: about 12 s (2 s to the lever, 4 s delivery, 6 s to pry and lift out).
-9. **Pacing rules for prices:** from the bucket onward, the time to afford each item must be longer than the time for the item before it, measured on the reference player of the pacing simulator (Formulas). The spoon → bucket step is exempt: it is set to the concept's 60–90 s spoon joke. The hand pump requires the 200 L drum (Nour, 2026-11-02).
+9. **Pacing rules for prices:** from the bucket onward, the time to afford each item must be longer than the time for the item before it, measured on the reference player of the pacing simulator (Formulas). The spoon → bucket step is exempt: it is set to the concept's 60–90 s spoon joke. The bucket costs 6 cr (40 scoops) so a real player, whose scoop-turn-pour cycle is slower than the simulator's 1.25 s, still finishes inside the window (Nour, 2026-11-02, batch review). The hand pump requires the 200 L drum (Nour, 2026-11-02).
 10. **Nothing removes income:** the bucket stays usable after the pump; the electric motor upgrades the hand pump rather than replacing a working tool with nothing.
 11. **The Earth counter is derived, never stored:** `Earth remaining = max(1 L, 1.386 × 10²¹ L − total shipped)`, computed as an exact decimal from Shipping's total shipped whenever it is displayed. It is not part of any slice and never saved. It is shown on the terminal header and a split-flap board at the launch pad; the HUD does not show it.
 12. **Storage upgrades replace the old container.** The new barrel or drum comes out of its crate and is set down on the marked staging spot next to the storage spot. One interaction on it, "Swap in" (the Network's `SwapStorage` request, Hose/Storage Network GDD), pours all the water from the old container into the new one (exact, no loss), moves the new one onto the storage spot and the old one onto the staging spot. The old container stops being a tank and stays as a prop. Only one hand-stage container is active at a time. The drum also has a hose inlet fitting in its crate that must be screwed in (hold Use 2 s) before any hose can connect, so the drum adds its own new action and is the natural lead-in to the hand pump.
@@ -64,7 +64,7 @@ The player meets the shop and the prices directly; the tuning table is infrastru
     - **10 L jerrycan:** one bucket fills it, so every trip ends at the LAUNCH lever. At the puddle (5 s trips) the 15 s rocket cycle makes the player wait for the next rocket; the stage is busy and pays little, on purpose.
     - **100 L barrel:** "never wait for the rocket". Pour without checking, launch when you choose; fewer lever walks.
     - **200 L drum:** the first container with a hose inlet; fitting it is the step before the hand pump.
-    Players are expected to launch early (whenever a launch affords the next item); the HUD shortfall line ("ship 13 L more") invites it. Filling a barrel to the brim is allowed but slower, and never breaks a rule.
+    Players are expected to launch early (whenever a launch affords the next item); the HUD shortfall line ("ship 13 L more", or "Enough aboard: LAUNCH to afford" once the pad pool covers the price) invites it. Filling a barrel to the brim is allowed but slower, and never breaks a rule.
 14. **Credit sinks** (redeploy and maintenance fees, contract bids) are post-MVP. The MVP's end beat plays after the first launch of a full drum + IBC pool. One joke item stays on sale after that: the **Employee of the Year Plaque** (100,000 cr), which does nothing but hang on the kiosk. It is exempt from the pacing rule and can be cut freely.
 15. **Job titles:** the payslip prints a job title that rises with the latest purchase: Probationary Hydration Intern (start), Junior Hydration Associate (bucket), Hydration Associate (barrel), Senior Hydration Associate (drum), Extraction Technician (hand pump), Extraction Supervisor (motor), Regional Extraction Lead (second pump), Vice President of Water, Acting (IBC). The kiosk also prints a commendation slip when the puddle runs dry ("Puddle liquidated. Outstanding!") and at each drawdown threshold. Text lives in a string table; placeholder copy is fine for the MVP.
 
@@ -93,7 +93,7 @@ States are derived each tick from credits and items owned; only Owned (and later
 | Placement (Game State) | `Spawn` and `Remove` calls (crates, unboxed items); hands item for unboxed tools | Pad spot poses; crate poses |
 | Water Source Model | Start volume per source (copied at new game) | — |
 | Hose, Storage & Flow Network | Tank capacities, hose caps and lengths, crate contents | — |
-| Hand Tools | Scoop volume, scoop cooldown, trip target; grant at purchase | Reads crate state (usable once opened) |
+| Hand Tools | Scoop volume, scoop cooldown, trip target; grant at purchase (`HandTools.Grant`, ownership only) | Reads crate state (usable once opened) |
 | Pumps & Machines | Pump rates, cable length, post sockets; grant at purchase | Reads crate state |
 | HUD | Credits, next item and its progress | `Purchased` |
 | Corporate Radio | Item names, payout amounts, Earth counter value | `Purchased`, `LaunchCompleted` |
@@ -113,7 +113,7 @@ The **payout** formula is defined as:
 | region_multiplier | double | 0.5–5 | data file | Per region (MVP 1) |
 | contract_multiplier | double | 0.5–5 | data file | Per active contract (MVP 1) |
 
-**Output Range:** millicredits, 1 and up. A full 10 L jerrycan pays 100 cr, a full 200 L drum 2,000 cr, a full drum + IBC pool 12,000 cr. A 0.8 L spoon launch pays 8 cr, exactly the bucket's price.
+**Output Range:** millicredits, 1 and up. A full 10 L jerrycan pays 100 cr, a full 200 L drum 2,000 cr, a full drum + IBC pool 12,000 cr. A 0.6 L spoon launch pays 6 cr, exactly the bucket's price.
 
 The **effective_rate** formula (an estimate for reading the table; the pacing simulator below is the reference) is defined as:
 
@@ -130,7 +130,7 @@ The **effective_rate** formula (an estimate for reading the table; the pacing si
 | duty | double | 0.5–1 | playtest estimate | Share of time a hand pump is actually cranked (electric = 1) |
 | pool | double (L) | 200–1,200 | data file | Pad pool capacity |
 | lever_time | double (s) | 2–5 | playtest estimate | Player time to walk to and pull the LAUNCH lever (3 s), charged once per launch |
-| launch_cycle | double (s) | 8–25 | data file (Shipping) | Lever to next rocket (15 s); pumping continues meanwhile, so it only caps small pools |
+| launch_cycle | double (s) | 8–25 | Economy tuning table (globals row; Shipping reads it) | Lever to next rocket (15 s); pumping continues meanwhile, so it only caps small pools |
 
 **Output Range:** about 0.012 L/s (spoon) to 16 L/s (two electric pumps with drum + IBC) in the MVP. Two pumps into the drum alone are capped at 200 / 15 = 13.3 L/s; the IBC lifts that to 16.
 
@@ -154,13 +154,13 @@ The **time_to_afford** formula is defined as:
 |---|---|---|---|---|---|
 | spoon | — (owned at start) | Tablespoon | 15 mL per 1.25 s scoop | — | Scoop |
 | jerrycan_10l | — (owned at start) | 10 L jerrycan | 10 L storage | — | Pour into storage, launch every trip |
-| bucket | — | 10 L pail | 10 L per scoop; 1 s scoop cooldown; trip target 5 s (puddle) / 20 s (pond) | 8 | Wade in and carry |
+| bucket | — | 10 L pail | 10 L per scoop; 1 s scoop cooldown; trip target 5 s (puddle) / 20 s (pond) | 6 | Wade in and carry |
 | barrel_100l | bucket | 100 L water barrel | 100 L storage (replaces the jerrycan) | 220 | Place and swap in |
-| drum_200l | barrel_100l | 200 L steel drum | 200 L storage (replaces the barrel) with a screw-in hose inlet | 260 | Swap in, screw in the hose inlet |
-| hand_pump | drum_200l | Double-acting diaphragm hand pump (~75 L/min) | 1.25 L/s while cranked | 380 | Place intake, lay hose, crank |
-| electric_motor | hand_pump | 2-inch 1.5 kW transfer pump (~480 L/min) | 8 L/s | 1,100 | Fit motor, run cable, start/stop |
-| electric_pump_2 | electric_motor | Second 2-inch transfer pump | +8 L/s | 15,000 | Run a second intake and cable |
-| ibc_tank | electric_pump_2 | 1,000 L IBC tote | 1,000 L storage, linked to the drum | 40,000 | Place and plumb a second tank |
+| drum_200l | barrel_100l | 200 L steel drum | 200 L storage (replaces the barrel) with a screw-in twin-port hose inlet (sockets: inlet ×2, link ×1) | 260 | Swap in, screw in the hose inlet |
+| hand_pump | drum_200l | Double-acting diaphragm hand pump (~75 L/min) | 1.25 L/s while cranked; crate holds the pump with its suction hose already plugged in | 380 | Drop the suction end in the pond, lay hose, crank |
+| electric_motor | hand_pump | 2-inch 1.5 kW transfer pump (~480 L/min) | 8 L/s; kit includes the power cable | 1,100 | Fit motor, run cable, start/stop |
+| electric_pump_2 | electric_motor | Second 2-inch transfer pump | +8 L/s (`rate_Lps` 8); suction hose and power cable pre-wired | 15,000 | Run a second intake, hose to the drum's second inlet, and cable |
+| ibc_tank | electric_pump_2 | 1,000 L IBC tote | 1,000 L storage, linked to the drum (sockets: inlet ×1, link ×1) | 40,000 | Place and plumb a second tank |
 | plaque (joke) | ibc_tank | Engraved office plaque | — | 100,000 | Hang it on the kiosk |
 | puddle / farm pond | — | Small rain puddle / farm pond | 40 L / 20,000 L | — | — |
 
@@ -170,23 +170,23 @@ Global rows include: `credits_per_litre` 10, `delivery_delay` 4 s, `pad_crate_sp
 
 | Minute | Event | Pond drained | Beat |
 |---|---|---|---|
-| ~1:14 | Bucket bought (in hand ~1:26) | 0% | Spoon stage ends (about 75 s, inside the concept's 60–90 s) |
-| ~2:04 | Puddle dry | 0% | Commendation slip; bucket moves to the pond |
-| ~2:10 | 100 L barrel bought | 0% | No more waiting for the rocket |
-| ~3:13 | 200 L drum bought | ~0.1% | Screw in the hose inlet |
-| ~4:38 | Hand pump bought | ~0.25% | First pump; crate lands by the dried puddle |
-| ~7:20 | Electric motor bought | ~0.8% | Hands free |
-| ~7:25 / ~8:05 / ~9:07 | Electric | 1% / 2.5% / 5% | Thresholds |
-| ~10:35 | Second electric pump bought | ~8.5% | The drum fills in 12.5 s; launch every rocket |
-| ~11:19 / ~13:49 | Two pumps | 10% / 20% | Bands |
-| ~16:00 | IBC tank bought | ~28.6% | Relief: a 1,200 L pool; end beat after its first full launch |
-| ~16:17 | IBC | 30% | Band |
+| ~0:55 | Bucket bought (in hand ~1:07) | 0% | Spoon stage ends (55 s at the simulator's perfect 1.25 s cycle; about 70 s at a real ~1.6 s cycle, inside the concept's 60–90 s) |
+| ~1:45 | Puddle dry | 0% | Commendation slip; bucket moves to the pond |
+| ~1:50 | 100 L barrel bought | 0% | No more waiting for the rocket |
+| ~2:53 | 200 L drum bought | ~0.1% | Screw in the hose inlet |
+| ~4:18 | Hand pump bought | ~0.25% | First pump; crate lands by the dried puddle |
+| ~7:00 | Electric motor bought | ~0.8% | Hands free |
+| ~7:06 / ~7:45 / ~8:48 | Electric | 1% / 2.5% / 5% | Thresholds |
+| ~10:15 | Second electric pump bought | ~8.5% | The drum fills in 12.5 s; launch every rocket |
+| ~11:00 / ~13:30 | Two pumps | 10% / 20% | Bands (the shopping-cart reveal sits at ~15%, Drawdown) |
+| ~15:40 | IBC tank bought | ~28.6% | Relief: a 1,200 L pool; end beat after its first full launch |
+| ~15:57 | IBC | 30% | Band |
 
-**Time to afford each step (reference player):** spoon → bucket 75 s (exempt) · bucket → barrel 55 s · barrel → drum 63 s · drum → hand pump 85 s · hand pump → motor 162 s · motor → second pump 195 s · second pump → IBC 325 s. Rises at every step from the bucket on. The longest gap between visible changes is about 2:42 (hand pump stage).
+**Time to afford each step (reference player):** spoon → bucket 55 s (exempt) · bucket → barrel 55 s · barrel → drum 63 s · drum → hand pump 85 s · hand pump → motor 162 s · motor → second pump 195 s · second pump → IBC 325 s. Rises at every step from the bucket on. The longest gap between visible changes is about 2:42 (hand pump stage).
 
 **Other players (same simulator):**
-- **Fills before launching** (launches only when the pool is full from the hand pump on): hand pump at the same ~4:38, IBC at ~18:00, longest gap about 3:28. The hand stage is slower than the next step for this player, which is allowed: Rule 9 is a pricing rule for the reference player.
-- **Lazy launcher** (launches 20 s after the pool fills): IBC at ~27:40, longest gap about 6:15 (between the 20% band and the IBC). Two pumps into one drum need attention; the strained-idle sound of a Stalled pump (Pumps GDD) is the cue.
+- **Fills before launching** (launches only when the pool is full from the hand pump on): hand pump at the same ~4:18, IBC at ~17:37, longest gap about 3:29. The hand stage is slower than the next step for this player, which is allowed: Rule 9 is a pricing rule for the reference player.
+- **Lazy launcher** (launches 20 s after the pool fills): IBC at ~27:20; gaps of 6:15 (10% → 20%) and 5:45 (20% → IBC) in the simulator, which has no reveals; the shopping-cart reveal at ~15% splits the first, so the longest gap is about 5:45 (Drawdown Rule 10). Two pumps into one drum need attention; the strained-idle sound of a Stalled pump (Pumps GDD) is the cue.
 
 The pond outlasts the ladder (about 70% left at the IBC). The spoon moves about 0.72 L a minute.
 
@@ -253,9 +253,9 @@ The pond outlasts the ladder (about 70% left at the IBC). The spoon moves about 
 | Storage ladder | 10 L → 100 L → 200 L | 5–20 / 60–120 / 150–220 L | Real jerrycans, barrels, drums |
 | IBC tank | 1,000 L | 600–1,250 L | Real IBC sizes |
 | Launch cycle | 15 s | 8–25 s | Owned by Shipping; makes the player wait at the puddle in the jerrycan stage |
-| Rocket cargo capacity | 1,500 L | ≥ largest pool | Shipping |
+| Rocket cargo capacity | 1,500 L | 1,200–5,000 L (≥ largest pool) | Shipping |
 | Prices | As in the table | ±20% each | Re-run the simulator after any change; the bucket → barrel → drum margins are small (55 / 63 s) |
-| Farm pond volume | 20,000 L | 18,000–25,000 L | Real farm-pond range; Water Source GDD |
+| Farm pond volume | 20,000 L | 18,000–25,000 L | Real farm-pond range; Water Source GDD; the shipped value is written by the Drawdown basin bake |
 | Crate delivery delay (`delivery_delay`) | 4 s | 3–5 s | Order to crate landing; fixed per item, no randomness |
 | Pad crate spots | 4 | 3–6 | Level layout |
 | Crate pry time | 1 s | 0.5–2 s | Presentation; the request is sent when the hold completes |
@@ -279,7 +279,7 @@ The pond outlasts the ladder (about 70% left at the IBC). The spoon moves about 
 
 ## UI Requirements
 
-- HUD: credits and the next item's progress ("Hand Pump 250 / 380") at all times; when short, also the gap in litres ("ship 13 L more").
+- HUD: credits and the next item's progress ("Hand Pump 250 / 380") at all times; when short, also the gap in litres ("ship 13 L more"). Economy computes the gap and the HUD only displays it: `NextItemProgress` exposes `litresShort = max(0, (price − floor(credits)) / (credits_per_litre × region_multiplier × contract_multiplier) − padPoolContents)`, where `padPoolContents` is the Network pool of the tank on the storage spot. The HUD shows it to one decimal below 10 L and "Enough aboard: LAUNCH to afford" when it is 0, so a new player is told to launch the spoon water (batch review 2026-11-02).
 - Terminal card per item: name, icon, one real-world stat, price, the new action it adds, and its state (Locked shows "Requires: …"; Visible shows the shortfall; Affordable is marked by text and icon, never by colour alone).
 - Terminal header: the Earth counter.
 
@@ -302,7 +302,7 @@ Tags: **[EditMode]** = Unity Test Framework EditMode test, **[PlayMode]** = Play
 
 **Payout and credits**
 - **AC-01 [EditMode]** GIVEN credits_per_litre = 10 and both multipliers = 1, WHEN `CreditLaunch(200)` is called, THEN credits rise by exactly 2,000,000 mc (2,000 cr).
-- **AC-02 [EditMode]** GIVEN multipliers = 1, WHEN `CreditLaunch(0.8)` and then `CreditLaunch(0.015)` are called, THEN credits rise by exactly 8,000 mc and then 150 mc.
+- **AC-02 [EditMode]** GIVEN multipliers = 1, WHEN `CreditLaunch(0.6)` and then `CreditLaunch(0.015)` are called, THEN credits rise by exactly 6,000 mc (the spoon launch that buys the 6 cr bucket) and then 150 mc.
 - **AC-03 [EditMode]** GIVEN water in the jerrycan and a bucket and a stub Shipping that makes no call, WHEN 600 ticks run, THEN credits do not change.
 - **AC-04 [EditMode]** GIVEN region_multiplier = 2 and contract_multiplier = 1.5, WHEN `CreditLaunch(100)` is called, THEN credits rise by exactly 3,000 cr, applied once.
 - **AC-05 [EditMode]** GIVEN a stub Shipping that calls `CreditLaunch(50)` and adds 50 L to its total in step 2c, WHEN a save is taken at the end of that tick and loaded, THEN it has both the shipped litres and the payout (Game State AC-E9).
@@ -325,7 +325,7 @@ Tags: **[EditMode]** = Unity Test Framework EditMode test, **[PlayMode]** = Play
 **Tuning table and pacing**
 - **AC-19 [EditMode]** GIVEN the MVP table, WHEN it loads, THEN every row with a volume, rate or capacity has a `realWorldRef` that names a physical object (not a document), and every purchasable row has a non-empty `actionAdded`.
 - **AC-20 [EditMode]** GIVEN the MVP table, WHEN it loads, THEN every physical value lies inside its Tuning Knobs safe range; GIVEN a fake row with a 50 L bucket, THEN loading fails naming the row.
-- **AC-21 [Script]** GIVEN the pacing simulator reading its prices and physical values from an export of the MVP tuning table (not hard-coded), and the reference-player fixture (Formulas), WHEN it runs, THEN the spoon → bucket step is 60–90 s and each later step, from bucket → barrel to second pump → IBC, is strictly longer than the one before.
+- **AC-21 [Script]** GIVEN the pacing simulator reading its prices and physical values from an export of the MVP tuning table (not hard-coded), and the reference-player fixture (Formulas), WHEN it runs, THEN the spoon → bucket step is 45–90 s (the simulator's cycle is perfect; AC-33 checks the real window) and each later step, from bucket → barrel to second pump → IBC, is strictly longer than the one before.
 - **AC-22 [EditMode]** GIVEN the tuning table changes after a save, WHEN the save loads, THEN prices come from the new table and source volumes keep their saved values.
 - **AC-23 [EditMode]** GIVEN a save owns an item id missing from the table, WHEN it loads, THEN the id is kept in the save, ignored in play, and one warning is logged.
 
@@ -343,9 +343,10 @@ Tags: **[EditMode]** = Unity Test Framework EditMode test, **[PlayMode]** = Play
 
 **Feel and playtest**
 - **AC-32 [Manual]** GIVEN the player waiting at the pad, WHEN ORDER is pulled, THEN the new item is in hand within 15 s.
-- **AC-33 [Manual]** GIVEN a fresh MVP run by Nour playing as the reference player, WHEN purchase times are read from the play log, THEN the bucket is bought at 1:00–1:30, the hand pump at 4:00–5:15, the IBC at 14:00–18:00, and no gap between visible changes (a purchase, the puddle running dry, or a `DrawdownThreshold`) exceeds 5 minutes. GIVEN a run launching only about 20 s after the pool fills, THEN the IBC arrives by 30:00 and no gap exceeds 6.5 minutes.
+- **AC-33 [Manual]** GIVEN a fresh MVP run by Nour playing as the reference player, WHEN purchase times are read from the play log, THEN the bucket is bought at 0:50–1:30, the hand pump at 4:00–5:15, the IBC at 14:00–18:00, and no gap between visible changes (a purchase, the puddle running dry, a `DrawdownThreshold` or a `Reveal`) exceeds 5 minutes. GIVEN a run launching only about 20 s after the pool fills, THEN the IBC arrives by 30:00 and no gap exceeds 6.5 minutes.
 - **AC-34 [Manual]** GIVEN the terminal from 2 m away, WHEN the player reads it, THEN item names, prices and the Affordable mark are legible and Affordable is shown by text and icon, not colour alone.
 - **AC-35 [Manual]** GIVEN a full MVP run, THEN the payslip job title changes with each purchase, the puddle commendation slip prints, and Nour has read every catalogue line and payslip line once for tone.
+- **AC-36 [EditMode]** GIVEN the bucket Visible (6 cr), credits 0 and a stub Network whose pad pool holds 0.45 L, WHEN `NextItemProgress` is read, THEN `litresShort` = 0.15 (±1e-9); GIVEN the pad pool at 0.6 L, THEN `litresShort` = 0; GIVEN credits 2.9 and an empty pool, THEN `litresShort` = 0.4 (floor of credits is used).
 
 *Written in the qa-lead format (Given-When-Then, test tags). AC-21 and AC-33 cover the pacing; the storage swap is tested in the Hose/Storage Network GDD (AC-26); AC-01 to AC-07 and AC-24 to AC-26 depend on the number-representation ADR confirming millicredits and an exact total shipped.*
 

@@ -34,3 +34,6 @@ Revised-Content-Hash: design/gdd/economy-progression-and-shop.md 8fb954b971fff7a
 Revised-Content-Hash: design/registry/entities.yaml 484aefbeaef4df610a959d0f733312227c296ea2
 
 Status after revision: In Review. A fresh /design-review decides whether it is Approved.
+
+### Amendment — 2026-11-02 (from the batch design review; Nour chose "bucket 6 cr + toggle")
+Bucket price 8 → 6 cr (40 scoops; Rule 9 note). Simulator re-run: bucket 0:55, puddle dry 1:45, barrel 1:50, drum 2:53, hand pump 4:18, motor 7:00, pump2 10:15, IBC 15:40; longest gap 2:42; full mode IBC 17:37 (gap 3:29); lazy IBC 27:20 (gaps 6:15, 5:45). AC-21 spoon step 45–90 s in the sim; AC-33 bucket window 0:50–1:30. `NextItemProgress.litresShort` subtracts the pad pool (shortfall owned by Economy, displayed by HUD); new AC-36. `launch_cycle` lives in the Economy table (globals). Status stays In Review.
