@@ -25,6 +25,9 @@ namespace MarsNeedsWater.Earth
         Camera cam;
         GameObject body, car, plane;
         Jeep jeep;
+        Vector3 drive, pull;                // the jeep's momentum along the ground, and how hard it is being pushed about
+        float steerNow, airFor, climb, camY;
+        bool camSnap = true;
         float yaw, pitch = 10f, fall, carSpeed, flySpeed = 60f;
         bool third, placing = true, locked;
         Vector3 flyVel;
@@ -88,6 +91,7 @@ namespace MarsNeedsWater.Earth
             car.SetActive(m == Mode.Drive);
             plane.SetActive(m == Mode.Fly);
             carSpeed = 0; fall = 0; flyVel = Vector3.zero;
+            StopJeep();
             if (m == Mode.Fly) { cc.enabled = false; placing = false; transform.position += Vector3.up * 3f; }
             else placing = true;
         }
@@ -100,6 +104,7 @@ namespace MarsNeedsWater.Earth
             transform.position = pos;
             if (forward.sqrMagnitude > 1e-6f) yaw = Mathf.Atan2(forward.x, forward.z) * Mathf.Rad2Deg;
             cc.enabled = was;
+            camSnap = true;
         }
 
         /// <summary>Jumped to a new place: hang in the air until its ground has loaded.</summary>
@@ -109,6 +114,13 @@ namespace MarsNeedsWater.Earth
             transform.position = new Vector3(0f, Current == Mode.Fly ? 150f : 300f, 0f);
             placing = Current != Mode.Fly;
             fall = 0; carSpeed = 0; flyVel = Vector3.zero;
+            StopJeep();
+        }
+
+        void StopJeep()
+        {
+            drive = pull = Vector3.zero; steerNow = airFor = climb = 0f; camSnap = true;
+            if (jeep != null) jeep.Settle();
         }
 
         public void Look(float yawDegrees) { yaw = yawDegrees; pitch = 12f; }
@@ -213,23 +225,83 @@ namespace MarsNeedsWater.Earth
             float f = InputBlocked ? 0 : Axis(kb.sKey.isPressed, kb.wKey.isPressed), s = InputBlocked ? 0 : Axis(kb.aKey.isPressed, kb.dKey.isPressed);
             // deep enough water under the car (and the car down at it, not up on a bridge): it floats
             boat = wet && level - ground > (boat ? 0.35f : 0.5f) && transform.position.y - 0.65f < surface + 0.4f;
-            if (boat) { Float(kb, dt, f, s); return; }
-            car.transform.localRotation = Quaternion.identity;
-            float top = kb.leftShiftKey.isPressed ? 70f : 30f;
-            if (f > 0) carSpeed = Mathf.MoveTowards(carSpeed, top, 14f * dt);
-            else if (f < 0) carSpeed = Mathf.MoveTowards(carSpeed, -10f, 26f * dt);
-            else carSpeed = Mathf.MoveTowards(carSpeed, 0f, 8f * dt);
-            if (kb.spaceKey.isPressed) carSpeed = Mathf.MoveTowards(carSpeed, 0f, 50f * dt);
-            float steer = s * Mathf.Clamp(Mathf.Abs(carSpeed) / 4f, 0f, 1f) * (carSpeed < 0 ? -1f : 1f);
-            yaw += steer * 85f * dt;
-            fall = cc.isGrounded ? -3f : fall - 25f * dt;
+            if (boat) { airFor = 0f; Float(kb, dt, f, s); return; }
+            car.transform.localRotation = Quaternion.Slerp(car.transform.localRotation, Quaternion.identity, 1f - Mathf.Exp(-6f * dt));
+            Jeep j = jeep;
+
+            // the chassis keeps its momentum: speed along the way it points, and a sideways slide that grip wears away
+            bool air = airFor > 0.06f;
+            Quaternion rot = Quaternion.Euler(0f, yaw, 0f);
+            Vector3 fwd = rot * Vector3.forward, right = rot * Vector3.right;
+            float along = Vector3.Dot(drive, fwd), side = Vector3.Dot(drive, right);
+            bool hand = !InputBlocked && kb.spaceKey.isPressed;
+            if (!air)
+            {
+                float top = kb.leftShiftKey.isPressed ? j.BoostSpeed : j.TopSpeed;
+                if (f > 0 && along < 0f) along = Mathf.MoveTowards(along, 0f, j.Brake * dt);
+                else if (f > 0 && along < top) along = Mathf.MoveTowards(along, top, j.Accel * (1f - 0.55f * along / top) * dt);
+                else if (f < 0 && along > 0f) along = Mathf.MoveTowards(along, 0f, j.Brake * dt);
+                else if (f < 0) along = Mathf.MoveTowards(along, -j.ReverseSpeed, j.Accel * 0.8f * dt);
+                else along = Mathf.MoveTowards(along, 0f, j.Coast * dt);
+                if (along > top) along = Mathf.MoveTowards(along, top, j.Coast * 2f * dt);     // let go of Shift: ease back down
+                if (hand) along = Mathf.MoveTowards(along, 0f, j.Handbrake * dt);
+                side *= Mathf.Exp(-(hand ? j.HandbrakeGrip : j.Grip) * dt);
+            }
+            steerNow = Mathf.Lerp(steerNow, s, 1f - Mathf.Exp(-j.SteerSpeed * dt));
+            float sp = Mathf.Abs(along);
+            float turn = steerNow * j.SteerRate * Mathf.Clamp01(sp / 4f) / (1f + sp / Mathf.Max(j.Understeer, 1f)) * (along < 0 ? -1f : 1f);
+            yaw += turn * (air ? j.AirSteer : 1f) * dt;
+            Vector3 was = drive;
+            drive = fwd * along + right * side;       // in the old heading: as the jeep turns, its momentum lags behind
+            carSpeed = along;
+
+            // up and down: glued to the ground, but carried off a crest by the speed it was climbing at
+            bool grounded = cc.isGrounded;
+            if (grounded)
+            {
+                if (airFor > 0.12f)
+                {
+                    j.Land(fall);
+                    if (fall < -7f) { fall = -fall * j.LandingHop; grounded = false; }     // a hard landing bounces
+                    else fall = -3f;
+                }
+                else fall = -3f;
+                if (grounded) airFor = 0f;
+            }
+            else
+            {
+                if (airFor == 0f && climb > 0.5f) fall = Mathf.Max(fall, Mathf.Min(climb, sp * 0.4f) * j.Launch);   // off the top of a rise
+                airFor += dt;
+                fall -= j.Gravity * dt;
+            }
+
             Vector3 before = transform.position;
-            cc.Move((Quaternion.Euler(0f, yaw, 0f) * Vector3.forward * carSpeed + Vector3.up * fall) * dt);
-            Vector3 moved = transform.position - before; moved.y = 0;
+            cc.Move((drive + Vector3.up * fall) * dt);
+            Vector3 moved = transform.position - before;
+            if (cc.isGrounded) climb = Mathf.Lerp(climb, moved.y / dt, 1f - Mathf.Exp(-12f * dt));
+            else if (airFor == 0f) climb = 0f;
+            moved.y = 0;
             float real = moved.magnitude / dt;
-            if (real < Mathf.Abs(carSpeed) * 0.5f) carSpeed *= 0.9f;       // hit something
+            if (real < drive.magnitude * 0.5f) drive = Vector3.Lerp(drive, moved / dt, 0.6f);     // hit something
             Speed = real;
-            jeep.Roll(carSpeed < 0 ? -real : real, s, dt);
+
+            // how hard the chassis is being pushed about, for the body on its springs
+            Vector3 acc = (drive - was) / dt;
+            pull = Vector3.Lerp(pull, Vector3.ClampMagnitude(acc, 60f), 1f - Mathf.Exp(-14f * dt));
+            Vector3 nf = Quaternion.Euler(0f, yaw, 0f) * Vector3.forward, nr = Quaternion.Euler(0f, yaw, 0f) * Vector3.right;
+            // turning pulls the body outwards even at a steady speed
+            float sideways = Vector3.Dot(pull, nr) + along * turn * Mathf.Deg2Rad;
+            j.Step(dt, Vector3.Dot(drive, nf), steerNow, Vector3.Dot(pull, nf), sideways, air, WheelGround, transform.position.y - HalfHeight);
+        }
+
+        bool WheelGround(Vector3 p, out float y)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(p + Vector3.up * 1.2f, Vector3.down, out hit, 3f, ~0, QueryTriggerInteraction.Ignore) && hit.collider != cc)
+            {
+                y = hit.point.y; return true;
+            }
+            return world.Ground(p, out y, true, true);
         }
 
         // ------------------------------------------------------------ water
@@ -291,7 +363,9 @@ namespace MarsNeedsWater.Earth
             float real = moved.magnitude / dt;
             if (real < Mathf.Abs(carSpeed) * 0.5f) carSpeed *= 0.9f;
             Speed = real;
-            jeep.Roll(carSpeed * 0.5f, s, dt);                            // wheels paddling
+            steerNow = Mathf.Lerp(steerNow, s, 1f - Mathf.Exp(-jeep.SteerSpeed * dt));
+            drive = rot * Vector3.forward * carSpeed;                   // back on land it carries on at this speed
+            jeep.Step(dt, carSpeed * 0.5f, steerNow, 0f, 0f, true, null, 0f);   // wheels hanging, paddling
 
             // ride the swell: nose up and down with the waves, and up a little at speed
             Vector2 g = EarthWater.I != null ? EarthWater.I.SwellSlope(transform.position, lake, depth) : Vector2.zero;
@@ -422,6 +496,11 @@ namespace MarsNeedsWater.Earth
             body.transform.localRotation = Quaternion.Euler(swimming && Speed > 0.5f ? 70f : 0f, 0f, 0f);    // lying flat to swim
             Quaternion look = Quaternion.Euler(pitch, yaw, 0f);
             Vector3 head = transform.position + Vector3.up * Eye;
+            // in the jeep the camera rides smoothly over bumps and hops rather than every jolt of the chassis
+            if (Current == Mode.Drive && !camSnap && Mathf.Abs(head.y - camY) < 5f)
+                head.y = camY = Mathf.Lerp(camY, head.y, 1f - Mathf.Exp(-7f * Time.deltaTime));
+            else camY = head.y;
+            camSnap = false;
             if (!chase) { cam.transform.SetPositionAndRotation(head, look); return; }
             float dist = Current == Mode.Fly ? 13f : Current == Mode.Drive ? 7.5f : 4f;
             Vector3 target = head + Vector3.up * (Current == Mode.Walk ? 0.2f : 0.6f);

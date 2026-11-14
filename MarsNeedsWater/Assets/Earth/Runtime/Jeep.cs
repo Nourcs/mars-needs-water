@@ -42,8 +42,53 @@ namespace MarsNeedsWater.Earth
             new Color(0.47f, 0.46f, 0.31f),   // paint, sun-faded
         };
 
-        Transform[] spin, steer;
+        // ---- tuning: change these on the Jeep component (under the Player) while playing to try them out
+
+        [Header("Engine")]
+        [Tooltip("How fast it picks up speed, m/s per second (it eases off near top speed).")] public float Accel = 11f;
+        [Tooltip("Top speed, m/s.")] public float TopSpeed = 30f;
+        [Tooltip("Top speed holding Shift, m/s.")] public float BoostSpeed = 70f;
+        [Tooltip("Top speed backwards, m/s.")] public float ReverseSpeed = 10f;
+        [Tooltip("Braking with S while moving forward, m/s per second.")] public float Brake = 28f;
+        [Tooltip("Slowing down with no pedal pressed, m/s per second. Lower = more momentum.")] public float Coast = 3.5f;
+        [Tooltip("Braking with Space (handbrake), m/s per second.")] public float Handbrake = 34f;
+        [Tooltip("Gravity on the jeep, m/s per second. Lower = longer air time.")] public float Gravity = 22f;
+        [Tooltip("How much of the climb speed over a crest turns into a jump (0 = stays glued down).")] [Range(0f, 1.5f)] public float Launch = 0.9f;
+
+        [Header("Steering")]
+        [Tooltip("How fast it turns at low speed, degrees per second at full lock.")] public float SteerRate = 90f;
+        [Tooltip("Speed (m/s) at which turning is halved: lower = more understeer at speed.")] public float Understeer = 32f;
+        [Tooltip("How quickly the steering follows the keys.")] public float SteerSpeed = 7f;
+        [Tooltip("Sideways grip: how fast a sideways slide dies away. Lower = slidier.")] public float Grip = 6f;
+        [Tooltip("Sideways grip while holding the handbrake (Space).")] public float HandbrakeGrip = 1.2f;
+        [Tooltip("Share of steering still working in the air.")] [Range(0f, 1f)] public float AirSteer = 0.25f;
+        [Tooltip("Front wheel angle at full lock, degrees (looks only).")] public float WheelLock = 28f;
+
+        [Header("Suspension")]
+        [Tooltip("Spring stiffness. Lower = softer, wallowier.")] public float Stiffness = 150f;
+        [Tooltip("Damping as a share of critical: 0.2 bouncy, 1 no bounce.")] [Range(0.05f, 1.5f)] public float Damping = 0.3f;
+        [Tooltip("How far a wheel can push up into its arch, m.")] public float Bump = 0.09f;
+        [Tooltip("How far a wheel can hang down, m.")] public float Droop = 0.2f;
+        [Tooltip("How much of the landing speed the body carries down into the springs.")] [Range(0f, 1.5f)] public float LandingSquash = 0.7f;
+        [Tooltip("Small hop back up after a hard landing (share of the landing speed).")] [Range(0f, 0.5f)] public float LandingHop = 0.15f;
+
+        [Header("Body motion")]
+        [Tooltip("Nose dive braking / squat accelerating, radians per m/s^2 (before the springs).")] public float DiveSquat = 0.5f;
+        [Tooltip("Body roll in corners, radians per m/s^2 of sideways pull (before the springs).")] public float BodyRoll = 0.6f;
+        [Tooltip("Most the body can pitch on its springs, degrees.")] public float MaxPitch = 22f;
+        [Tooltip("Most the body can roll on its springs, degrees.")] public float MaxRoll = 18f;
+
+        /// <summary>Ground height (world y) under a point, if known.</summary>
+        public delegate bool GroundAt(Vector3 world, out float y);
+
+        Transform body;
+        Transform[] spin, steer, pivot;
         float roll;
+        // the sprung body relative to the chassis: heave (m), pitch (rad, nose up), roll (rad, right side down), and their rates
+        float heave, pitch, lean, heaveV, pitchV, leanV;
+        readonly float[] wheelUp = new float[4], groundUp = new float[4];
+        readonly bool[] touching = new bool[4];
+        static readonly float[] WX = { -Track, Track, -Track, Track }, WZ = { FrontZ, FrontZ, RearZ, RearZ };
 
         /// <summary>Builds a jeep under parent and returns it.</summary>
         public static Jeep Build(Transform parent)
@@ -53,24 +98,27 @@ namespace MarsNeedsWater.Earth
             Jeep j = root.AddComponent<Jeep>();
             Material mat = EarthWorld.Mat(PaletteTexture(), 0.18f);
 
-            Mesh body = BodyMesh(), wheel = WheelMesh();
-            Part(root.transform, "Body", body, mat, Vector3.zero, Quaternion.identity);
+            Mesh bodyMesh = BodyMesh(), wheel = WheelMesh();
+            // the body (with the spare on its back) rides on springs; the wheels hang from the chassis and follow the ground
+            j.body = Part(root.transform, "Body", bodyMesh, mat, Vector3.zero, Quaternion.identity).transform;
+            Part(j.body, "Spare", wheel, mat, new Vector3(0f, 0.16f, -1.71f), Quaternion.Euler(0f, -90f, 0f));
 
             j.spin = new Transform[4];
             j.steer = new Transform[2];
+            j.pivot = new Transform[4];
             for (int i = 0; i < 4; i++)
             {
                 bool front = i < 2, right = i % 2 == 1;
-                var pivot = new GameObject(front ? "Steer" : "Axle").transform;
-                pivot.SetParent(root.transform, false);
-                pivot.localPosition = new Vector3(right ? Track : -Track, AxleY, front ? FrontZ : RearZ);
-                if (front) j.steer[i] = pivot;
+                var p = new GameObject(front ? "Steer" : "Axle").transform;
+                p.SetParent(root.transform, false);
+                p.localPosition = new Vector3(WX[i], AxleY, WZ[i]);
+                if (front) j.steer[i] = p;
+                j.pivot[i] = p;
                 // the right-hand wheels are turned round so the rims face outwards
-                Transform w = Part(pivot, "Wheel", wheel, mat, Vector3.zero, Quaternion.identity).transform;
+                Transform w = Part(p, "Wheel", wheel, mat, Vector3.zero, Quaternion.identity).transform;
                 w.localScale = new Vector3(right ? -1f : 1f, 1f, 1f);
                 j.spin[i] = w;
             }
-            Part(root.transform, "Spare", wheel, mat, new Vector3(0f, 0.16f, -1.71f), Quaternion.Euler(0f, -90f, 0f));
             return j;
         }
 
@@ -85,18 +133,83 @@ namespace MarsNeedsWater.Earth
             return go;
         }
 
-        /// <summary>Turns the wheels: speed in metres a second along the ground (negative backwards), steer -1..1.</summary>
-        public void Roll(float speed, float steerInput, float dt)
+        /// <summary>Body back to rest, wheels down (getting in, or after a jump to a new place).</summary>
+        public void Settle()
         {
-            roll = Mathf.Repeat(roll + speed / TyreR * Mathf.Rad2Deg * dt, 360f);
-            Quaternion r = Quaternion.Euler(roll, 0f, 0f);
-            for (int i = 0; i < spin.Length; i++) spin[i].localRotation = r;
-            float want = steerInput * 28f;
-            for (int i = 0; i < steer.Length; i++)
+            heave = pitch = lean = heaveV = pitchV = leanV = 0f;
+            for (int i = 0; i < 4; i++) { wheelUp[i] = 0f; touching[i] = true; }
+            Pose();
+        }
+
+        /// <summary>The body carries on down into its springs when the jeep lands (vy is the landing speed, negative).</summary>
+        public void Land(float vy)
+        {
+            heaveV += Mathf.Min(vy, 0f) * LandingSquash;
+            pitchV += Mathf.Min(vy, 0f) * LandingSquash * 0.15f * (Random.value - 0.5f);
+            leanV += Mathf.Min(vy, 0f) * LandingSquash * 0.2f * (Random.value - 0.5f);
+        }
+
+        /// <summary>
+        /// One frame of wheels and springs. speed is along the ground (negative backwards), steerNow -1..1 as smoothed,
+        /// accelForward / accelRight the chassis's acceleration (m/s^2), air true when no wheel can be on the ground
+        /// (in the air, or afloat). ground finds the ground under each wheel; bottom is the chassis's ground level (world y).
+        /// </summary>
+        public void Step(float dt, float speed, float steerNow, float accelForward, float accelRight, bool air, GroundAt ground, float bottom)
+        {
+            // where the ground is under each wheel, against the ground the chassis stands on
+            for (int i = 0; i < 4; i++)
             {
-                float now = steer[i].localEulerAngles.y;
-                if (now > 180f) now -= 360f;
-                steer[i].localRotation = Quaternion.Euler(0f, Mathf.Lerp(now, want, 1f - Mathf.Exp(-8f * dt)), 0f);
+                float gy;
+                Vector3 at = transform.TransformPoint(new Vector3(WX[i], AxleY, WZ[i]));
+                groundUp[i] = !air && ground != null && ground(at, out gy) ? gy - bottom : -10f;
+            }
+
+            float k = Mathf.Max(Stiffness, 1f), c = 2f * Damping * Mathf.Sqrt(k);
+            const float rz2 = (FrontZ * FrontZ + RearZ * RearZ) * 0.5f, rx2 = Track * Track;
+            float maxP = MaxPitch * Mathf.Deg2Rad, maxR = MaxRoll * Mathf.Deg2Rad;
+            const int steps = 4;
+            float h = dt / steps;
+            for (int s = 0; s < steps; s++)
+            {
+                float fh = 0f, fp = 0f, fr = 0f;
+                bool any = false;
+                for (int i = 0; i < 4; i++)
+                {
+                    float corner = heave + WZ[i] * pitch - WX[i] * lean;    // how far the body has moved up at this wheel
+                    float gap = groundUp[i] - corner;                       // where the ground is, seen from the body
+                    touching[i] = gap > -Droop;
+                    float d = Mathf.Clamp(gap, -Droop, Bump);
+                    wheelUp[i] = corner + (touching[i] ? d : Mathf.Lerp(wheelUp[i] - corner, -Droop, 1f - Mathf.Exp(-12f * h)));
+                    if (!touching[i]) continue;
+                    any = true;
+                    float f = k * d + (gap > Bump ? k * 6f * (gap - Bump) : 0f);   // spring, then the bump stop
+                    fh += f; fp += f * WZ[i]; fr -= f * WX[i];
+                }
+                if (!any) { fh = -k * heave * 4f; fp = -k * pitch * 4f * rz2; fr = -k * lean * 4f * rx2; }   // in the air the body settles on its springs
+                float ah = fh / 4f - c * heaveV;
+                float ap = fp / (4f * rz2) - c * pitchV + (any ? DiveSquat * accelForward : 0f);
+                float ar = fr / (4f * rx2) - c * leanV - (any ? BodyRoll * accelRight : 0f);
+                heaveV += ah * h; pitchV += ap * h; leanV += ar * h;
+                heave += heaveV * h; pitch += pitchV * h; lean += leanV * h;
+                if (Mathf.Abs(heave) > 0.3f) { heave = Mathf.Sign(heave) * 0.3f; heaveV = 0f; }
+                if (Mathf.Abs(pitch) > maxP) { pitch = Mathf.Sign(pitch) * maxP; pitchV = 0f; }
+                if (Mathf.Abs(lean) > maxR) { lean = Mathf.Sign(lean) * maxR; leanV = 0f; }
+            }
+
+            roll = Mathf.Repeat(roll + speed / TyreR * Mathf.Rad2Deg * dt, 360f);
+            for (int i = 0; i < 2; i++) steer[i].localRotation = Quaternion.Euler(0f, steerNow * WheelLock, 0f);
+            Pose();
+        }
+
+        void Pose()
+        {
+            body.localPosition = new Vector3(0f, heave, 0f);
+            body.localRotation = Quaternion.Euler(-pitch * Mathf.Rad2Deg, 0f, -lean * Mathf.Rad2Deg);
+            Quaternion r = Quaternion.Euler(roll, 0f, 0f);
+            for (int i = 0; i < 4; i++)
+            {
+                pivot[i].localPosition = new Vector3(WX[i], AxleY + wheelUp[i], WZ[i]);
+                spin[i].localRotation = r;
             }
         }
 
