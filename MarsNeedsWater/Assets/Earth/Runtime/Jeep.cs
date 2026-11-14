@@ -50,7 +50,7 @@ namespace MarsNeedsWater.Earth
         [Tooltip("Air drag. Higher = more slowing at speed.")] public float AirDrag = 0.6f;
 
         [Header("Engine and brakes")]
-        [Tooltip("Engine pull at low speed, as m/s^2 of acceleration on the flat (it fades to nothing at top speed).")] public float Accel = 8f;
+        [Tooltip("Engine pull at low speed, as m/s^2 of acceleration on the flat (it fades to nothing at top speed).")] public float Accel = 6.5f;
         [Tooltip("Top speed, m/s.")] public float TopSpeed = 30f;
         [Tooltip("Top speed holding Shift, m/s.")] public float BoostSpeed = 70f;
         [Tooltip("Engine pull holding Shift, times the normal pull.")] public float BoostPower = 1.8f;
