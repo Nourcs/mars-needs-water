@@ -17,14 +17,12 @@ namespace MarsNeedsWater.Earth
         public static readonly string[] Names = { "grass", "drygrass", "forest", "farm", "sand", "rock", "snow", "paved", "dirt", "mud" };
 
         /// <summary>Average colour of each kind's texture, sRGB (written by bake_ground.py in means.txt).</summary>
-        public static readonly uint[] Mean = { 0x5f7d33, 0x8b7b51, 0x574623, 0x585a2e, 0xbca882, 0x776f64, 0xd2d7de, 0x6f6e6c, 0x756047, 0x3a3722 };
+        public static readonly uint[] Mean = { 0x4f6e2e, 0x98865e, 0x594821, 0x5e5630, 0xbfaa84, 0x7b746b, 0xdce3ec, 0x787776, 0x947858, 0x3e3621 };
 
         /// <summary>The same averages in linear light (the shader divides by these to carry the map colour into the texture).</summary>
         public static readonly float[] MeanLinear =
         {
-            0.1139f, 0.2065f, 0.0332f,  0.2572f, 0.1997f, 0.0830f,  0.0949f, 0.0619f, 0.0165f,  0.0980f, 0.1029f, 0.0277f,
-            0.5005f, 0.3938f, 0.2234f,  0.1834f, 0.1592f, 0.1274f,  0.6466f, 0.6789f, 0.7288f,  0.1597f, 0.1563f, 0.1496f,
-            0.1768f, 0.1164f, 0.0624f,  0.0417f, 0.0384f, 0.0158f,
+            0.0787f, 0.1560f, 0.0273f,  0.3159f, 0.2395f, 0.1123f,  0.0996f, 0.0656f, 0.0153f,  0.1121f, 0.0928f, 0.0297f,  0.5205f, 0.4038f, 0.2325f,  0.1969f, 0.1761f, 0.1461f,  0.7143f, 0.7653f, 0.8372f,  0.1878f, 0.1858f, 0.1798f,  0.2951f, 0.1867f, 0.0985f,  0.0480f, 0.0365f, 0.0150f,
         };
 
         /// <summary>The kind a raster mask stands for when nothing more is known.</summary>

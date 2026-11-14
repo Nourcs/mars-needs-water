@@ -38,7 +38,7 @@ Shader "MarsNeedsWater/EarthGround"
         // set by EarthWorld (EarthGround.cs)
         float4 _GroundOffset;          // xy: added to world x, z so the textures stay put when the world re-centres
         float4 _GroundMean[10];        // rgb: each kind's average texture colour (linear); a: unused
-        float4 _GroundParams[10];      // x: metres per repeat, y: 1 = may turn, z: normal strength, w: occlusion strength
+        float4 _GroundParams[10];      // x: metres per repeat, y: 1 = may turn, or minus the number of rows (no turning, shifts keep rows in line), z: normal strength, w: occlusion strength
         ENDHLSL
 
         Pass
@@ -132,6 +132,8 @@ Shader "MarsNeedsWater/EarthGround"
                 {
                     uint h = Hash(uint2(vs[i]) + uint2(kind * 131u, kind * 977u));
                     float2 off = float2((h & 0xffffu), (h >> 16)) / 65535.0;
+                    // rows (furrows, ripples) stay unbroken from one hexagon to the next
+                    if (prm.y < -0.5) off.y = floor(off.y * -prm.y) / -prm.y;
                     float ang = prm.y > 0.5 ? (Hash(uint2(h, 77u)) & 0xffffu) / 65535.0 * 6.2831853 : 0.0;
                     float c = cos(ang), sn = sin(ang);
                     float2x2 r = float2x2(c, -sn, sn, c);
@@ -166,8 +168,6 @@ Shader "MarsNeedsWater/EarthGround"
                 float3 n = nGeo;
                 half ao = 1.0, smooth = 0.1;
 
-                // a gentle large-scale mottling so wide fields never look painted
-                float mottle = ValueNoise(world / 23.0, 3u) * 0.6 + ValueNoise(world / 7.3, 5u) * 0.4;
 
                 if (detail > 0.001)
                 {
@@ -216,6 +216,14 @@ Shader "MarsNeedsWater/EarthGround"
                         half3 ratio = mapCol / max(_GroundMean[kk].rgb, 0.003);
                         ratio = clamp(ratio, 0.25, 4.0);
                         half3 c = la[j2].rgb * ratio;
+                        // the same kind's texture seen seven times larger shapes its big patches (dunes for sand,
+                        // slabs for rock, drifts for snow, clumps for grass), so no two kinds share one pattern
+                        float2x2 mr = float2x2(0.8253, -0.5646, 0.5646, 0.8253);
+                        float ms = 1.0 / (_GroundParams[kk].x * 7.0);
+                        float2 mst = mul(mr, world * ms) + 0.37;
+                        half3 macro = SAMPLE_TEXTURE2D_ARRAY_GRAD(_Albedo, sampler_Albedo, mst, kk, mul(mr, wdx * ms), mul(mr, wdy * ms)).rgb;
+                        half ml = dot(macro, half3(0.3, 0.5, 0.2)) / max(dot(_GroundMean[kk].rgb, half3(0.3, 0.5, 0.2)), 0.003);
+                        c *= lerp(1.0, clamp(ml, 0.5, 1.6), 0.4);
                         sumA += c * bw;
                         sumN += ln[j2].xy * _GroundParams[kk].z * bw;
                         sumO += lerp(1.0, ln[j2].z, _GroundParams[kk].w) * bw;
@@ -235,7 +243,6 @@ Shader "MarsNeedsWater/EarthGround"
                     ao = lerp(1.0, sumO / sumW, detail);
                     smooth = lerp(0.1, sumS / sumW, detail);
                 }
-                albedo *= 0.9 + 0.2 * mottle;
 
                 // light: sun with shadows, sky, a soft highlight on wet and icy ground
                 float4 sc = TransformWorldToShadowCoord(i.positionWS);

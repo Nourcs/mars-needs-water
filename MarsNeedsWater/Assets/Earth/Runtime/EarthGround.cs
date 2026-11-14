@@ -12,16 +12,16 @@ namespace MarsNeedsWater.Earth
         // per kind: metres per repeat, may turn (1/0), normal strength, occlusion strength
         static readonly Vector4[] Params =
         {
-            new Vector4(1.6f, 1, 0.7f, 0.8f),   // grass
-            new Vector4(1.8f, 1, 0.7f, 0.8f),   // dry grass
-            new Vector4(2.4f, 1, 0.9f, 0.9f),   // forest floor
-            new Vector4(2.4f, 1, 0.6f, 0.7f),   // farmland
-            new Vector4(2.6f, 1, 0.5f, 0.5f),   // sand
-            new Vector4(4.5f, 1, 1.0f, 0.9f),   // rock
-            new Vector4(5.0f, 1, 0.5f, 0.4f),   // snow
-            new Vector4(3.0f, 1, 0.4f, 0.5f),   // paving
-            new Vector4(2.2f, 1, 0.8f, 0.8f),   // bare earth
-            new Vector4(2.4f, 1, 0.5f, 0.6f),   // mud
+            new Vector4(2.2f, 1, 0.8f, 0.8f),     // grass
+            new Vector4(2.8f, 1, 0.8f, 0.8f),     // dry grass
+            new Vector4(3.0f, 1, 0.9f, 0.9f),     // forest floor
+            new Vector4(8.0f, -16, 0.8f, 0.7f),   // farmland: 16 furrows, half a metre apart, kept in line
+            new Vector4(3.5f, -20, 0.6f, 0.5f),   // sand: 20 ripples, kept in line
+            new Vector4(7.0f, 1, 1.0f, 0.9f),     // rock
+            new Vector4(8.0f, 1, 0.6f, 0.4f),     // snow
+            new Vector4(3.5f, 1, 0.5f, 0.5f),     // paving
+            new Vector4(3.0f, 1, 0.9f, 0.8f),     // bare earth
+            new Vector4(3.0f, 1, 0.6f, 0.6f),     // mud
         };
 
         static Texture2DArray albedo, normal;
