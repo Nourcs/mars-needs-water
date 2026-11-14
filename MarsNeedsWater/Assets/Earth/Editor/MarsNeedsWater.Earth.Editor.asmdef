@@ -1,0 +1,18 @@
+{
+    "name": "MarsNeedsWater.Earth.Editor",
+    "rootNamespace": "MarsNeedsWater.Earth.Editor",
+    "references": [
+        "MarsNeedsWater.Earth"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -24,6 +24,7 @@ namespace MarsNeedsWater.Earth
         CharacterController cc;
         Camera cam;
         GameObject body, car, plane;
+        Jeep jeep;
         float yaw, pitch = 10f, fall, carSpeed, flySpeed = 60f;
         bool third, placing = true, locked;
         Vector3 flyVel;
@@ -53,13 +54,8 @@ namespace MarsNeedsWater.Earth
             cam.fieldOfView = 65f;
 
             body = Shape(PrimitiveType.Capsule, transform, Vector3.zero, new Vector3(0.6f, HalfHeight, 0.6f), new Color(0.90f, 0.45f, 0.20f));
-            car = new GameObject("Car");
-            car.transform.SetParent(transform, false);
-            Shape(PrimitiveType.Cube, car.transform, new Vector3(0f, -0.45f, 0f), new Vector3(1.1f, 0.4f, 2.4f), new Color(0.85f, 0.2f, 0.18f));
-            Shape(PrimitiveType.Cube, car.transform, new Vector3(0f, -0.1f, -0.15f), new Vector3(0.95f, 0.36f, 1.2f), new Color(0.75f, 0.85f, 0.92f));
-            for (int i = 0; i < 4; i++)
-                Shape(PrimitiveType.Cylinder, car.transform, new Vector3(i % 2 == 0 ? -0.55f : 0.55f, -0.65f, i < 2 ? 0.75f : -0.75f),
-                    new Vector3(0.42f, 0.08f, 0.42f), new Color(0.1f, 0.1f, 0.1f)).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            jeep = Jeep.Build(transform);
+            car = jeep.gameObject;
             plane = new GameObject("Plane");
             plane.transform.SetParent(transform, false);
             Shape(PrimitiveType.Cube, plane.transform, Vector3.zero, new Vector3(0.7f, 0.7f, 4.2f), new Color(0.95f, 0.95f, 0.97f));
@@ -233,6 +229,7 @@ namespace MarsNeedsWater.Earth
             float real = moved.magnitude / dt;
             if (real < Mathf.Abs(carSpeed) * 0.5f) carSpeed *= 0.9f;       // hit something
             Speed = real;
+            jeep.Roll(carSpeed < 0 ? -real : real, s, dt);
         }
 
         // ------------------------------------------------------------ water
@@ -294,6 +291,7 @@ namespace MarsNeedsWater.Earth
             float real = moved.magnitude / dt;
             if (real < Mathf.Abs(carSpeed) * 0.5f) carSpeed *= 0.9f;
             Speed = real;
+            jeep.Roll(carSpeed * 0.5f, s, dt);                            // wheels paddling
 
             // ride the swell: nose up and down with the waves, and up a little at speed
             Vector2 g = EarthWater.I != null ? EarthWater.I.SwellSlope(transform.position, lake, depth) : Vector2.zero;
@@ -339,7 +337,7 @@ namespace MarsNeedsWater.Earth
             if (rippleIn <= 0f)
             {
                 bool moving = hs > 0.5f;
-                Vector3 ringAt = Current == Mode.Drive ? at - fwd * 1.1f : at;
+                Vector3 ringAt = Current == Mode.Drive ? at - fwd * 1.4f : at;
                 w.Ripple(ringAt, Mathf.Clamp(0.15f + hs * 0.1f, 0.15f, 1.3f));
                 rippleIn = moving ? Mathf.Lerp(0.3f, 0.07f, hs / 15f) : (swimming || boat ? 1.1f : 2f);
             }
@@ -348,11 +346,11 @@ namespace MarsNeedsWater.Earth
                 if (boat)
                 {
                     // spray off both sides of the bow, more the faster it goes
-                    Vector3 bow = at + fwd * 1.1f;
+                    Vector3 bow = at + fwd * 1.65f;
                     int n = Mathf.Clamp((int)(hs * 0.5f), 1, 14);
-                    w.Spray(bow + right * 0.45f, (right * 0.7f + Vector3.up * 0.9f) * hs * 0.22f, n, 0.3f, 0.16f);
-                    w.Spray(bow - right * 0.45f, (-right * 0.7f + Vector3.up * 0.9f) * hs * 0.22f, n, 0.3f, 0.16f);
-                    if (hs > 10f) w.Spray(at - fwd * 1.3f, Vector3.up * 1.5f - fwd * 1.5f, n / 2, 0.6f, 0.2f);   // churned water behind
+                    w.Spray(bow + right * 0.85f, (right * 0.7f + Vector3.up * 0.9f) * hs * 0.22f, n, 0.3f, 0.16f);
+                    w.Spray(bow - right * 0.85f, (-right * 0.7f + Vector3.up * 0.9f) * hs * 0.22f, n, 0.3f, 0.16f);
+                    if (hs > 10f) w.Spray(at - fwd * 1.9f, Vector3.up * 1.5f - fwd * 1.5f, n / 2, 0.6f, 0.2f);   // churned water behind
                     splashIn = 0.05f;
                 }
                 else if (swimming)
@@ -425,7 +423,7 @@ namespace MarsNeedsWater.Earth
             Quaternion look = Quaternion.Euler(pitch, yaw, 0f);
             Vector3 head = transform.position + Vector3.up * Eye;
             if (!chase) { cam.transform.SetPositionAndRotation(head, look); return; }
-            float dist = Current == Mode.Fly ? 13f : Current == Mode.Drive ? 6.5f : 4f;
+            float dist = Current == Mode.Fly ? 13f : Current == Mode.Drive ? 7.5f : 4f;
             Vector3 target = head + Vector3.up * (Current == Mode.Walk ? 0.2f : 0.6f);
             Vector3 back = look * Vector3.back;
             RaycastHit hit;
