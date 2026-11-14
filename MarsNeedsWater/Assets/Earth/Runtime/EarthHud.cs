@@ -98,7 +98,7 @@ namespace MarsNeedsWater.Earth
             if (status != null) Shadow(new Rect(16, 60, w - 32, 20), status, small);
 
             Shadow(new Rect(16, h - 46, w - 32, 20),
-                "Click to look around   WASD move   Shift faster   Space jump / up   C car   F fly (wheel or Q/E changes flying speed)   V view   G go to a place   Esc free the mouse", small);
+                "Click to look around   WASD move   Shift faster   Space jump / up   C car (R flips it back over)   F fly (wheel or Q/E changes flying speed)   V view   G go to a place   Esc free the mouse", small);
             Shadow(new Rect(16, h - 24, w - 32, 20), Credit, small);
 
             if (!searching) return;

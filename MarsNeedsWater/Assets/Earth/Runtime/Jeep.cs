@@ -42,75 +42,94 @@ namespace MarsNeedsWater.Earth
             new Color(0.47f, 0.46f, 0.31f),   // paint, sun-faded
         };
 
-        // ---- tuning: change these on the Jeep component (under the Player) while playing to try them out
+        // ---- tuning: change these on the Jeep object in the Hierarchy while playing to try them out
 
-        [Header("Engine")]
-        [Tooltip("How fast it picks up speed, m/s per second (it eases off near top speed).")] public float Accel = 11f;
+        [Header("Body")]
+        [Tooltip("Mass, kg.")] public float Mass = 1650f;
+        [Tooltip("Height of the centre of mass above the ground, m. Higher = tips over more easily.")] public float CentreHeight = 0.55f;
+        [Tooltip("Air drag. Higher = more slowing at speed.")] public float AirDrag = 0.6f;
+
+        [Header("Engine and brakes")]
+        [Tooltip("Engine pull at low speed, as m/s^2 of acceleration on the flat (it fades to nothing at top speed).")] public float Accel = 8f;
         [Tooltip("Top speed, m/s.")] public float TopSpeed = 30f;
         [Tooltip("Top speed holding Shift, m/s.")] public float BoostSpeed = 70f;
+        [Tooltip("Engine pull holding Shift, times the normal pull.")] public float BoostPower = 1.8f;
         [Tooltip("Top speed backwards, m/s.")] public float ReverseSpeed = 10f;
-        [Tooltip("Braking with S while moving forward, m/s per second.")] public float Brake = 28f;
-        [Tooltip("Slowing down with no pedal pressed, m/s per second. Lower = more momentum.")] public float Coast = 3.5f;
-        [Tooltip("Braking with Space (handbrake), m/s per second.")] public float Handbrake = 34f;
-        [Tooltip("Gravity on the jeep, m/s per second. Lower = longer air time.")] public float Gravity = 22f;
-        [Tooltip("How much of the climb speed over a crest turns into a jump (0 = stays glued down).")] [Range(0f, 1.5f)] public float Launch = 0.9f;
+        [Tooltip("Brakes (S while moving forward), m/s^2 if the tyres can take it.")] public float Brake = 9f;
+        [Tooltip("Handbrake (Space): locks the rear wheels, m/s^2.")] public float Handbrake = 7f;
+        [Tooltip("Engine braking and holding with no pedal pressed, m/s^2.")] public float EngineBrake = 1.2f;
+        [Tooltip("Rolling resistance per wheel, newtons per m/s.")] public float RollingResistance = 12f;
 
-        [Header("Hills")]
-        [Tooltip("Pull of gravity along a slope, m/s^2 at a vertical wall: slows it uphill, speeds it up downhill.")] public float SlopeGravity = 16f;
-        [Tooltip("Steepest slope the engine can still climb, degrees. Steeper and it slides back down.")] public float MaxClimbAngle = 40f;
-        [Tooltip("Side slopes steeper than this (degrees) start losing grip and slipping sideways downhill.")] public float SideSlipAngle = 22f;
-
-        [Header("Steering")]
-        [Tooltip("How fast it turns at low speed, degrees per second at full lock.")] public float SteerRate = 90f;
-        [Tooltip("Speed (m/s) at which turning is halved: lower = more understeer at speed.")] public float Understeer = 32f;
-        [Tooltip("How quickly the steering follows the keys.")] public float SteerSpeed = 7f;
-        [Tooltip("Sideways grip: how fast a sideways slide dies away. Lower = slidier.")] public float Grip = 6f;
-        [Tooltip("Sideways grip while holding the handbrake (Space).")] public float HandbrakeGrip = 1.2f;
-        [Tooltip("Share of steering still working in the air.")] [Range(0f, 1f)] public float AirSteer = 0.25f;
-        [Tooltip("Front wheel angle at full lock, degrees (looks only).")] public float WheelLock = 28f;
+        [Header("Tyres and steering")]
+        [Tooltip("Tyre friction: 1 is good rubber on dry ground. Lower = slidier everywhere.")] public float Grip = 1.0f;
+        [Tooltip("Share of the grip left once a tyre is sliding.")] [Range(0.3f, 1f)] public float SlideGrip = 0.8f;
+        [Tooltip("How sharply sideways grip builds with slip angle. Higher = more direct.")] public float CorneringStiffness = 8f;
+        [Tooltip("Rear sideways grip with the handbrake on, as a share. Lower = easier handbrake turns.")] [Range(0f, 1f)] public float HandbrakeRearGrip = 0.4f;
+        [Tooltip("Front wheel angle at full lock, degrees.")] public float WheelLock = 32f;
+        [Tooltip("Share of full lock left at top speed.")] [Range(0.1f, 1f)] public float HighSpeedLock = 0.35f;
+        [Tooltip("How quickly the steering follows the keys.")] public float SteerSpeed = 5f;
 
         [Header("Suspension")]
-        [Tooltip("Spring stiffness. Lower = softer, wallowier.")] public float Stiffness = 150f;
-        [Tooltip("Damping as a share of critical: 0.2 bouncy, 1 no bounce.")] [Range(0.05f, 1.5f)] public float Damping = 0.3f;
-        [Tooltip("How far a wheel can push up into its arch, m.")] public float Bump = 0.09f;
+        [Tooltip("Spring rate per wheel, N/m. Lower = softer and more body roll.")] public float SpringRate = 32000f;
+        [Tooltip("Damping while a wheel is pushed up, as a share of critical (1 = no overshoot).")] [Range(0.1f, 2f)] public float BumpDamping = 0.9f;
+        [Tooltip("Damping while a wheel extends again, as a share of critical. Higher than bump so it does not spring back up.")] [Range(0.1f, 2f)] public float ReboundDamping = 1.3f;
+        [Tooltip("Anti-roll bars, N/m of difference between left and right. Higher = flatter in corners.")] public float AntiRoll = 8000f;
+        [Tooltip("How far a wheel can push up into its arch, m.")] public float Bump = 0.1f;
         [Tooltip("How far a wheel can hang down, m.")] public float Droop = 0.2f;
-        [Tooltip("How much of the landing speed the body carries down into the springs.")] [Range(0f, 1.5f)] public float LandingSquash = 0.7f;
-        [Tooltip("Small hop back up after a hard landing (share of the landing speed).")] [Range(0f, 0.5f)] public float LandingHop = 0.15f;
 
-        [Header("Body motion")]
-        [Tooltip("Nose dive braking / squat accelerating, radians per m/s^2 (before the springs).")] public float DiveSquat = 0.5f;
-        [Tooltip("Body roll in corners, radians per m/s^2 of sideways pull (before the springs).")] public float BodyRoll = 0.6f;
-        [Tooltip("Most the body can pitch on its springs, degrees.")] public float MaxPitch = 40f;
-        [Tooltip("Most the body can roll on its springs, degrees.")] public float MaxRoll = 35f;
+        [Header("Air and water")]
+        [Tooltip("Weak pitch and roll control in the air (W/S, A/D), rad/s^2.")] public float AirControl = 0.35f;
+        [Tooltip("Buoyancy with the hull fully under water, times its weight.")] public float Buoyancy = 1.5f;
+        [Tooltip("Water drag per hull point, N per m/s.")] public float WaterDrag = 120f;
+        [Tooltip("Push from the wheels paddling, m/s^2.")] public float WaterThrust = 4f;
+        [Tooltip("Turning afloat, rad/s^2.")] public float WaterTurn = 0.8f;
 
-        /// <summary>The slope of the ground under the wheels, radians: nose up (uphill) positive, right side up positive.</summary>
-        public float SlopeAlong { get; private set; }
-        public float SlopeSide { get; private set; }
-
-        /// <summary>Ground height (world y) under a point, if known.</summary>
+        /// <summary>Ground height (world y) under a point, if known: used where the ground has no collider yet.</summary>
         public delegate bool GroundAt(Vector3 world, out float y);
+        /// <summary>The water surface (world y) over a point, if there is water.</summary>
+        public delegate bool WaterAt(Vector3 world, out float surface);
 
-        Transform body;
+        public GroundAt GroundFn;
+        public WaterAt WaterFn;
+
+        // input, set each frame by the player
+        [System.NonSerialized] public float Throttle, Steer;
+        [System.NonSerialized] public bool Handbraking, Boosting;
+
+        public Rigidbody Body { get; private set; }
+        /// <summary>Wheels on the ground (0-4).</summary>
+        public int Grounded { get; private set; }
+        public bool Afloat { get; private set; }
+        /// <summary>On its side or roof and nearly stopped.</summary>
+        public bool Upturned { get { return transform.up.y < 0.5f && Body.linearVelocity.magnitude < 3f; } }
+        public float Speed { get { Vector3 v = Body.linearVelocity; v.y = 0f; return v.magnitude; } }
+
+        const float AttachY = AxleY + 0.25f;            // where each spring meets the body; at rest the axle hangs 0.25 below
         Transform[] spin, steer, pivot;
-        float roll;
-        // the sprung body relative to the chassis: heave (m), pitch (rad, nose up), roll (rad, right side down), and their rates
-        float heave, pitch, lean, heaveV, pitchV, leanV;
-        readonly float[] wheelUp = new float[4], groundUp = new float[4];
-        readonly bool[] touching = new bool[4];
+        float steerNow;
+        readonly float[] length = new float[4], shown = new float[4], angle = new float[4], spinRate = new float[4], spinAt = new float[4], squash = new float[4];
+        readonly bool[] contact = new bool[4];
+        [System.NonSerialized] public readonly float[] LastLoad = new float[4], LastPush = new float[4], LastSide = new float[4];   // for tests
         static readonly float[] WX = { -Track, Track, -Track, Track }, WZ = { FrontZ, FrontZ, RearZ, RearZ };
+        static readonly Vector3[] Hull =
+        {
+            new Vector3(-0.6f, -0.2f, 1.45f), new Vector3(0.6f, -0.2f, 1.45f), new Vector3(-0.6f, -0.2f, -1.45f), new Vector3(0.6f, -0.2f, -1.45f),
+            new Vector3(-0.6f, -0.2f, 0f), new Vector3(0.6f, -0.2f, 0f), new Vector3(0f, -0.2f, 0.75f), new Vector3(0f, -0.2f, -0.75f),
+        };
+        readonly RaycastHit[] hits = new RaycastHit[8];
 
-        /// <summary>Builds a jeep under parent and returns it.</summary>
-        public static Jeep Build(Transform parent)
+        float RestLength { get { return 0.25f + Mass * 9.81f / 4f / Mathf.Max(SpringRate, 1f); } }
+
+        /// <summary>Builds a jeep (its own physics body, not parented to anything) and returns it.</summary>
+        public static Jeep Build()
         {
             var root = new GameObject("Jeep");
-            root.transform.SetParent(parent, false);
             Jeep j = root.AddComponent<Jeep>();
             Material mat = EarthWorld.Mat(PaletteTexture(), 0.18f);
 
             Mesh bodyMesh = BodyMesh(), wheel = WheelMesh();
-            // the body (with the spare on its back) rides on springs; the wheels hang from the chassis and follow the ground
-            j.body = Part(root.transform, "Body", bodyMesh, mat, Vector3.zero, Quaternion.identity).transform;
-            Part(j.body, "Spare", wheel, mat, new Vector3(0f, 0.16f, -1.71f), Quaternion.Euler(0f, -90f, 0f));
+            Transform body = Part(root.transform, "Body", bodyMesh, mat, Vector3.zero, Quaternion.identity).transform;
+            Part(body, "Spare", wheel, mat, new Vector3(0f, 0.16f, -1.71f), Quaternion.Euler(0f, -90f, 0f));
 
             j.spin = new Transform[4];
             j.steer = new Transform[2];
@@ -127,8 +146,34 @@ namespace MarsNeedsWater.Earth
                 Transform w = Part(p, "Wheel", wheel, mat, Vector3.zero, Quaternion.identity).transform;
                 w.localScale = new Vector3(right ? -1f : 1f, 1f, 1f);
                 j.spin[i] = w;
+                j.length[i] = j.shown[i] = 0.25f;
             }
+
+            // the body's solid shape: the tub and bonnet, and the roll bar it lands on if it goes over.
+            // The wheels have none: they find the ground with rays. On the Ignore Raycast layer so those rays,
+            // and the camera's, pass through the jeep itself.
+            var pm = new PhysicsMaterial("Jeep") { dynamicFriction = 0.5f, staticFriction = 0.6f, bounciness = 0f, bounceCombine = PhysicsMaterialCombine.Minimum };
+            Box(root.transform, new Vector3(0f, 0.12f, 0.02f), new Vector3(1.3f, 0.6f, 3.3f), pm);
+            Box(root.transform, new Vector3(0f, 0.78f, -0.5f), new Vector3(1.2f, 0.7f, 0.2f), pm);
+            Box(root.transform, new Vector3(0f, 0.66f, 0.45f), new Vector3(1.3f, 0.5f, 0.1f), pm);
+
+            Rigidbody rb = root.AddComponent<Rigidbody>();
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            rb.linearDamping = 0f;
+            rb.angularDamping = 0.3f;
+            rb.maxAngularVelocity = 12f;
+            j.Body = rb;
+            j.Tune();
             return j;
+        }
+
+        static void Box(Transform parent, Vector3 centre, Vector3 size, PhysicsMaterial pm)
+        {
+            var go = new GameObject("Collider") { layer = 2 };
+            go.transform.SetParent(parent, false);
+            var b = go.AddComponent<BoxCollider>();
+            b.center = centre; b.size = size; b.sharedMaterial = pm;
         }
 
         static GameObject Part(Transform parent, string name, Mesh mesh, Material mat, Vector3 pos, Quaternion rot)
@@ -142,92 +187,254 @@ namespace MarsNeedsWater.Earth
             return go;
         }
 
-        /// <summary>Body back to rest, wheels down (getting in, or after a jump to a new place).</summary>
-        public void Settle()
+        /// <summary>Mass, balance and inertia from the settings (a box of the jeep's size).</summary>
+        void Tune()
         {
-            heave = pitch = lean = heaveV = pitchV = leanV = 0f;
-            SlopeAlong = SlopeSide = 0f;
-            for (int i = 0; i < 4; i++) { wheelUp[i] = 0f; touching[i] = true; }
-            Pose();
+            Rigidbody rb = Body;
+            rb.mass = Mathf.Max(Mass, 100f);
+            rb.centerOfMass = new Vector3(0f, Ground + CentreHeight, 0.05f);
+            float m = rb.mass / 12f;
+            rb.inertiaTensor = new Vector3(m * (1.3f * 1.3f + 3.4f * 3.4f), m * (1.9f * 1.9f + 3.4f * 3.4f), m * (1.9f * 1.9f + 1.3f * 1.3f));
+            rb.inertiaTensorRotation = Quaternion.identity;
         }
 
-        /// <summary>The body carries on down into its springs when the jeep lands (vy is the landing speed, negative).</summary>
-        public void Land(float vy)
+        /// <summary>Holds the jeep still at a spot (while the ground there loads, or getting in).</summary>
+        public void Hold(Vector3 pos, float yawDeg)
         {
-            heaveV += Mathf.Min(vy, 0f) * LandingSquash;
-            pitchV += Mathf.Min(vy, 0f) * LandingSquash * 0.15f * (Random.value - 0.5f);
-            leanV += Mathf.Min(vy, 0f) * LandingSquash * 0.2f * (Random.value - 0.5f);
+            if (!Body.isKinematic) { Body.linearVelocity = Vector3.zero; Body.angularVelocity = Vector3.zero; }
+            Body.isKinematic = true;
+            Quaternion r = Quaternion.Euler(0f, yawDeg, 0f);
+            Body.position = pos; Body.rotation = r;
+            transform.SetPositionAndRotation(pos, r);
+            for (int i = 0; i < 4; i++) { length[i] = shown[i] = 0.25f; contact[i] = false; spinRate[i] = 0f; }
+            steerNow = 0f; Grounded = 0; Afloat = false;
         }
 
-        /// <summary>
-        /// One frame of wheels and springs. speed is along the ground (negative backwards), steerNow -1..1 as smoothed,
-        /// accelForward / accelRight the chassis's acceleration (m/s^2), air true when no wheel can be on the ground
-        /// (in the air, or afloat). ground finds the ground under each wheel; bottom is the chassis's ground level (world y).
-        /// </summary>
-        public void Step(float dt, float speed, float steerNow, float accelForward, float accelRight, bool air, GroundAt ground, float bottom)
+        /// <summary>Lets it go: physics from here on.</summary>
+        public void Release()
         {
-            // where the ground is under each wheel, against the ground the chassis stands on
+            if (!Body.isKinematic) return;
+            Body.isKinematic = false;
+            Body.linearVelocity = Vector3.zero; Body.angularVelocity = Vector3.zero;
+        }
+
+        /// <summary>Back on its wheels, a little above where it lay, facing the way it pointed.</summary>
+        public void Flip()
+        {
+            float heading = Heading(transform.eulerAngles.y);
+            Vector3 pos = Body.position + Vector3.up * 1.2f;
+            Quaternion r = Quaternion.Euler(0f, heading, 0f);
+            Body.linearVelocity = Vector3.zero; Body.angularVelocity = Vector3.zero;
+            Body.position = pos; Body.rotation = r;
+            transform.SetPositionAndRotation(pos, r);
+        }
+
+        /// <summary>The way the jeep points, degrees clockwise from +z, even when it is on its nose or tail.</summary>
+        public float Heading(float fallback)
+        {
+            Vector3 f = transform.forward;
+            if (f.x * f.x + f.z * f.z < 0.04f) f = transform.up * (f.y > 0f ? -1f : 1f);   // pointing straight up or down: use its roof
+            if (f.x * f.x + f.z * f.z < 1e-4f) return fallback;
+            return Mathf.Atan2(f.x, f.z) * Mathf.Rad2Deg;
+        }
+
+        /// <summary>The world shifted under us (floating origin): move and turn the jeep with it, velocity and all.</summary>
+        public void Shift(Vector3 oldPivot, Vector3 newPivot, Quaternion turn)
+        {
+            Vector3 pos = newPivot + turn * (Body.position - oldPivot);
+            Quaternion r = turn * Body.rotation;
+            if (!Body.isKinematic)
+            {
+                Body.linearVelocity = turn * Body.linearVelocity;
+                Body.angularVelocity = turn * Body.angularVelocity;
+            }
+            Body.position = pos; Body.rotation = r;
+            transform.SetPositionAndRotation(pos, r);
+        }
+
+        void FixedUpdate() { Tick(Time.fixedDeltaTime); }
+
+        /// <summary>One physics step of forces: springs, tyres, engine, water. (Called by FixedUpdate, or by a test.)</summary>
+        public void Tick(float dt)
+        {
+            if (Body == null || Body.isKinematic) return;
+            Tune();
+            Rigidbody rb = Body;
+            Vector3 up = transform.up, gv = Physics.gravity;
+            float g = gv.magnitude, share = rb.mass / 4f;
+            float fwdSpeed = Vector3.Dot(rb.linearVelocity, transform.forward);
+
+            // steering, less of it at speed, with the inner wheel turned further than the outer (Ackermann)
+            steerNow = Mathf.Lerp(steerNow, Mathf.Clamp(Steer, -1f, 1f), 1f - Mathf.Exp(-SteerSpeed * dt));
+            float lockDeg = WheelLock * Mathf.Lerp(1f, HighSpeedLock, Mathf.Clamp01(Mathf.Abs(fwdSpeed) / Mathf.Max(TopSpeed, 1f)));
+            float delta = steerNow * lockDeg * Mathf.Deg2Rad;
+            angle[0] = angle[1] = angle[2] = angle[3] = 0f;
+            if (Mathf.Abs(delta) > 1e-4f)
+            {
+                float wb = FrontZ - RearZ, r = wb / Mathf.Tan(Mathf.Abs(delta));
+                float inner = Mathf.Atan(wb / Mathf.Max(r - Track, 0.05f)) * Mathf.Rad2Deg, outer = Mathf.Atan(wb / (r + Track)) * Mathf.Rad2Deg;
+                if (delta > 0f) { angle[1] = inner; angle[0] = outer; } else { angle[0] = -inner; angle[1] = -outer; }
+            }
+
+            float top = Boosting ? BoostSpeed : TopSpeed;
+            float pull = Accel * rb.mass * (Boosting ? BoostPower : 1f) / 4f;
+            bool braking = (Throttle < 0f && fwdSpeed > 1f) || (Throttle > 0f && fwdSpeed < -1f);
+            float rest = RestLength, minLen = 0.25f - Bump, maxLen = 0.25f + Droop;
+            float critical = 2f * Mathf.Sqrt(Mathf.Max(SpringRate, 1f) * share);
+            int on = 0;
+
             for (int i = 0; i < 4; i++)
             {
-                float gy;
-                Vector3 at = transform.TransformPoint(new Vector3(WX[i], AxleY, WZ[i]));
-                groundUp[i] = !air && ground != null && ground(at, out gy) ? gy - bottom : -10f;
-            }
-            if (!air && groundUp[0] > -5f && groundUp[1] > -5f && groundUp[2] > -5f && groundUp[3] > -5f)
-            {
-                float along = Mathf.Atan2((groundUp[0] + groundUp[1] - groundUp[2] - groundUp[3]) * 0.5f, FrontZ - RearZ);
-                float side = Mathf.Atan2((groundUp[1] + groundUp[3] - groundUp[0] - groundUp[2]) * 0.5f, 2f * Track);
-                float t = 1f - Mathf.Exp(-10f * dt);
-                SlopeAlong = Mathf.Lerp(SlopeAlong, along, t);
-                SlopeSide = Mathf.Lerp(SlopeSide, side, t);
-            }
+                Vector3 attach = transform.TransformPoint(new Vector3(WX[i], AttachY, WZ[i]));
+                Vector3 point, normal; float dist;
+                bool hit = CastWheel(attach, -up, maxLen + TyreR, out point, out normal, out dist);
+                float len = hit ? dist - TyreR : maxLen;
+                float rate = (length[i] - len) / dt;          // how fast it is being squashed
+                length[i] = len;
+                contact[i] = hit;
+                if (!hit) { squash[i] = LastLoad[i] = LastPush[i] = LastSide[i] = 0f; spinRate[i] *= Mathf.Exp(-0.4f * dt); if (Throttle != 0f) spinRate[i] = Mathf.MoveTowards(spinRate[i], Throttle * top / TyreR, 30f * dt); continue; }
+                on++;
 
-            float k = Mathf.Max(Stiffness, 1f), c = 2f * Damping * Mathf.Sqrt(k);
-            const float rz2 = (FrontZ * FrontZ + RearZ * RearZ) * 0.5f, rx2 = Track * Track;
-            float maxP = MaxPitch * Mathf.Deg2Rad, maxR = MaxRoll * Mathf.Deg2Rad;
-            const int steps = 4;
-            float h = dt / steps;
-            for (int s = 0; s < steps; s++)
-            {
-                float fh = 0f, fp = 0f, fr = 0f;
-                bool any = false;
-                for (int i = 0; i < 4; i++)
+                // spring and damper, then the bump stop
+                float damp = critical * (rate > 0f ? BumpDamping : ReboundDamping);
+                float fz = SpringRate * (rest - len) + damp * rate;
+                if (len < minLen) fz += SpringRate * 10f * (minLen - len) + critical * 2f * Mathf.Max(rate, 0f);   // bump stop: hard, and soaks up the hit
+                fz = Mathf.Clamp(fz, 0f, share * g * 8f);
+                squash[i] = rest - len;
+                rb.AddForceAtPosition(up * fz, attach);
+
+                // the tyre: which way it rolls and slides on the ground it stands on
+                Vector3 wf = Quaternion.AngleAxis(angle[i], up) * transform.forward;
+                Vector3 along = Vector3.ProjectOnPlane(wf, normal).normalized, side = Vector3.Cross(normal, along);
+                Vector3 pv = rb.GetPointVelocity(point);
+                float vl = Vector3.Dot(pv, along), vs = Vector3.Dot(pv, side);
+                bool rear = i >= 2, locked = Handbraking && rear;
+                float mu = Mathf.Max(Grip, 0f), maxF = mu * fz;
+
+                // sideways: grip builds with slip angle up to a peak, then fades a little (never more than it takes to stop the slide)
+                float slip = Mathf.Atan2(vs, Mathf.Max(Mathf.Abs(vl), 0.5f));
+                float fy = -Mathf.Sign(slip) * maxF * (locked ? HandbrakeRearGrip : 1f) * Curve(Mathf.Abs(slip));
+                float stopY = share * Mathf.Abs(vs) / dt;
+                fy = Mathf.Clamp(fy, -stopY, stopY);
+                if (pv.sqrMagnitude < 1f) fy -= Mathf.Clamp(Vector3.Dot(gv, side) * share, -maxF, maxF);    // parked on a side slope: the tyres hold
+
+                // along: engine (all four wheels), brakes, engine braking, rolling resistance
+                float fx = 0f, stopX = share * Mathf.Abs(vl) / dt;
+                if (Throttle > 0f && !braking) { float x = Mathf.Max(vl, 0f) / top; fx += Throttle * pull * Mathf.Clamp01(1f - x * x * x * x); }
+                else if (Throttle < 0f && !braking) fx += Throttle * pull * 0.7f * Mathf.Clamp01(1f + (vl / ReverseSpeed) * Mathf.Abs(vl / ReverseSpeed));
+                // brakes biased to the front so the rear does not lock and spin it; engine braking holds it near top speed downhill
+                float hold = braking ? Brake * (rear ? 0.7f : 1.3f) : Throttle == 0f ? EngineBrake : 0f;
+                if (vl > top) hold = Mathf.Max(hold, Mathf.Min((vl - top) * 0.6f, 4f));
+                if (locked) hold = Mathf.Max(hold, Handbrake * 2f);
+                if (hold > 0f)
                 {
-                    float corner = heave + WZ[i] * pitch - WX[i] * lean;    // how far the body has moved up at this wheel
-                    float gap = groundUp[i] - corner;                       // where the ground is, seen from the body
-                    touching[i] = gap > -Droop;
-                    float d = Mathf.Clamp(gap, -Droop, Bump);
-                    wheelUp[i] = corner + (touching[i] ? d : Mathf.Lerp(wheelUp[i] - corner, -Droop, 1f - Mathf.Exp(-12f * h)));
-                    if (!touching[i]) continue;
-                    any = true;
-                    float f = k * d + (gap > Bump ? k * 6f * (gap - Bump) : 0f);   // spring, then the bump stop
-                    fh += f; fp += f * WZ[i]; fr -= f * WX[i];
+                    float fb = hold * share;
+                    fx -= Mathf.Sign(vl) * Mathf.Min(fb, stopX);
+                    if (Mathf.Abs(vl) < 0.5f) fx -= Mathf.Clamp(Vector3.Dot(gv, along) * share, -fb, fb);   // holding still on a hill
                 }
-                if (!any) { fh = -k * heave * 4f; fp = -k * pitch * 4f * rz2; fr = -k * lean * 4f * rx2; }   // in the air the body settles on its springs
-                float ah = fh / 4f - c * heaveV;
-                float ap = fp / (4f * rz2) - c * pitchV + (any ? DiveSquat * accelForward : 0f);
-                float ar = fr / (4f * rx2) - c * leanV - (any ? BodyRoll * accelRight : 0f);
-                heaveV += ah * h; pitchV += ap * h; leanV += ar * h;
-                heave += heaveV * h; pitch += pitchV * h; lean += leanV * h;
-                if (Mathf.Abs(heave) > 0.3f) { heave = Mathf.Sign(heave) * 0.3f; heaveV = 0f; }
-                if (Mathf.Abs(pitch) > maxP) { pitch = Mathf.Sign(pitch) * maxP; pitchV = 0f; }
-                if (Mathf.Abs(lean) > maxR) { lean = Mathf.Sign(lean) * maxR; leanV = 0f; }
+                fx -= vl * RollingResistance;
+
+                // a tyre can only push so hard in all directions together
+                Vector2 f2 = new Vector2(fx, fy);
+                if (f2.magnitude > maxF) f2 = f2.normalized * maxF * SlideGrip;
+                rb.AddForceAtPosition(along * f2.x + side * f2.y, point);
+                LastLoad[i] = fz; LastPush[i] = f2.x; LastSide[i] = f2.y;
+                spinRate[i] = locked ? 0f : vl / TyreR;
             }
 
-            roll = Mathf.Repeat(roll + speed / TyreR * Mathf.Rad2Deg * dt, 360f);
-            for (int i = 0; i < 2; i++) steer[i].localRotation = Quaternion.Euler(0f, steerNow * WheelLock, 0f);
-            Pose();
+            // anti-roll bars: a squashed wheel lifts its side and pulls the other side down
+            for (int a = 0; a < 4; a += 2)
+            {
+                float f = AntiRoll * (squash[a] - squash[a + 1]);
+                Vector3 l = transform.TransformPoint(new Vector3(WX[a], AttachY, WZ[a])), r = transform.TransformPoint(new Vector3(WX[a + 1], AttachY, WZ[a + 1]));
+                if (contact[a]) rb.AddForceAtPosition(up * f, l);
+                if (contact[a + 1]) rb.AddForceAtPosition(-up * f, r);
+            }
+            Grounded = on;
+
+            Vector3 v = rb.linearVelocity;
+            rb.AddForce(-v * v.magnitude * AirDrag);
+            if (on == 0) rb.AddRelativeTorque(new Vector3(Throttle, 0f, -Steer) * AirControl, ForceMode.Acceleration);
+
+            Swim(dt, fwdSpeed);
+            KeepAboveGround();
         }
 
-        void Pose()
+        /// <summary>Peak grip at about 15 degrees of slip, a little less beyond.</summary>
+        float Curve(float slip) { return Mathf.Sin(1.4f * Mathf.Atan(CorneringStiffness * slip)); }
+
+        bool CastWheel(Vector3 from, Vector3 dir, float reach, out Vector3 point, out Vector3 normal, out float dist)
         {
-            body.localPosition = new Vector3(0f, heave, 0f);
-            body.localRotation = Quaternion.Euler(-pitch * Mathf.Rad2Deg, 0f, -lean * Mathf.Rad2Deg);
-            Quaternion r = Quaternion.Euler(roll, 0f, 0f);
+            RaycastHit h;
+            if (Physics.Raycast(from, dir, out h, reach, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                point = h.point; normal = h.normal; dist = h.distance; return true;
+            }
+            // no collider here yet: use the height of the ground
+            point = normal = Vector3.zero; dist = 0f;
+            float gy;
+            if (GroundFn == null || dir.y > -0.3f || !GroundFn(from, out gy)) return false;
+            dist = (gy - from.y) / dir.y;
+            if (dist < 0f || dist > reach) return false;
+            point = from + dir * dist; normal = Vector3.up;
+            return true;
+        }
+
+        /// <summary>Floating: buoyancy and drag at points round the hull, so it bobs and pitches on the swell, and the wheels paddle.</summary>
+        void Swim(float dt, float fwdSpeed)
+        {
+            Afloat = false;
+            if (WaterFn == null) return;
+            Rigidbody rb = Body;
+            float each = Buoyancy * rb.mass * Physics.gravity.magnitude / Hull.Length;
+            int wet = 0;
+            for (int i = 0; i < Hull.Length; i++)
+            {
+                Vector3 p = transform.TransformPoint(Hull[i]);
+                float s;
+                if (!WaterFn(p, out s) || s <= p.y) continue;
+                float depth = Mathf.Clamp01((s - p.y) / 0.6f);
+                wet++;
+                rb.AddForceAtPosition(Vector3.up * each * depth, p);
+                Vector3 drag = -rb.GetPointVelocity(p) * WaterDrag * depth;
+                drag.y *= 8f;                                   // much more resistance to bobbing than to moving along
+                rb.AddForceAtPosition(drag, p);
+            }
+            Afloat = wet >= 3 && Grounded < 2;
+            if (!Afloat) return;
+            Vector3 fwd = transform.forward; fwd.y = 0f; fwd.Normalize();
+            Vector3 right = new Vector3(fwd.z, 0f, -fwd.x);
+            rb.AddForceAtPosition(fwd * Throttle * (Throttle < 0f ? 0.5f : 1f) * WaterThrust * rb.mass, transform.TransformPoint(new Vector3(0f, -0.2f, -1.4f)));
+            rb.AddTorque(Vector3.up * Steer * WaterTurn * Mathf.Clamp(fwdSpeed / 3f, -1f, 1f), ForceMode.Acceleration);
+            rb.AddForce(-right * Vector3.Dot(rb.linearVelocity, right) * rb.mass * 0.6f);        // the hull resists going sideways
+        }
+
+        /// <summary>Where the ground has no collider yet, never let the body sink into it.</summary>
+        void KeepAboveGround()
+        {
+            float gy;
+            if (GroundFn == null || !GroundFn(Body.position, out gy)) return;
+            if (Physics.Raycast(Body.position + Vector3.up * 2f, Vector3.down, 6f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) return;
+            float low = gy - (Ground + 0.3f);       // centre no lower than this
+            if (Body.position.y >= low) return;
+            Body.position = new Vector3(Body.position.x, low, Body.position.z);
+            Vector3 v = Body.linearVelocity;
+            if (v.y < 0f) Body.linearVelocity = new Vector3(v.x, 0f, v.z);
+        }
+
+        /// <summary>The wheels where the suspension has put them, turned and spinning.</summary>
+        void LateUpdate()
+        {
+            if (spin == null) return;
+            float dt = Time.deltaTime, maxLen = 0.25f + Droop, minLen = 0.25f - Bump;
             for (int i = 0; i < 4; i++)
             {
-                pivot[i].localPosition = new Vector3(WX[i], AxleY + wheelUp[i], WZ[i]);
-                spin[i].localRotation = r;
+                float want = Mathf.Clamp(contact[i] ? length[i] : maxLen, minLen, maxLen);
+                shown[i] = contact[i] ? want : Mathf.MoveTowards(shown[i], want, 1.5f * dt);
+                pivot[i].localPosition = new Vector3(WX[i], AttachY - shown[i], WZ[i]);
+                pivot[i].localRotation = Quaternion.Euler(0f, angle[i], 0f);
+                spinAt[i] = Mathf.Repeat(spinAt[i] + spinRate[i] * Mathf.Rad2Deg * dt, 360f);
+                spin[i].localRotation = Quaternion.Euler(spinAt[i], 0f, 0f);
             }
         }
 

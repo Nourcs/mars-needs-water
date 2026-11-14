@@ -38,7 +38,9 @@ namespace MarsNeedsWater.Earth.Editor
             {
                 var holder = new GameObject("Preview");
                 SceneManager.MoveGameObjectToScene(holder, scene);
-                Jeep jeep = Jeep.Build(holder.transform);
+                Jeep jeep = Jeep.Build();
+                jeep.Body.isKinematic = true;
+                jeep.transform.SetParent(holder.transform, false);
                 jeep.transform.localPosition = new Vector3(0f, -Jeep.Ground, 0f);   // tyres on y = 0
                 jeep.transform.GetChild(1).localRotation = Quaternion.Euler(0f, 18f, 0f);   // turn a front wheel to show the steering
                 jeep.transform.GetChild(2).localRotation = Quaternion.Euler(0f, 18f, 0f);
