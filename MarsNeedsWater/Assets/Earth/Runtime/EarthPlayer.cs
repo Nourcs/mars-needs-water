@@ -13,6 +13,12 @@ namespace MarsNeedsWater.Earth
         public bool Waiting { get { return placing; } }
         public static bool InputBlocked;
 
+        /// <summary>For tests: drive the jeep from code instead of the keyboard.</summary>
+        [System.NonSerialized] public bool Autopilot, AutoBoost;
+        [System.NonSerialized] public float AutoThrottle, AutoSteer;
+        public Jeep Jeep { get { return jeep; } }
+        public void EnterJeep() { if (Current != Mode.Drive) SetMode(Mode.Drive); }
+
         /// <summary>In water deep enough to swim.</summary>
         public bool Swimming { get { return swimming; } }
         /// <summary>The car is afloat.</summary>
@@ -240,10 +246,10 @@ namespace MarsNeedsWater.Earth
         {
             cc.enabled = false;
             bool free = !InputBlocked;
-            jeep.Throttle = free ? Axis(kb.sKey.isPressed, kb.wKey.isPressed) : 0f;
-            jeep.Steer = free ? Axis(kb.aKey.isPressed, kb.dKey.isPressed) : 0f;
-            jeep.Handbraking = free && kb.spaceKey.isPressed;
-            jeep.Boosting = free && kb.leftShiftKey.isPressed;
+            jeep.Throttle = Autopilot ? AutoThrottle : free ? Axis(kb.sKey.isPressed, kb.wKey.isPressed) : 0f;
+            jeep.Steer = Autopilot ? AutoSteer : free ? Axis(kb.aKey.isPressed, kb.dKey.isPressed) : 0f;
+            jeep.Handbraking = !Autopilot && free && kb.spaceKey.isPressed;
+            jeep.Boosting = Autopilot ? AutoBoost : free && kb.leftShiftKey.isPressed;
             if (free && kb.rKey.wasPressedThisFrame && jeep.Upturned) jeep.Flip();
             transform.position = jeep.transform.position;
             heading = jeep.Heading(heading);

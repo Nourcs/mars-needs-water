@@ -21,15 +21,16 @@ namespace MarsNeedsWater.Earth.Editor
         static StringBuilder log;
 
         [InitializeOnLoadMethod]
-        static void OnLoad()
+        static void OnLoad() { EditorApplication.update += Poll; }
+
+        static double next;
+        static void Poll()
         {
-            if (!File.Exists(Request)) return;
-            EditorApplication.delayCall += () =>
-            {
-                if (EditorApplication.isPlayingOrWillChangePlaymode || !File.Exists(Request)) return;
-                File.Delete(Request);
-                Run();
-            };
+            if (EditorApplication.timeSinceStartup < next) return;
+            next = EditorApplication.timeSinceStartup + 1.0;
+            if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || !File.Exists(Request)) return;
+            File.Delete(Request);
+            Run();
         }
 
         [MenuItem("Tools/Mars Needs Water/Test Jeep Physics")]
@@ -42,7 +43,7 @@ namespace MarsNeedsWater.Earth.Editor
             scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             try
             {
-                Settle(); TopSpeed(); Climb(20f); Climb(30f); Climb(40f); Climb(48f); Downhill(); Cliff(); Turn(); Float();
+                Settle(); TopSpeed(); Climb(20f); Climb(30f); Climb(40f); Climb(48f); Downhill(); Cliff(); Turn(); Slalom(); LaneChange(); Circle(); SideSlope(); Float();
             }
             catch (System.Exception e) { log.AppendLine("FAILED: " + e); }
             finally
@@ -55,21 +56,21 @@ namespace MarsNeedsWater.Earth.Editor
             Debug.Log("Jeep test:\n" + log);
         }
 
-        static GameObject Slab(Vector3 centre, Vector3 size, float tiltDeg = 0f)
+        static GameObject Slab(Vector3 centre, Vector3 size, float tiltDeg = 0f, float bankDeg = 0f)
         {
             var go = new GameObject("Slab");
             SceneManager.MoveGameObjectToScene(go, scene);
             go.transform.position = O + centre;
-            go.transform.rotation = Quaternion.Euler(-tiltDeg, 0f, 0f);
+            go.transform.rotation = Quaternion.Euler(-tiltDeg, 0f, bankDeg);
             go.AddComponent<BoxCollider>().size = size;
             return go;
         }
 
-        static Jeep Spawn(Vector3 at, float speed = 0f, float pitchDeg = 0f)
+        static Jeep Spawn(Vector3 at, float speed = 0f, float pitchDeg = 0f, float bankDeg = 0f)
         {
             Jeep j = Jeep.Build();
             SceneManager.MoveGameObjectToScene(j.gameObject, scene);
-            Quaternion r = Quaternion.Euler(-pitchDeg, 0f, 0f);
+            Quaternion r = Quaternion.Euler(-pitchDeg, 0f, bankDeg);
             j.transform.SetPositionAndRotation(O + at, r);
             j.Body.position = O + at; j.Body.rotation = r;
             j.Body.linearVelocity = r * Vector3.forward * speed;
@@ -229,6 +230,80 @@ namespace MarsNeedsWater.Earth.Editor
             for (int i = 0; i < 200; i++) { Step(j); maxRoll = Mathf.Max(maxRoll, Mathf.Abs(Roll(j))); minUp = Mathf.Min(minUp, j.transform.up.y); }
             Vector3 w = j.Body.angularVelocity;
             log.AppendLine($"Full lock at {25f} m/s for 4 s: body roll up to {maxRoll:F0}°, speed now {j.Speed:F1} m/s, turning {w.y * Mathf.Rad2Deg:F0}°/s, rolled over {(minUp < 0.2f)}");
+            Clear();
+        }
+
+        /// <summary>Angle between where the jeep points and where it is going, degrees.</summary>
+        static float Slide(Jeep j)
+        {
+            Vector3 v = j.Body.linearVelocity; v.y = 0f;
+            Vector3 f = j.transform.forward; f.y = 0f;
+            return v.magnitude < 1f ? 0f : Vector3.Angle(f, v);
+        }
+
+        static void Hold(Jeep j, float speed) { j.Throttle = Mathf.Clamp((speed - Vector3.Dot(j.Body.linearVelocity, j.transform.forward)) * 0.5f, -1f, 1f); }
+
+        static void Slalom()
+        {
+            Slab(new Vector3(0f, -0.5f, 0f), new Vector3(1500f, 1f, 1500f));
+            Jeep j = Spawn(new Vector3(0f, 0.9f, -600f), 20f);
+            float maxSlide = 0f;
+            for (int i = 0; i < 600; i++)
+            {
+                float t = i * Dt;
+                Hold(j, 20f);
+                j.Steer = Mathf.Sin(t * Mathf.PI) * 0.8f;          // left-right every 2 s
+                Step(j);
+                if (t > 1f) maxSlide = Mathf.Max(maxSlide, Slide(j));
+            }
+            bool ok = maxSlide < 20f && !j.Upturned;
+            log.AppendLine($"Slalom at 20 m/s for 12 s: worst slide angle {maxSlide:F0}° {(ok ? "PASS" : "FAIL")}, speed {j.Speed:F1} m/s");
+            Clear();
+        }
+
+        static void LaneChange()
+        {
+            Slab(new Vector3(0f, -0.5f, 0f), new Vector3(1500f, 1f, 1500f));
+            Jeep j = Spawn(new Vector3(0f, 0.9f, -600f), 30f);
+            for (int i = 0; i < 50; i++) { Hold(j, 30f); Step(j); }
+            for (int i = 0; i < 30; i++) { Hold(j, 30f); j.Steer = 0.7f; Step(j); }
+            for (int i = 0; i < 30; i++) { Hold(j, 30f); j.Steer = -0.7f; Step(j); }
+            j.Steer = 0f;
+            float settled = -1f, maxSlide = 0f;
+            for (int i = 0; i < 200; i++)
+            {
+                Hold(j, 30f); Step(j);
+                float yawRate = Mathf.Abs(j.Body.angularVelocity.y) * Mathf.Rad2Deg, s = Slide(j);
+                maxSlide = Mathf.Max(maxSlide, s);
+                if (yawRate < 2f && s < 2f) { if (settled < 0f) settled = (i + 1) * Dt; }
+                else settled = -1f;
+            }
+            bool ok = settled >= 0f && settled < 1f && !j.Upturned;
+            log.AppendLine($"Lane change at 30 m/s: settled {(settled < 0f ? "never" : settled.ToString("F2") + " s")} after letting go {(ok ? "PASS" : "FAIL")}, worst slide {maxSlide:F0}°");
+            Clear();
+        }
+
+        static void Circle()
+        {
+            Slab(new Vector3(0f, -0.5f, 0f), new Vector3(200f, 1f, 200f));
+            Jeep j = Spawn(new Vector3(0f, 0.9f, 0f), 0f);
+            j.Steer = 1f;
+            for (int i = 0; i < 300; i++) { Hold(j, 5f); Step(j); }
+            float w = Mathf.Abs(j.Body.angularVelocity.y), r = w > 0.01f ? j.Speed / w : 999f;
+            log.AppendLine($"Full lock at 5 m/s: turning circle radius {r:F1} m {(r < 8f ? "PASS" : "FAIL")}");
+            Clear();
+        }
+
+        static void SideSlope()
+        {
+            float bank = 25f;
+            Slab(new Vector3(0f, -0.5f, 0f), new Vector3(200f, 1f, 800f), 0f, bank);
+            Vector3 up = Quaternion.Euler(0f, 0f, bank) * Vector3.up;
+            Jeep j = Spawn(up * 0.9f + new Vector3(0f, 0f, -300f), 15f, 0f, bank);
+            float maxRoll = 0f;
+            for (int i = 0; i < 400; i++) { Hold(j, 15f); Step(j); maxRoll = Mathf.Max(maxRoll, Mathf.Abs(Roll(j))); }
+            bool ok = !j.Upturned && maxRoll < 45f;
+            log.AppendLine($"Along a 25° side slope at 15 m/s for 8 s: worst roll {maxRoll:F0}° {(ok ? "PASS" : "FAIL")}, slid {Mathf.Abs(j.transform.position.x - O.x):F1} m down the slope");
             Clear();
         }
 
