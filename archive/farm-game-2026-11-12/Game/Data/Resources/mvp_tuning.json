@@ -1,0 +1,65 @@
+{
+  "credits_per_litre": 10,
+  "region_multiplier": 1,
+  "contract_multiplier": 1,
+  "delivery_delay_s": 4,
+  "pad_crate_spots": 4,
+  "discharge_hose_cap_Lps": 10,
+  "discharge_hose_m": 20,
+  "suction_hose_m": 6,
+  "link_hose_m": 5,
+  "power_cable_m": 30,
+  "post_sockets": 2,
+  "cargo_capacity_L": 1500,
+  "launch_cycle_s": 15,
+  "countdown_s": 3,
+  "min_launch_L": 0.001,
+  "earth_total_water_L": "1386000000000000000000",
+  "eye_height_m": 1.6,
+  "range_default_m": 2,
+  "range_lever_m": 3,
+  "range_crank_m": 1.5,
+  "sources": [
+    { "id": 1, "type": "Puddle", "displayName": "Starter puddle", "startVolume_L": 40 },
+    { "id": 2, "type": "Lake", "displayName": "Farm pond", "startVolume_L": 20000 }
+  ],
+  "items": [
+    { "id": "spoon", "kind": "tool", "displayName": "Spoon", "ownedAtStart": true, "capacity_L": 0.015, "scoopCooldown_s": 1.25, "pourTime_s": 0.3, "realWorldRef": "Tablespoon" },
+    { "id": "jerrycan_10l", "kind": "tank", "displayName": "10 L jerrycan", "ownedAtStart": true, "capacity_L": 10, "footprint_m": 0.3, "interact_h": 0.45, "realWorldRef": "10 L jerrycan" },
+    { "id": "bucket", "kind": "tool", "displayName": "Bucket", "price_cr": 6, "capacity_L": 10, "scoopCooldown_s": 1, "pourTime_s": 0.8, "jobTitle": "Junior Hydration Associate", "realWorldRef": "10 L pail" },
+    { "id": "barrel_100l", "kind": "tank", "displayName": "100 L barrel", "price_cr": 220, "prereq_id": "bucket", "capacity_L": 100, "footprint_m": 0.35, "interact_h": 0.8, "jobTitle": "Hydration Associate", "realWorldRef": "100 L water barrel" },
+    { "id": "drum_200l", "kind": "tank", "displayName": "200 L drum", "price_cr": 260, "prereq_id": "barrel_100l", "capacity_L": 200, "footprint_m": 0.4, "interact_h": 0.9, "jobTitle": "Senior Hydration Associate", "realWorldRef": "200 L steel drum",
+      "crateContents": ["inlet_fitting"],
+      "points": [
+        { "kind": "inlet", "index": 0, "x": -0.12, "y": 0.9, "z": 0.1 },
+        { "kind": "inlet", "index": 1, "x": 0.12, "y": 0.9, "z": 0.1 },
+        { "kind": "link", "index": 0, "x": 0, "y": 0.15, "z": -0.37 }
+      ] },
+    { "id": "hand_pump", "kind": "machine", "displayName": "Hand pump", "price_cr": 380, "prereq_id": "drum_200l", "rate_Lps": 1.25, "footprint_m": 0.4, "interact_h": 0.5, "jobTitle": "Extraction Technician", "realWorldRef": "Double-acting diaphragm hand pump (~75 L/min)",
+      "crateContents": ["suction_hose", "discharge_hose"],
+      "points": [
+        { "kind": "intake", "index": 0, "x": 0, "y": 0.25, "z": 0.3 },
+        { "kind": "outlet", "index": 0, "x": 0, "y": 0.25, "z": -0.3 },
+        { "kind": "handle", "index": 0, "x": 0.35, "y": 0.9, "z": 0 },
+        { "kind": "cable_port", "index": 0, "x": -0.3, "y": 0.3, "z": 0 },
+        { "kind": "lever", "index": 0, "x": -0.3, "y": 0.65, "z": 0 }
+      ] },
+    { "id": "electric_motor", "kind": "kit", "displayName": "Electric motor kit", "price_cr": 1100, "prereq_id": "hand_pump", "rate_Lps": 8, "footprint_m": 0.3, "interact_h": 0.3, "jobTitle": "Extraction Supervisor", "realWorldRef": "2-inch 1.5 kW transfer pump (~480 L/min)", "crateContents": ["power_cable"] },
+    { "id": "electric_pump_2", "kind": "machine", "displayName": "Second electric pump", "price_cr": 15000, "prereq_id": "electric_motor", "rate_Lps": 8, "footprint_m": 0.4, "interact_h": 0.5, "jobTitle": "Regional Extraction Lead", "realWorldRef": "Second 2-inch transfer pump",
+      "crateContents": ["suction_hose", "discharge_hose", "power_cable"],
+      "points": [
+        { "kind": "intake", "index": 0, "x": 0, "y": 0.25, "z": 0.3 },
+        { "kind": "outlet", "index": 0, "x": 0, "y": 0.25, "z": -0.3 },
+        { "kind": "cable_port", "index": 0, "x": -0.3, "y": 0.3, "z": 0 },
+        { "kind": "lever", "index": 0, "x": -0.3, "y": 0.65, "z": 0 }
+      ] },
+    { "id": "ibc_tank", "kind": "tank", "displayName": "1,000 L IBC tank", "price_cr": 40000, "prereq_id": "electric_pump_2", "capacity_L": 1000, "footprint_m": 0.75, "interact_h": 1.1, "jobTitle": "Vice President of Water, Acting", "realWorldRef": "1,000 L IBC tote",
+      "crateContents": ["link_hose"],
+      "points": [
+        { "kind": "inlet", "index": 0, "x": 0, "y": 1.15, "z": 0 },
+        { "kind": "link", "index": 0, "x": 0, "y": 0.22, "z": -0.68 }
+      ] },
+    { "id": "plaque", "kind": "joke", "displayName": "Employee of the Year Plaque", "price_cr": 100000, "prereq_id": "ibc_tank", "footprint_m": 0.2, "realWorldRef": "Engraved office plaque" },
+    { "id": "inlet_fitting", "kind": "part", "displayName": "Twin-port inlet fitting", "footprint_m": 0.12, "interact_h": 0.1 }
+  ]
+}

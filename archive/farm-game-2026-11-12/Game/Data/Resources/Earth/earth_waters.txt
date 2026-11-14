@@ -1,0 +1,2702 @@
+# index,name,litres  (index matches earth_water.bytes; oceans and big lakes use real volumes, others area x mean depth)
+1,Arctic Ocean,1.87e+19
+2,Pacific Ocean,7.1e+20
+3,Hudson Bay,1.2e+17
+4,Atlantic Ocean,3.1e+20
+5,Baltic Sea,2.17e+16
+6,Mediterranean Sea,3.75e+18
+7,Black Sea,5.47e+17
+8,Gulf of Mexico,2.43e+18
+9,Indian Ocean,2.64e+20
+10,Red Sea,2.33e+17
+11,Caribbean Sea,6.86e+18
+12,Southern Ocean,7.18e+19
+13,Mälaren,8.745e+12
+14,Lake Ladoga,8.38e+14
+15,Lake Albert,2.8e+14
+16,Lake Erie,4.8e+14
+17,Lake Chad,7.2e+10
+18,Lake Malawi,8.4e+15
+19,Lake Victoria,2.75e+15
+20,Lake Baikal,2.36e+16
+21,Lake Winnipeg,2.84e+14
+22,Great Slave Lake,2.09e+15
+23,Lake Ontario,1.64e+15
+24,Great Bear Lake,2.24e+15
+25,Lake Saint Clair,2.541e+13
+26,Vänern,1.53e+14
+27,Lake Okeechobee,2.555e+13
+28,Lake Tana,5.608e+13
+29,Lago Titicaca,8.93e+14
+30,Cedar Lake,6.106e+13
+31,Lake Onega,2.85e+14
+32,Great Salt Lake,1.9e+13
+33,Lake Michigan,4.9e+15
+34,Lake Superior,1.21e+16
+35,Lake Huron,3.54e+15
+36,Wollaston Lake,3.317e+13
+37,Lake Athabasca,2.04e+14
+38,Lake Mistassini,5.056e+13
+39,Rybinsk Reservoir,5.989e+13
+40,Issyk-Kul,1.74e+15
+41,Lake of the Woods,6.731e+13
+42,Lake Nipigon,7.767e+13
+43,Reindeer Lake,8.986e+13
+44,Oneida Lake,4.183e+12
+45,Iliamna Lake,4.938e+13
+46,Lake Tahoe,1.51e+14
+47,Lake Winnebago,8.245e+12
+48,Nettilling Lake,8.445e+13
+49,Lake Turkana,2.04e+14
+50,Dubawnt Lake,6.745e+13
+51,Baker Lake,3.497e+13
+52,Lake Champlain,1.633e+13
+53,Salton Sea,1.438e+13
+54,Lac la Martre,3.6e+13
+55,Lago Llanquihue,2.159e+13
+56,Hongze Hu,2.395e+13
+57,Khövsgöl Nuur,4.687e+13
+58,Uvs Nuur,6.221e+13
+59,Lac Moeru,8.495e+13
+60,Lake Khanka,6.485e+13
+61,Tonlé Sap,4.471e+13
+62,Qinghai Hu,8.252e+13
+63,Lake Tharthar,3.327e+13
+64,Razzaza Lake,1.447e+13
+65,Dead Sea,1.47e+14
+66,Lake Pskov,9.106e+12
+67,Lac Saint-Jean,1.896e+13
+68,Kainji Reservoir,2.256e+13
+69,Lake Urmia,9.075e+13
+70,Cree Lake,2.463e+13
+71,Kasba Lake,2.555e+13
+72,Sarygamysh Köli,1.706e+13
+73,L. Chany,4.291e+13
+74,Alaköl,4.368e+13
+75,Lac-à-l'Eau-Claire,2.234e+13
+76,Lake Nipissing,1.584e+13
+77,Hulun Nuur,3.009e+13
+78,Inarijärvi,2.047e+13
+79,Oulujärvi,1.734e+13
+80,Lake Peipus,4.771e+13
+81,Lake Kivu,5e+14
+82,Lake Edward,3.95e+13
+83,Tai Hu,4.9e+13
+84,Laguna Mar Chiquita,3.451e+13
+85,Kremenchuk Reservoir,4.111e+13
+86,Rés. de La Grande 3,3.047e+13
+87,Rés. de La Grande 2,4.062e+13
+88,Lago Enriquillo,5.436e+12
+89,Lake Sakami,2.386e+13
+90,Lago Argentino,2.204e+13
+91,Nam Co,4.434e+13
+92,Lake Tuz,1.786e+13
+93,Scott Lake,5.714e+12
+94,Ozero Yarroto Pervoye,8.582e+12
+95,Ozero Neyto,3.913e+12
+96,Ozero Yambuto,5.836e+12
+97,Lake Vygozero,3.101e+13
+98,Lake Segozerskoye,2.064e+13
+99,Koitere,5.203e+12
+100,Pielinen,1.288e+13
+101,Pääjärvi,9.294e+12
+102,Lake Topozero,1.886e+13
+103,Bosten Hu,2.557e+13
+104,Lake Il'Men',1.506e+13
+105,Poyang Hu,3.507e+13
+106,Long Hu,9.961e+12
+107,Liangzi Hu,4.95e+12
+108,Siling Co,3.898e+13
+109,Har Us Nuur,3.062e+13
+110,Lake Taupo,8.942e+12
+111,Lake Geneva,8.9e+13
+112,Lough Neagh,6.632e+12
+113,Vättern,3.002e+13
+114,Lake Van,6.07e+14
+115,Flathead Lake,7.675e+12
+116,Lake Claire,2.687e+13
+117,Smallwood Reservoir,1.174e+14
+118,Lake Taymyr,9.593e+13
+119,Lago de Izabal,1.658e+13
+120,Ayakkum Hu,1.818e+13
+121,Storsjön,2.586e+12
+122,Lake St. Joseph,1.081e+13
+123,Lake Rukwa,5.111e+13
+124,Nam Ngum Reservoir,5.436e+12
+125,Réservoir Gouin,3.792e+12
+126,Gaoyou Hu,1.442e+13
+127,Ozero Pyasino,1.975e+13
+128,Hjälmaren,1.17e+13
+129,Lake Bienville,1.64e+13
+130,Lake Beloye,1.706e+13
+131,Van Blommestein Meer,2.286e+13
+132,Lake Manyara,5.723e+12
+133,Lake Äbaya,2.28e+13
+134,Lake Balaton,1.175e+13
+135,Bear Lake,8.521e+12
+136,Utah Lake,8.752e+12
+137,Leech Lake,7.792e+12
+138,Réservoir Baskatong,3.922e+12
+139,Lago Ranco,8.763e+12
+140,Trout Lake,8.44e+12
+141,Lago Viedma,1.859e+13
+142,Lac Tumba,2.293e+13
+143,Po Hu,1.986e+13
+144,Buyr Nuur,1.155e+13
+145,Ngangla Ringeo,9.772e+12
+146,Tangra Yumco,2.458e+13
+147,Ozero Kulundinskoye,1.725e+13
+148,Ubinskoye Lake,9.739e+12
+149,Umbozero Lake,4.356e+12
+150,Lake Kovdozero,2.27e+13
+151,Yamzho Yumco,1.507e+13
+152,Ozero Tenis,9.579e+12
+153,Ozero Bol'šoe Morskoe,3.913e+12
+154,Shijiu Hu,4.886e+12
+155,Hong Hu,9.943e+12
+156,Võrtsjärv,3.015e+12
+157,Chao Hu,1.955e+13
+158,Lake Rossignol,4.11e+12
+159,Grand Lake,3.986e+12
+160,Goose Lake,4.266e+12
+161,Pyramid Lake,4.382e+12
+162,Lake Sevan,2.184e+13
+163,Bluenose Lake,4.193e+12
+164,Réservoir Pipmuacan,7.424e+12
+165,Colville Lake,2.003e+13
+166,Hottah Lake,1.447e+13
+167,Big Trout Lake,2.032e+13
+168,Island Lake,2.031e+13
+169,Lake Naococane,6.902e+12
+170,Lac la Ronge,2.62e+13
+171,Mille Lacs Lake,1.189e+13
+172,Lake Simcoe,1.228e+13
+173,Gods Lake,1.988e+13
+174,Hoh Xil Hu,4.663e+12
+175,Lake Hammar,4.923e+12
+176,Malheur Lake,4.171e+12
+177,Khyargas Nuur,2.624e+13
+178,Rainy Lake,1.515e+13
+179,Lake Sakakawea,1.544e+13
+180,Lake Pend Oreille,3.831e+12
+181,Black Lake,1.173e+13
+182,Upper Red Lake,3.449e+13
+183,Yathkyed Lake,3.155e+13
+184,Amadjuak Lake,5.331e+13
+185,Cabonga Reservoir,3.883e+12
+186,Lago de Chapala,2.151e+13
+187,Lago de Managua,1.68e+13
+188,Itaipú Reservoir,4.163e+13
+189,Lake Kariba,1.85e+14
+190,Lake Kyoga,2.866e+13
+191,Ozero Kubenskoye,8.685e+12
+192,Bodensee,1.16e+13
+193,Sea of Galilee,4.821e+12
+194,Lake Argyle,3.301e+13
+195,Ngoring Hu,4.703e+12
+196,Gyaring Hu,1.879e+13
+197,Toktogul Res.,8.544e+12
+198,Mapam Yumco,1.479e+13
+199,South Aral Sea,1.211e+14
+200,North Aral Sea,7.511e+13
+201,Barsakelmes Lake,3.178e+13
+202,Lake Balkhash,1.06e+14
+203,Lake Tanganyika,1.89e+16
+204,Lake Manitoba,8.316e+13
+205,Lake Winnipegosis,1.46e+14
+206,Réservoir Manicouagan,3.577e+13
+207,Syvash,9.994e+13
+208,Lake Saimaa,9.631e+13
+209,Lake Zaysan,8.017e+13
+210,Churchill Lake,2.882e+13
+211,Lago Buenos Aires,3.553e+13
+212,Päijänne,3.488e+13
+213,Lake Srednye Kuyto,7.251e+12
+214,Kakhovka Reservoir,4.265e+13
+215,Samara Reservoir,9.601e+13
+216,Lake Mead,4.632e+12
+217,Lake Powell,9.148e+12
+218,Southern Indian Lake,2.487e+13
+219,Represa de Sobradinho,1.638e+14
+220,Danau Toba,2.864e+13
+221,Lake Abitibi,1.51e+13
+222,Fort Peck Lake,7.688e+12
+223,Teslin Lake,2.88e+12
+224,Lake Nasser,1.32e+14
+225,Pyhäjärvi,5.437e+12
+226,Lake Volta,1.48e+14
+227,Bratsk Reservoir,1.69e+14
+228,Ozero Khantayskoye,1.904e+13
+229,Ozero Keta,6.215e+12
+230,Ozero Lama,1.008e+13
+231,Storavan,2.332e+12
+232,Lake Habbaniyah,9.603e+12
+233,Aylmer Lake,1.249e+13
+234,Clinton-Colden Lake,1.257e+13
+235,Lake Francis Case,4.11e+12
+236,Falcon Lake,5.126e+12
+237,Lac Île-à-la-Crosse,6.488e+12
+238,Wholdaia Lake,8.44e+12
+239,Tehek Lake,7.315e+12
+240,Caniapiscau,3.352e+12
+241,Point Lake,7.187e+12
+242,Upper Klamath Lake,4.231e+12
+243,Harney Lake,8.342e+12
+244,Represa de Tucuruí,6.288e+13
+245,Engineer Souza Dias Dam,2.69e+13
+246,Lago Colhué Huapí,2.815e+13
+247,Imandra,4.372e+12
+248,Shardara Bögeni,1.726e+13
+249,Vilyuy Reservoir,1.575e+13
+250,Ozero Krasnoye,1.233e+13
+251,Biwa Ko,1.404e+13
+252,Lake Clark,2.88e+12
+253,Üüreg Nuur,7.343e+12
+254,Qusmuryn Köli,3.479e+12
+255,Femunden,2.68e+12
+256,Lake Nord,2.703e+12
+257,Lake Alert,1.584e+12
+258,Lake Grise Fiord,6.477e+11
+259,Lake Qaanaaq,3.354e+12
+260,Lake Longyearbyen,1.457e+12
+261,Lake Chelyuskin,8.89e+11
+262,Lake Nordvik,9.459e+11
+263,Lake Ittoqqortoormiit,9.572e+11
+264,Lake Khatanga,1.07e+12
+265,Lake Mikhaylova,1.082e+12
+266,Lake Resolute,1.093e+12
+267,Lake Matočkin Šar,1.093e+12
+268,Lake Vorontsovo,1.126e+12
+269,Lake Starorybnoye,1.126e+12
+270,Lake Trofimovsk,1.504e+13
+271,Lake Holman,2.309e+12
+272,Lake Pond Inlet,1.182e+12
+273,Lake Kangersuatsiaq,1.182e+12
+274,Lake Tiksi,1.194e+12
+275,Lake Shalaurova,1.194e+12
+276,Lake Boyarka,1.205e+12
+277,Lake Gyda,1.216e+12
+278,Lake Cambridge Bay,1.238e+12
+279,Lake Arctic Bay,2.476e+12
+280,Lake Chokurdakh,1.238e+12
+281,Lake Igloolik,1.249e+12
+282,Lake Kazachye,1.249e+12
+283,Lake Govorovo,2.542e+12
+284,Lake Mikhalkino,1.271e+12
+285,Lake Dudinka,2.62e+12
+286,Lake Taloyoak,1.315e+12
+287,Lake Pangnirtung,1.315e+12
+288,Lake Hall Beach,1.326e+12
+289,Lake Alta,1.326e+12
+290,Lake Tromsø,1.337e+12
+291,Lake Tuktoyaktuk,2.697e+12
+292,Lake Ilulissat,8.156e+12
+293,Lake Natara,1.348e+12
+294,Lake Inuvik,1.241e+13
+295,Lake Logashkino,1.359e+12
+296,Lake Chersky,1.381e+12
+297,Lake Paulatuk,1.392e+12
+298,Lake Murmansk,4.176e+12
+299,Lake Severomorsk,1.392e+12
+300,Lake Srednekolymsk,8.396e+12
+301,Lake Narvik,5.612e+12
+302,Lake Yessey,1.403e+12
+303,Lake Kugluktuk,2.828e+12
+304,Lake Igarka,1.724e+13
+305,Lake Norilsk,2.828e+12
+306,Lake Sodankylä,2.85e+12
+307,Lake Fort McPherson,2.882e+12
+308,Lake Gjoa Haven,1.586e+13
+309,Lake Qasigiannguit,2.871e+12
+310,Lake Apatity,5.797e+12
+311,Lake Kirovsk,2.882e+12
+312,Lake Naryan Mar,1.436e+12
+313,Lake Tsiigehtchic,1.447e+12
+314,Lake Menkere,1.447e+12
+315,Lake Fort Good Hope,2.915e+12
+316,Lake Zhigansk,3.871e+13
+317,Lake Bodø,1.468e+12
+318,Lake Kiruna,1.479e+12
+319,Lake Indiga,1.479e+12
+320,Lake Turukhansk,1.479e+12
+321,Lake Kandalaksha,1.49e+12
+322,Lake Naujaat,1.501e+12
+323,Lake Kangerlussuaq,3.012e+12
+324,Lake Salekhard,1.361e+13
+325,Lake Noginsk,1.511e+12
+326,Lake Selawik,1.522e+12
+327,Lake Fort Yukon,1.522e+12
+328,Lake Baker Lake,4.588e+12
+329,Lake Circle,1.544e+12
+330,Lake Kemijärvi,3.087e+12
+331,Lake Lavrentiya,1.565e+12
+332,Lake Mo i Rana,1.565e+12
+333,Lake Kovda,1.565e+12
+334,Lake Koyuk,1.576e+12
+335,Lake Norman Wells,3.162e+12
+336,Lake Lutselke,3.173e+12
+337,Lake Teller,1.608e+12
+338,Lake Nuuk,1.608e+12
+339,Lake Oulu,1.608e+12
+340,Lake Mukhomornoye,4.834e+12
+341,Lake Tunguskhaya,6.527e+12
+342,Lake Namsos,1.629e+12
+343,Lake Cape Dorset,1.64e+12
+344,Lake Doline,1.65e+12
+345,Lake Segezha,3.301e+12
+346,Lake Timmiarmiut,4.983e+12
+347,Lake Selfoss,1.661e+12
+348,Lake Igrim,1.661e+12
+349,Lake Yellowknife,5.035e+12
+350,Lake Steinkjer,6.707e+12
+351,Lake Sangar,1.671e+12
+352,Lake Chesterfield Inlet,1.692e+12
+353,Lake Joensuu,1.692e+12
+354,Lake Kuopio,1.703e+12
+355,Lake Numto,1.703e+12
+356,Lake Rankin Inlet,1.724e+12
+357,Lake Kokkola,1.724e+12
+358,Lake Ennadai,8.693e+12
+359,Lake Fort Simpson,3.49e+12
+360,Lake Emmonak,1.755e+12
+361,Lake Peregrebnoye,1.755e+12
+362,Lake Nyagan,1.766e+12
+363,Lake Mountain Village,1.776e+12
+364,Lake Burwash Landing,1.776e+12
+365,Lake Arviat,7.125e+12
+366,Lake Kondopoga,3.552e+12
+367,Lake Kogalym,1.776e+12
+368,Lake Gulkana,3.604e+12
+369,Lake Petrozavodsk,5.401e+12
+370,Lake Aniak,1.807e+12
+371,Lake Mikkeli,3.614e+12
+372,Lake Surgut,1.807e+12
+373,Lake Hay River,7.301e+12
+374,Lake Pokrovsk,1.817e+12
+375,Lake Wasilla,5.483e+12
+376,Lake Stony Rapids,1.828e+12
+377,Lake Velsk,3.666e+12
+378,Lake Leikanger,1.838e+12
+379,Lake Laryak,1.838e+12
+380,Lake Bethel,5.566e+12
+381,Lake Whitehorse,1.848e+12
+382,Lake Narsarsuaq,1.848e+12
+383,Lake Vossavangen,1.848e+12
+384,Lake Falun,5.566e+12
+385,Lake Pori,1.848e+12
+386,Lake Tununak,1.491e+13
+387,Lake Anchorage,1.859e+12
+388,Lake Fort Smith,1.859e+12
+389,Lake Hamar,1.869e+12
+390,Lake Sokol,5.617e+12
+391,Lake Kangirsuk,1.879e+12
+392,Lake Uray,1.879e+12
+393,Lake Kenai,3.799e+12
+394,Lake Salluit,1.899e+12
+395,Lake Yakutat,1.92e+12
+396,Lake Meander River,5.769e+12
+397,Lake Uranium City,1.92e+12
+398,Lake Inukjuak,1.92e+12
+399,Lake Oslo,1.92e+12
+400,Lake Skagway,7.77e+12
+401,Lake Churchill,1.93e+12
+402,Lake Cherepovets,1.93e+12
+403,Lake Narva,1.95e+12
+404,Lake Newhalen,3.93e+12
+405,Lake Berezniki,7.911e+12
+406,Lake Kuujjuaq,3.961e+12
+407,Lake King Salmon,3.981e+12
+408,Lake Brochet,3.981e+12
+409,Lake Juneau,2.01e+12
+410,Lake Pilot Point,1.828e+13
+411,Lake Kostroma,2.03e+12
+412,Lake Ust-Ilimsk,2.03e+12
+413,Lake Hoonah,4.09e+12
+414,Lake Tobolsk,2.05e+12
+415,Lake Balakhna,1.04e+13
+416,Lake Votkinsk,2.07e+12
+417,Lake Zheleznogorsk Ilimskiy,4.149e+12
+418,Lake Fort McMurray,2.08e+12
+419,Lake Lynn Lake,2.08e+12
+420,Lake Thompson,2.08e+12
+421,Lake Kimry,2.089e+12
+422,Lake Gillam,2.109e+12
+423,Lake Viborg,2.109e+12
+424,Lake Pukatawagan,2.119e+12
+425,Lake Nain,2.119e+12
+426,Lake Nelson House,2.129e+12
+427,Lake Peace River,4.286e+12
+428,Lake La Ronge,2.361e+13
+429,Lake Schefferville,2.167e+12
+430,Lake Kyshtym,2.167e+12
+431,Lake Krasnoyarsk,4.344e+12
+432,Lake Bulaevo,2.177e+12
+433,Lake Meadow Lake,1.1e+13
+434,Lake Flin Flon,2.187e+12
+435,Lake Uzhur,4.373e+12
+436,Lake Lac La Biche,2.196e+12
+437,Lake Oxford House,2.196e+12
+438,Lake Barabinsk,2.196e+12
+439,Lake Klyuchi,4.402e+12
+440,Lake Island Lake,2.206e+12
+441,Lake Ob,8.843e+12
+442,Lake Shira,2.206e+12
+443,Lake Burns Lake,4.431e+12
+444,Lake Shamattawa,2.215e+12
+445,Lake Donegal,2.215e+12
+446,Lake Zeya,2.444e+13
+447,Lake Chernogorsk,8.957e+12
+448,Lake The Pas,8.957e+12
+449,Lake Norway House,6.704e+12
+450,Lake Happy Valley - Goose Bay,3.843e+13
+451,Lake Kishkenekol,2.244e+12
+452,Lake Prince Albert,2.254e+12
+453,Lake Sandspit,2.263e+12
+454,Lake Galway,2.272e+12
+455,Lake Nikolayevsk na Amure,2.272e+12
+456,Lake Karasuk,2.282e+12
+457,Lake Deer Lake,2.301e+12
+458,Lake Big Beaver House,2.301e+12
+459,Lake Balakovo,1.394e+13
+460,Lake Churchill Falls,4.62e+12
+461,Lake Sayanogorsk,2.31e+12
+462,Lake Eastmain,9.305e+12
+463,Lake Labrador City,2.319e+12
+464,Lake Chita,2.319e+12
+465,Lake Hudson Bay,4.657e+12
+466,Lake De-Kastri,4.685e+12
+467,Lake Komsomolsk na Amure,7.051e+12
+468,Lake Kamyshin,4.387e+13
+469,Lake Kyzyl,2.375e+12
+470,Lake Dauphin,2.393e+12
+471,Lake Gusinoozyorsk,2.393e+12
+472,Lake Sept-Îles,7.216e+12
+473,Lake Brovary,7.234e+12
+474,Lake Matagami,4.823e+12
+475,Lake Sioux Lookout,1.217e+13
+476,Lake Moosonee,2.439e+12
+477,Lake Dolbeau,2.448e+12
+478,Lake Baie-Comeau,2.448e+12
+479,Lake Sherlovaya Gora,1.227e+13
+480,Lake Geraldton,2.457e+12
+481,Lake Amursk,4.922e+12
+482,Lake Dryden,4.949e+12
+483,Lake Nelson,2.483e+12
+484,Lake Olgiy,2.483e+12
+485,Lake Mörön,2.492e+12
+486,Lake Zhanibek,2.501e+12
+487,Lake Kremenchuk,7.548e+12
+488,Lake Zyryanovsk,5.038e+12
+489,Lake Hodrogo,2.519e+12
+490,Lake Khabarovsk,2.519e+12
+491,Lake Volgodonsk,2.813e+13
+492,Lake Buchans,2.545e+12
+493,Lake Dund-Us,7.653e+12
+494,Lake Eisenstadt,2.563e+12
+495,Lake Rouyn-Noranda,2.571e+12
+496,Lake Eger,2.58e+12
+497,Lake Altay,1.297e+13
+498,Lake Yalta,4.72e+15
+499,Lake Cobalt,2.606e+12
+500,Caspian Sea,7.8e+16
+501,Lake Neuchâtel,2.615e+12
+502,Lake Urzhar,1.313e+13
+503,Lake Helena,2.632e+12
+504,Lake Trois-Rivières,5.289e+12
+505,Lake Salsk,5.28e+12
+506,Lake Qazaly,7.954e+12
+507,Lake Muynoq,1.84e+14
+508,Lake Saint-Georges,5.339e+12
+509,Lake Karamay,2.665e+12
+510,Lake Verona,2.674e+12
+511,Lake Elista,2.674e+12
+512,Lake Bayankhongor,5.348e+12
+513,Lake Montréal,2.682e+12
+514,Lake Izmayil,5.364e+12
+515,Lake Daan,2.691e+12
+516,Lake Krasnodar,5.398e+12
+517,Lake Yining,5.439e+12
+518,Lake Portland,2.756e+12
+519,Lake Qapshaghay,1.654e+13
+520,Lake Xilinhot,2.781e+12
+521,Lake Pocatello,2.797e+12
+522,Lake Civitavecchia,2.813e+12
+523,Lake Naryn,2.844e+12
+524,Lake Pogradec,1.154e+13
+525,Lake Wuyuan,2.883e+12
+526,Lake At Bashy,2.898e+12
+527,Lake Reno,2.914e+12
+528,Lake Konibodom,8.741e+12
+529,Lake Bursa,2.921e+12
+530,Lake Toledo,2.936e+12
+531,Lake Wilmington,2.951e+12
+532,Lake Osh,2.966e+12
+533,Lake Elâzığ,5.947e+12
+534,Lake Carson City,2.981e+12
+535,Lake Afyon,5.976e+12
+536,Lake Malatya,2.988e+12
+537,Lake Yumen,1.2e+13
+538,Lake St. Charles,6.005e+12
+539,Lake Isparta,9.03e+12
+540,Lake Bishop,6.02e+12
+541,Lake Burdur,3.017e+12
+542,Lake Hampton,3.024e+12
+543,Lake Dulan,3.046e+12
+544,Lake Cape Girardeau,3.053e+12
+545,Lake Golmud,3.053e+12
+546,Lake Quiemo,3.074e+12
+547,Lake Madinat ath Thawrah,9.277e+12
+548,Lake As Sulaymaniyah,3.088e+12
+549,Lake Liaocheng,3.088e+12
+550,Lake Muskogee,3.115e+12
+551,Lake Hotan,3.122e+12
+552,Lake Nagchu,3.149e+12
+553,Lake Abu Kamal,6.311e+12
+554,Lake Arak,3.162e+12
+555,Lake Leh,3.162e+12
+556,Lake Xinyi,3.162e+12
+557,Lake Gar,3.169e+12
+558,Lake Sumter,6.383e+12
+559,Lake Pathankot,3.239e+12
+560,Lake Maanshan,1.299e+13
+561,Lake Nantong,6.484e+12
+562,Lake Xigaze,3.245e+12
+563,Lake Nacogdoches,6.509e+12
+564,Lake Zabol,1.632e+13
+565,Lake Jumla,6.533e+12
+566,Lake Lufkin,6.539e+12
+567,Lake Wuhu,3.27e+12
+568,Lake Pokhara,1.967e+13
+569,Lake Villa Ahumada,3.282e+12
+570,Lake Tongling,3.282e+12
+571,Lake Wuhan,3.288e+12
+572,Lake Baton Rouge,3.3e+12
+573,Lake Anqing,3.306e+12
+574,Lake Metairie,3.317e+12
+575,Lake Chihuahua,3.346e+12
+576,Lake Kathmandu,3.346e+12
+577,Lake Dibrugarh,3.385e+12
+578,Lake Jorhat,3.407e+12
+579,Lake Rangpur,6.881e+12
+580,Lake Dali,3.438e+12
+581,Lake Purnia,3.453e+12
+582,Lake Jamalpur,6.911e+12
+583,Lake Kunming,3.468e+12
+584,Lake Kota,3.478e+12
+585,Lake Agartala,3.483e+12
+586,Lake Mirzapur,3.488e+12
+587,Lake Ciudad Victoria,3.492e+12
+588,Lake Bhuj,3.492e+12
+589,Lake Dhaka,7.008e+12
+590,Lake Sambalpur,7.103e+12
+591,Lake Sholapur,3.632e+12
+592,Lake Nizamabad,3.632e+12
+593,Lake Letpadan,3.639e+12
+594,Lake Uttaradit,3.639e+12
+595,Lake Tuxtla Gutiérrez,3.653e+12
+596,Lake Yandoon,3.656e+12
+597,Lake Goundam,7.319e+12
+598,Lake Khon Kaen,3.66e+12
+599,Lake Hyderabad,3.663e+12
+600,Lake San Cristobal de Las Casas,3.673e+12
+601,Lake Mopti,3.686e+12
+602,Lake Hosapete,3.689e+12
+603,Lake Kanchanaburi,7.399e+12
+604,Lake Ati,3.726e+12
+605,Lake Ad Damazīn,7.489e+12
+606,Lake Kano,7.496e+12
+607,Lake Dikhil,3.75e+12
+608,Lake Maracay,7.525e+12
+609,Lake Am Timan,3.763e+12
+610,Lake Nekemte,7.541e+12
+611,Lake Calabozo,3.775e+12
+612,Lake Ciudad Bolívar,3.785e+12
+613,Lake Asela,3.785e+12
+614,Lake San Fernando de Apure,3.789e+12
+615,Lake El Manteco,1.137e+13
+616,Lake Bouaflé,3.789e+12
+617,Lake Shashemene,1.137e+13
+618,Lake Guiglo,3.797e+12
+619,Lake Bartica,3.799e+12
+620,Lake Tibati,3.799e+12
+621,Lake Foumban,3.802e+12
+622,Lake Ituni,7.619e+12
+623,Lake Kumaka,1.525e+13
+624,Lake Barcelos,3.823e+12
+625,Lake Samarinda,3.823e+12
+626,Lake Porto Santana,3.822e+12
+627,Lake Belém,3.822e+12
+628,Lake Chone,3.822e+12
+629,Lake Mbandaka,7.644e+12
+630,Lake Laranjal do Jari,3.822e+12
+631,Lake Owando,3.822e+12
+632,Lake Oriximiná,3.822e+12
+633,Lake Inongo,1.91e+13
+634,Lake Novo Airão,3.821e+12
+635,Lake Alenquer,1.146e+13
+636,Lake Portel,3.821e+12
+637,Lake Breves,1.528e+13
+638,Lake Poso,7.641e+12
+639,Lake Biak,3.821e+12
+640,Lake Santarém,5.347e+13
+641,Lake Manacapuru,4.963e+13
+642,Lake Parintins,3.82e+12
+643,Lake Namanga,7.64e+12
+644,Lake Fonte Boa,3.819e+12
+645,Lake Itacoatiara,1.527e+13
+646,Lake Palopo,3.818e+12
+647,Lake Nabire,3.817e+12
+648,Lake Tefé,3.816e+12
+649,Lake Itaituba,3.816e+12
+650,Lake Oldeani,1.145e+13
+651,Lake Leticia,7.629e+12
+652,Lake Coari,3.815e+12
+653,Lake Moshi,3.815e+12
+654,Lake Caballococha,3.814e+12
+655,Lake Brazzaville,3.813e+12
+656,Lake Matadi,3.807e+12
+657,Lake Merauke,7.591e+12
+658,Lake Bukama,3.784e+12
+659,Lake Luanza,1.511e+13
+660,Lake Junín,3.753e+12
+661,Lake Santa Ana,7.454e+12
+662,Lake Reyes,7.427e+12
+663,Lake Mangochi,3.698e+12
+664,Lake Zomba,7.375e+12
+665,Lake Derby,3.686e+12
+666,Lake Luangwa,6.994e+13
+667,Lake Xangongo,3.653e+12
+668,Lake Itumbiara,7.256e+12
+669,Lake Catalão,3.628e+12
+670,Lake Challapata,1.086e+13
+671,Lake Ituiutaba,3.62e+12
+672,Lake Sabaya,3.609e+12
+673,Lake Corumbá,3.609e+12
+674,Lake Iturama,3.597e+12
+675,Lake Uberaba,3.589e+12
+676,Lake Frutal,3.585e+12
+677,Lake Araçatuba,7.146e+12
+678,Lake Penápolis,3.56e+12
+679,Lake Assis,1.058e+13
+680,Lake Jacarezinho,3.511e+12
+681,Lake Avaré,3.511e+12
+682,Lake Antofagasta,3.478e+12
+683,Lake Coronel Bogado,3.396e+12
+684,Lake Tucumán,6.781e+12
+685,Lake La Rioja,6.629e+12
+686,Lake Frias,6.629e+12
+687,Lake Bella Unión,3.294e+12
+688,Lake Salto,1.311e+13
+689,Lake Broken Hill,3.226e+12
+690,Lake Paso de los Toros,9.648e+12
+691,Lake Fray Bentos,1.277e+13
+692,Lake Goulburn,3.129e+12
+693,Lake Malargüe,3.108e+12
+694,Lake Cutral Có,5.976e+12
+695,Lake Osorno,2.898e+12
+696,Lake Las Plumas,2.732e+12
+697,Lake Wanaka,5.456e+12
+698,Lake Puerto Aisén,2.715e+12
+699,Lake Cochrane,7.895e+12
+700,Lake Villa O'Higgins,1.279e+13
+701,Lake Gobernador Gregores,5.029e+12
+702,Lake El Calafate,2.439e+12
+703,Lake 28 de Noviembre,4.786e+12
+704,Lake Puerto Natales,1.419e+13
+705,Lake Río Verde,4.388e+13
+706,Lake Rio Grande,2.244e+12
+707,Lake Ushuaia,2.206e+12
+708,Lake Peter I Island,5.52e+12
+709,Surnujärvi,8.776e+11
+710,Iijärvi,1.63e+12
+711,Paudijärvi,1.003e+12
+712,Jongunjärvi,1.348e+12
+713,Muddusjärvi,2.166e+12
+714,Paatarijärvi,1.156e+12
+715,Rastojaure,1.554e+12
+716,Unarinjärvi,1.387e+12
+717,Sitojaure,1.525e+12
+718,Iso Vietonen,1.417e+12
+719,Murtoselka,1.293e+12
+720,Tjaktjajaure,2.654e+12
+721,Miekojärvi,1.984e+12
+722,Mavasjaure,1.126e+12
+723,Balvatnet,1.117e+12
+724,Kostonjärvi,1.761e+12
+725,Tjeggelvas,3.826e+12
+726,Peskehaure,2.375e+12
+727,Langvatnet,1.293e+12
+728,Tyräjärvi,1.339e+12
+729,Saddajaure,3.425e+12
+730,Kallvatnet,1.437e+12
+731,Irnijärvi,1.625e+12
+732,Storglomvatnet,1.842e+12
+733,Grasvatnet,1.166e+12
+734,Överst-Juktan,1.027e+12
+735,Storvindeln,3.228e+12
+736,Storakersvatnet,1.303e+12
+737,Puhosjärvi,1.198e+12
+738,Umbukta,2.026e+12
+739,Storjuktan,2.975e+12
+740,Ajaure,3.867e+12
+741,Gottern,1.339e+12
+742,Lahnajärvi,1.076e+12
+743,Lake Skellefteå,3.186e+12
+744,Vojmsjön,4.221e+12
+745,Uljua syvnne,1.083e+12
+746,Stora Bygdeträsket,1.392e+12
+747,Stor-Jorm,1.833e+12
+748,Laakajärvi,1.577e+12
+749,Iso Lamujärvi,1.097e+12
+750,Stor-Blåsjön,1.833e+12
+751,Stor-Sjouten,1.537e+12
+752,Bellvikssjön,1.557e+12
+753,Lake Örnsköldsvik,1.41e+12
+754,Lake Östersund,2.785e+12
+755,Ormsjön,1.238e+12
+756,Kivijärvi,4.849e+12
+757,Kolimajärvi,3.695e+12
+758,Alvajärvi,1.767e+12
+759,Lestijärvi,2.235e+12
+760,Hällbymagasinet,1.41e+12
+761,Leksdalsvatnet,9.461e+11
+762,Juojärvi,7.034e+12
+763,Betarsjön,1.892e+12
+764,Feren,1.118e+12
+765,Landsjn,2.38e+12
+766,Lake Jyväskylä,8.228e+11
+767,Ähtärinjärvi,1.963e+12
+768,Kolkonjärvi,1.179e+12
+769,Esandsjøen,2.909e+12
+770,Aurejärvi,1.005e+12
+771,Lngelmenjärvi,1.507e+12
+772,Hottjen,2.586e+12
+773,Sysmäjärvi,1.675e+12
+774,Holmsjön,2.304e+12
+775,Simpelejärvi,1.885e+12
+776,Toisvesi,1.332e+12
+777,Gjevilvatnet,1.646e+12
+778,Eikesdalsvatnet,1.316e+12
+779,Leringen,1.316e+12
+780,Kyrösjärvi,3.05e+12
+781,Lossnen,2.317e+12
+782,Aursjøen,2.317e+12
+783,Kyyvesi,3.015e+12
+784,Lake Svetogorsk,3.311e+12
+785,Isojärvi Sotamiehenluoto,1.694e+12
+786,Hennan,8.374e+11
+787,Vesijärvi,1.874e+12
+788,Lofssjön,1.507e+12
+789,Rogen,1.499e+12
+790,Enonvesi,1.542e+12
+791,Sølensjøen,1.179e+12
+792,Pelinginselka,2.079e+12
+793,Strynevatnet,1.516e+12
+794,Hornindalsvatnet,2.695e+12
+795,Norra Dellen,2.864e+12
+796,Hauhonselkä,8.616e+11
+797,Karhijärvi,1.193e+12
+798,Kukkiajärvi,1.542e+12
+799,Jølstravatnet,2.726e+12
+800,Krøderen,2.834e+12
+801,Storsjøen,1.771e+12
+802,Bergviken,1.723e+12
+803,Breimsvatnet,1.355e+12
+804,Orsjön,2.385e+12
+805,Tisjön,1.22e+12
+806,Venjanssjön,1.22e+12
+807,Ljugaren,1.733e+12
+808,Orsasjön,1.733e+12
+809,Hiidenvesi,1.771e+12
+810,Öjaren,8.76e+11
+811,Lake Dalkarlsaspen,3.619e+12
+812,Bygdin,2.399e+12
+813,Vinstre,1.371e+12
+814,Osensjøen,2.068e+12
+815,Skattungen,1.206e+12
+816,Tyin,1.714e+12
+817,Tunhovdfjorden,1.417e+12
+818,Sperillen,1.938e+12
+819,Runn,2.29e+12
+820,Hurdalsjøen,1.771e+12
+821,Tämnaren,1.425e+12
+822,Randsfjorden,5.813e+12
+823,Strandavatnet,1.051e+12
+824,Djupsvatnet,1.568e+12
+825,Møsvatn,3.222e+12
+826,Lake Borlänge,1.253e+12
+827,Övre Fryken,2.137e+12
+828,Mår,1.247e+12
+829,Erken,1.8e+12
+830,Tinnsjå,2.685e+12
+831,Lake Slantsy,1.478e+12
+832,Visten,1.628e+12
+833,Totak,1.809e+12
+834,Bergsjön,1.62e+12
+835,Mellan-Fryken,2.895e+12
+836,Yngen,1.26e+12
+837,Fiskumvatnet-Eikeren,1.809e+12
+838,Halvarsnoren,1.266e+12
+839,Glafsfjorden,4.183e+12
+840,Värmeln,3.257e+12
+841,Suldalsvatnet,1.628e+12
+842,Songevatnet,1.44e+12
+843,Norsjø,2.925e+12
+844,Vansjø,1.455e+12
+845,Bandak,2.364e+12
+846,Blåsjø,2.001e+12
+847,Svartevatnet,1.654e+12
+848,Båven,3.492e+12
+849,Flåvatn,1.28e+12
+850,Nisser,3.124e+12
+851,Östra Silen,2.194e+12
+852,Lake Karlstad,1.091e+12
+853,Stora Gla,1.637e+12
+854,Ullvettern,2.183e+12
+855,Lake Haugesund,1.819e+12
+856,Tokke,1.478e+12
+857,Yngaren,2.401e+12
+858,Lake Nyköping,1.114e+12
+859,Tisnaren,2.032e+12
+860,Toften,1.103e+12
+861,Byglandsfjorden,2.217e+12
+862,Loch Bhanabhaidh,2.262e+12
+863,Fyresvatnet,2.021e+12
+864,Rosskreppfjorden,1.286e+12
+865,Sottern,9.236e+11
+866,Farris,1.103e+12
+867,Sirdalsvatnet,1.679e+12
+868,Loch Maree,1.53e+12
+869,Unden,3.156e+12
+870,Tåkern,1.319e+12
+871,Yxningen,2.073e+12
+872,Lundevatnet,1.5e+12
+873,Lake Usma,1.552e+12
+874,Åsunden,1.721e+12
+875,Lake Fort William,2.155e+12
+876,Engure,1.159e+12
+877,Solgen,1.153e+12
+878,Babīte Ezers,1.371e+12
+879,Anten,1.136e+12
+880,Mjörn,2.474e+12
+881,Rusken,1.352e+12
+882,Loch Rannoch,1.378e+12
+883,Lygnern,1.922e+12
+884,Pljavinjas,2.952e+12
+885,Lake Polatsk,1.002e+12
+886,Örken,1.552e+12
+887,Lake Borås,1.746e+12
+888,Lake Rēzekne,1.197e+12
+889,Loch Awe,3.377e+12
+890,Lake Perth,1.582e+12
+891,Loch Lomond North Basin,3.392e+12
+892,Helgasjön,2.535e+12
+893,Rottnen,1.567e+12
+894,Lake Daugavpils,1.611e+12
+895,Flåren,1.56e+12
+896,Vidöstern,1.746e+12
+897,Mien,9.932e+11
+898,Dysnai,1.422e+12
+899,Immeln,1.39e+12
+900,Möckeln,1.968e+12
+901,Drūkšiai,2.225e+12
+902,Ringsjön,1.002e+12
+903,Hammarsjön,1.203e+12
+904,Lake Barysaw,1.454e+12
+905,Arresø,1.403e+12
+906,Lower Lough Erne,4.569e+12
+907,Lake Maladzyechna,1.441e+12
+908,Lough Melvin,1.252e+12
+909,Lake Sovetsk,1.633e+12
+910,Ivösjön,1.996e+12
+911,Lough Mask,2.334e+12
+912,Dusia,1.043e+12
+913,Lake Minsk,1.473e+12
+914,Lough Conn,2.104e+12
+915,Jezioro Gardno,6.231e+11
+916,Lake Stralsund,1.252e+12
+917,Lough Corrib,6.178e+12
+918,Jezioro Łebsko,1.654e+12
+919,Lake Baranavichy,1.083e+12
+920,Kummerower See,1.479e+12
+921,Lake Lübeck,1.69e+12
+922,Poulaphouca Reservoir,1.289e+12
+923,Selenter See,1.252e+12
+924,Plauer See,1.491e+12
+925,Lough Leane,1.54e+12
+926,Lassahner See,1.697e+12
+927,Miedwie,1.497e+12
+928,Lake Pinsk,1.096e+12
+929,Lake Białystok,1.51e+12
+930,Drawsko,1.061e+12
+931,Lake Mazyr,1.528e+12
+932,Lake Inowrocław,4.131e+12
+933,Heegermeer en Fluessen,1.725e+12
+934,Tjeukemeer,1.078e+12
+935,Gopło,1.739e+12
+936,Steinhuder Meer,1.092e+12
+937,Lake Brest,1.336e+12
+938,Lake Łódź,1.341e+12
+939,Lake Rivne,9.145e+11
+940,Lake Vinnytsya,1.889e+12
+941,Lake Žilina,1.63e+12
+942,Lake Rzeszów,1.164e+12
+943,Lake Kamyanets-Podilskyy,5.687e+12
+944,Lake Prague,1.856e+12
+945,Lake Brno,2.353e+12
+946,Lake Dubăsari,2.427e+12
+947,Lake České Budějovice,3.542e+12
+948,Lake Banská Bystrica,1.172e+12
+949,Lake Uzhgorod,1.181e+12
+950,Lake Botoșani,2.634e+12
+951,Lake Piatra-Neamt,1.466e+12
+952,Lac d'Orient,1.193e+12
+953,CHIEMSEE,2.403e+12
+954,Attersee,2.643e+12
+955,Starnberger See,2.394e+12
+956,Lake Nantes,1.699e+12
+957,Traunsee,1.442e+12
+958,Lake Tisza,1.446e+12
+959,Ammersee,1.916e+12
+960,Neusiedlersee,4.325e+12
+961,Étang de Bonnevais,1.896e+12
+962,Walensee,1.218e+12
+963,Bielersee,1.705e+12
+964,Yalpug and Kugurlui,7.292e+12
+965,Zürichsee,4.126e+12
+966,Lake Bacău,1.733e+12
+967,Lake Cahul,9.995e+11
+968,Lake Galați,3.52e+12
+969,Neuchâtel,5.863e+12
+970,MURTENSEE,9.772e+11
+971,Lacul Brates,1.006e+12
+972,Vierwaldstättersee,5.619e+12
+973,Lago di Como,7.224e+12
+974,Lacul Babadag,1.269e+12
+975,Wörthersee,2.213e+12
+976,Lacul Dranov,1.269e+12
+977,Lacul Taşaul,1.281e+12
+978,Lac d' Annecy,1.495e+12
+979,Lago di Lugano - Ceresio,3.238e+12
+980,Brienzersee,1.961e+12
+981,Thunersee,2.459e+12
+982,Lacul Isacov,1.012e+12
+983,Lake Ferrara,3.309e+12
+984,Balta Bistre?,7.752e+11
+985,Lake Grenoble,2.043e+12
+986,Étang de Cazaux,2.298e+12
+987,Lake León,1.573e+12
+988,Lake Shumen,1.307e+12
+989,Lake Zadar,1.288e+12
+990,Lago d' Iseo,2.749e+12
+991,Lacul Oltina,1.028e+12
+992,Étang de Carcans,1.766e+12
+993,Lac du Bourget,2.249e+12
+994,Lake Călărași,1.281e+12
+995,Lake Plovdiv,1.604e+12
+996,Lake Khaskovo,1.604e+12
+997,Lake Istanbul,1.351e+12
+998,Batak,1.33e+12
+999,Lake Bajram Curri,4.243e+12
+1000,Durusu Golu,2.419e+12
+1001,Lake Bragança,3.743e+12
+1002,Trasimeno,3.66e+12
+1003,Lake Dubrovnik,2.103e+12
+1004,Iskar,1.851e+12
+1005,Límni Vistonída,1.892e+12
+1006,Lake Salamanca,1.617e+12
+1007,Lago di Bracciano,1.861e+12
+1008,İznik Gölü,7.083e+12
+1009,Lake Shkodër,1.064e+12
+1010,Limni Kerkinis,2.696e+12
+1011,Lake Nîmes,3.119e+12
+1012,Lake Montpellier,2.339e+12
+1013,Lake Šibenik,1.55e+12
+1014,Lake Santander,2.097e+12
+1015,Jrebchevo,1.582e+12
+1016,Sainte-Croix,1.034e+12
+1017,Mandra,1.851e+12
+1018,Lake Split,1.814e+12
+1019,Limni Ioanninon,1.38e+12
+1020,Lake Mérida,7.248e+12
+1021,Marmara Gölü,2.521e+12
+1022,Lake Albacete,2.208e+12
+1023,Lake Manisa,1.956e+12
+1024,Lake Katerini,3.278e+12
+1025,Límni Kastorías,1.362e+12
+1026,Lake Kremaston,3.893e+12
+1027,Lake Agrinio,1.956e+12
+1028,Plastiras (Tavropos),1.387e+12
+1029,Lake Valencia,1.109e+12
+1030,Lake Foggia,1.882e+12
+1031,Limni Vilvi,3.261e+12
+1032,Limni Korinia,2.174e+12
+1033,Dojran Lake,1.617e+12
+1034,Kuş Gölü,4.382e+12
+1035,Ulubat Gölü,4.382e+12
+1036,Limni Vegoritis,1.626e+12
+1037,Lake Cádiz,8.626e+11
+1038,Dam,1.131e+12
+1039,Limni Trikhonis,3.081e+12
+1040,Bafa Gölü,2.274e+12
+1041,Lake Lamia,1.401e+12
+1042,Kyceiz Gölü,2.576e+12
+1043,Iliki Limni,1.404e+12
+1044,Lake Polyarnyy,2.907e+12
+1045,Lake Nikel,1.254e+12
+1046,Lake Monchegorsk,1.193e+12
+1047,Chudozero,4.109e+12
+1048,Lake Umba,9.777e+11
+1049,Lake Mezen,1.134e+12
+1050,Loukhskoe ozereo,5.644e+12
+1051,Susijärvi and Rugozero and Siikajärvi,3.568e+12
+1052,Lake Kem,1.348e+12
+1053,Lake Kizel,1.662e+12
+1054,Lake Archangel,9.697e+11
+1055,Lake Belomorsk,1.691e+12
+1056,Pistojärvi and Ohtajärvi,1.33e+12
+1057,Sumozero,3.291e+12
+1058,Lake Pervouralsk,1.959e+12
+1059,Berezovoe and Tungudskoe,3.558e+12
+1060,Änättijärvi,1.083e+12
+1061,Rovkulskoe,2.664e+12
+1062,Piilojärvi and Karasjärvi,3.627e+12
+1063,Maslozero,6.226e+12
+1064,Lake Verkhniy Ufaley,1.208e+12
+1065,Yangozero,3.252e+12
+1066,Viekinjärvi,1.277e+12
+1067,Seletskoe ozero,3.232e+12
+1068,Tiligul Liman,5.392e+12
+1069,Tuulos and Koroppi,2.856e+12
+1070,Lake Birsk,4.248e+12
+1071,Karpanjärvi,9.873e+11
+1072,Lake Izhevsk,1.371e+12
+1073,Lake Neftekamsk,1.192e+12
+1074,Viiksinselkä,9.932e+11
+1075,Shotozero,2.372e+12
+1076,Suuri Onkamojärvi,1.332e+12
+1077,Lake Magnitogorsk,2.334e+12
+1078,Lake Buy,1.485e+12
+1079,Lake Belebey,1.043e+12
+1080,Lake Tuymazy,6.231e+11
+1081,Lake Gatchina,1.654e+12
+1082,Lake Rostov,1.94e+12
+1083,Lake Borovichi,1.313e+12
+1084,Lake Bologoye,1.713e+12
+1085,Lake Tver,1.56e+12
+1086,Lake Vyshnniy Volochek,2.691e+12
+1087,Lake Sergiyev Posad,1.197e+12
+1088,Lake Nelidovo,1.365e+12
+1089,Lake Yegoryevsk,8.164e+11
+1090,Lake Rzhev,1.002e+12
+1091,Lake Penza,4.726e+12
+1092,Lake Bayghanin,1.181e+12
+1093,Lake Velikiye Luki,2.005e+12
+1094,Lake Shalqar,1.705e+12
+1095,Lake Chapaev,5.758e+12
+1096,Lake Maqat,9.479e+11
+1097,Lake Roslavl,2.503e+12
+1098,Lake Pallasovka,1.849e+12
+1099,North Caspian swamp,1.33e+13
+1100,Lake Beyneu,9.745e+12
+1101,Lake Lipetsk,1.087e+12
+1102,Lake Makhambet,3.555e+12
+1103,Lake Voronezh,2.218e+12
+1104,Lake Qulsary,1.475e+12
+1105,Lake Mahilyow,1.491e+12
+1106,Lake Starsy Oskol,1.341e+12
+1107,Lake Akhtubinsk,1.889e+12
+1108,Lake Lgov,1.552e+12
+1109,Lake Volzhskiy,1.653e+12
+1110,Lake Volgograd,1.67e+12
+1111,Lake Fort Shevchenko,1.009e+12
+1112,Lake Zhangaozen,3.064e+12
+1113,Lake Chernobyl,8.94e+11
+1114,Lake Kupyansk,4.657e+12
+1115,Lake Mangyshlak,2.298e+12
+1116,Lake Kharkiv,3.224e+12
+1117,Lake Kramatorsk,1.172e+12
+1118,Lake Aqtau,5.978e+12
+1119,Manych-Gudilo,2.59e+13
+1120,Lake Dnipro,1.422e+12
+1121,Manych Reservoir,5.515e+12
+1122,Veselovskoe Reservoir,9.528e+12
+1123,Lake Kryvyy Rih,2.155e+12
+1124,Lake Blagodarnyy,1.009e+12
+1125,Lake Timashevsk,9.964e+11
+1126,Lake Stavropol,1.518e+12
+1127,Beysugskiy Liman,2.97e+12
+1128,Lake Buynaksk,1.049e+12
+1129,Molochnyy Liman,5.902e+12
+1130,Liman in Primorsko-Akhtarsk area,4.733e+12
+1131,Lake Novorossiysk,1.257e+12
+1132,Lake Cherkessk,1.028e+12
+1133,Krasnodarsk Reservoir,7.337e+12
+1134,Lake Kerch,7.591e+11
+1135,Lake Tiraspol,9.837e+11
+1136,Kiziltashskiy Limán,6.306e+12
+1137,Liman near Odessa,4.167e+12
+1138,Lake Odessa,2.705e+12
+1139,Lake Tbilisi,1.341e+12
+1140,Lake Tskhinvali,1.072e+12
+1141,Lake Şirvan,1.643e+12
+1142,Lake Yevpatoriya,2.522e+12
+1143,Çıldır,4.054e+12
+1144,Lake Kars,1.348e+12
+1145,Lake Bafra,3.764e+12
+1146,Lake Naxcivan,2.496e+12
+1147,Lake Rasht,1.421e+12
+1148,Lake Ağrı,1.652e+12
+1149,Lake Tokat,1.093e+12
+1150,Sapanca Gölü,1.902e+12
+1151,Lake Kırşehir,6.934e+12
+1152,Lake Bolu,3.834e+12
+1153,Seyfe Gölü,1.109e+12
+1154,Lake Adana,2.279e+12
+1155,Lake Konya,8.425e+11
+1156,Lake Uşak,1.689e+12
+1157,Seyhan Baraji,1.428e+12
+1158,Akşehir Gölü,5.042e+12
+1159,Burdur Gölü,4.809e+12
+1160,Salda Gölü,1.705e+12
+1161,Lake Kütahya,1.656e+12
+1162,Yay Gölü,1.685e+12
+1163,Lake Tatvan,1.394e+12
+1164,Hazar Dagi,2.527e+12
+1165,Lake Kahramanmaraş,1.418e+12
+1166,Lake Duhok,8.319e+12
+1167,Erçek,3.074e+12
+1168,Lake Al Kut,3.031e+12
+1169,Lake Al Amarah,2.743e+12
+1170,Sabkha al Jabbul,5.789e+12
+1171,Lake Manbij,6.038e+12
+1172,Qadisiyah,1.035e+13
+1173,Lake Baqubah,2.075e+12
+1174,Lake Aleppo,1.451e+12
+1175,Suwayqiyah,4.218e+12
+1176,Lake Najaf,1.518e+12
+1177,Lake Homs,8.837e+11
+1178,Lake Basra,3.082e+12
+1179,Sheksinskoe Reservoir,1.23e+13
+1180,Lago de Atitlán,4.853e+12
+1181,Lago Alajuela,2.475e+12
+1182,Lake Santa Fe,1.244e+12
+1183,Lake Ocklawaha,2.804e+12
+1184,Lago Bayano,1.344e+13
+1185,Laguna de Wouhnta,3.132e+12
+1186,Lake Windsor,5.681e+12
+1187,Laguna Mara Lizamba,3.394e+12
+1188,Laguna El Salado,1.69e+12
+1189,Laguna Chila,4.644e+12
+1190,Presa Gustavo Díaz Ordaz (Bacurato),3.545e+12
+1191,Lake Guerrero Negro,3.814e+12
+1192,Laguna Salada,6.654e+12
+1193,Lake Yuma,3.042e+12
+1194,Laguna Santa María,2.452e+12
+1195,Owyhee Reservoir,5.978e+12
+1196,Lake Charlevoix,2.018e+12
+1197,Elk Lake,2.291e+12
+1198,King George IV Lake,1.909e+12
+1199,Réservoir La Grande 4,1.978e+13
+1200,Sandy Lake,1.208e+12
+1201,Lake Coral Harbour,1.261e+12
+1202,Kulik Lake,1.293e+12
+1203,Lac des Oeufs,3.365e+13
+1204,Grays Lake,3.137e+12
+1205,Nelson Reservoir,1.422e+12
+1206,Summer Lake,4.982e+12
+1207,Stave Lake,2.328e+12
+1208,Pitt Lake,4.657e+12
+1209,Alouette Lake,1.636e+12
+1210,Harrison Lake,9.512e+12
+1211,Lake Washington,4.339e+12
+1212,Buttle Lake,2.552e+12
+1213,Lake Nimpkish,1.594e+12
+1214,Dog Lake,4.504e+12
+1215,Jan Lake,4.942e+12
+1216,Mamawi Lake,5.225e+12
+1217,Thorsteinson Lake,2.317e+12
+1218,Helika Lake,1.324e+12
+1219,Blakely Lake,1.606e+12
+1220,Mattberry Lake,2.18e+12
+1221,Exeter Lake,1.972e+12
+1222,Margaret Lake,4.15e+12
+1223,Grouard Lake,2.995e+12
+1224,Lac Ste. Croix,2.166e+12
+1225,Beaverlodge Lake,3.074e+12
+1226,Ortona Lake,7.636e+11
+1227,Bathurst Lake,2.587e+12
+1228,Simpson Lake,2.219e+12
+1229,Barrow Lake,1.842e+12
+1230,Ballenden Lake,9.136e+11
+1231,Burns Lake,1.254e+12
+1232,Campsall Lake,1.185e+12
+1233,Kaglik Lake,1.138e+12
+1234,Rufus Lake,1.617e+12
+1235,Kukaklek Lake,5.881e+12
+1236,Richard B. Russell Lake,5.929e+12
+1237,Fontana Lake,3.505e+12
+1238,Lake Poygan,1.546e+12
+1239,Lake Butte Des Morts,1.546e+12
+1240,Lac Father,3.271e+12
+1241,Lac Lomier,1.853e+12
+1242,Lake Radisson,2.92e+12
+1243,Lac de Puvirnituq,2.493e+12
+1244,Menihek Lakes,1.178e+13
+1245,Pat Mayse Lake,1.488e+12
+1246,Lake Sydney,2.731e+12
+1247,Lake Kuujjuarapik,3.757e+12
+1248,Lac Louet,1.837e+12
+1249,Lac la Forest,1.225e+12
+1250,Lac Nullualuk,1.523e+12
+1251,Lac Dupire,1.17e+12
+1252,Lac Brisson,2.384e+12
+1253,Lac Ramusio,1.441e+12
+1254,Lake Rigolet,1.043e+12
+1255,Lac Chicomo,4.453e+11
+1256,Lac Kerbodot,6.391e+11
+1257,Lac Biggar,8.837e+11
+1258,Lac Dasserat,1.909e+12
+1259,Round Lake,7.183e+11
+1260,Rice Lake,1.929e+12
+1261,Wakami Lake,1.209e+12
+1262,Obabika Lake,1.954e+12
+1263,White Otter Lake,1.412e+12
+1264,Shebandowan Lakes,1.185e+12
+1265,Arrow Lake,4.772e+11
+1266,Petawanga Lake,2.012e+12
+1267,Lake Fort Severn,1.429e+12
+1268,Moshikopaw Lake,1.46e+12
+1269,Lake Tschida,7.377e+11
+1270,Athapapuskow Lake,1.654e+12
+1271,Buckland Lake,1.153e+12
+1272,Derby Lake,1.145e+12
+1273,Berg Lakes,1.063e+12
+1274,Tseepantee Lake,2.088e+12
+1275,Machum Lake,1.446e+12
+1276,Ferguson Lake,9.756e+11
+1277,Lake Iqaluit,3.035e+12
+1278,Blanchfield Lake,2.363e+12
+1279,Dewar Lakes,6.84e+12
+1280,Fallaize Lake,1.67e+12
+1281,Stanwell-Fletcher Lake,6.653e+12
+1282,Fisher Lake,1.631e+12
+1283,Banning Lake,2.114e+12
+1284,Tarrionituk Lake,3.018e+12
+1285,Inuktorfik Lake,1.625e+12
+1286,Conn Lake,9.177e+12
+1287,Bieler Lake,8.535e+12
+1288,Ayr Lake,3.967e+12
+1289,Generator Lake,1.492e+12
+1290,Flint Lake,2.907e+12
+1291,Greenshield Lake,2.235e+12
+1292,Sylvia Grinnell Lake,2.491e+12
+1293,Deer Lake,2.345e+12
+1294,Gander Lake,6.354e+12
+1295,Granite Lake,3.341e+12
+1296,Eastern Meelpaeg,1.432e+12
+1297,Jubilee Lake,1.676e+12
+1298,Lac Caopacho,1.76e+12
+1299,Lac Fleur-de-May,4.621e+12
+1300,Lac Assigny,2.421e+12
+1301,Fonteneau Lake,2.872e+12
+1302,Lac Ric,1.546e+12
+1303,Lac Magpie,4.504e+12
+1304,Lac Nipissis,9.009e+11
+1305,Lac Manitou,1.356e+12
+1306,Lac Bert,2.713e+12
+1307,Lac Musquaro,7.715e+12
+1308,Lac Sainte-Anne,3.671e+12
+1309,Lac Walker,2.058e+12
+1310,Lac Matapdia,1.659e+12
+1311,Lake Ainslie,1.738e+12
+1312,Lac Ballantyne,1.679e+12
+1313,Lac Brard,3.172e+12
+1314,Lac Diana,2.625e+12
+1315,Lac Berthet,3.938e+12
+1316,Lac Saffray,1.721e+12
+1317,Lac Aigneau,1.164e+12
+1318,Lac Colombet,2.925e+12
+1319,Lac Jeannin,2.175e+12
+1320,Lac Châteauguay,2.373e+12
+1321,Lac Romanet,2.384e+12
+1322,Lac Loudin,1.192e+12
+1323,Mistastin Lake,4.21e+12
+1324,Lac Wakuach,4.855e+12
+1325,Lac aux Goélands,7.518e+12
+1326,Lac Resolution,1.837e+12
+1327,Lac Cabot,2.471e+12
+1328,Andr Lake,2.482e+12
+1329,Snegamook Lake,3.323e+12
+1330,Wade Lake,4.172e+12
+1331,Nipishish Lake,3.98e+12
+1332,Sims Lake,3.576e+12
+1333,Disappointment Lake,2.113e+12
+1334,Shabogamo Lake,1.053e+13
+1335,Lac Mnistouc,3.02e+12
+1336,Lac Opocopa,3.479e+12
+1337,Lake Hopedale,3.115e+12
+1338,Lac Vanasse,1.355e+12
+1339,Lac Lanyan,1.714e+12
+1340,Lac Allemand,5.198e+12
+1341,Lac Nantais,1.057e+13
+1342,Lac Juet,4.159e+12
+1343,Lac Nagvaraaluk,1.402e+12
+1344,Lac Roberts,2.657e+12
+1345,Lac Aggautik,3.188e+12
+1346,Lac Duquet,1.594e+12
+1347,Lac Châtelain,6.73e+12
+1348,Lac Parry,2.171e+12
+1349,Lac Mangnuc,3.456e+12
+1350,Lac Anuc,5.093e+12
+1351,Lac du Pélican,4.859e+12
+1352,Lac Tasialujjuaq,6.002e+12
+1353,Lac Peters,2.352e+12
+1354,Lac Faribault,7.167e+12
+1355,Lac Tassialouc,7.167e+12
+1356,Lac Tasiat,6.799e+12
+1357,Lac la Potherie,4.618e+12
+1358,Lac Guenyveau,5.013e+12
+1359,Lac Tasiataq,3.156e+12
+1360,Lac Tikirartuuq,2.134e+12
+1361,Lac la Chevrotire,9.33e+11
+1362,Lac Dune,2.426e+12
+1363,Lac Rochefort,1.866e+12
+1364,Lac Bacqueville,6.973e+12
+1365,Lac Kakiattukallak,1.339e+12
+1366,Lac Duvert,1.913e+12
+1367,Lacs des Loups Marins,1.673e+13
+1368,Lac Roz,7.652e+12
+1369,Lac de la Noue,2.688e+12
+1370,Lac Herv,1.246e+12
+1371,Lac du Sable,3.755e+12
+1372,Lac Mingré,1.284e+12
+1373,Lac Opiscotiche,1.933e+12
+1374,Lac Germaine,1.941e+12
+1375,Lac Dusterlo,2.157e+12
+1376,Lac Vallard,3.465e+12
+1377,Lac Goupil,1.732e+12
+1378,Lac Wahemen,2.815e+12
+1379,Lac Gensart,1.299e+12
+1380,Lac Cramoisy,2.2e+12
+1381,Lac Baudeau,1.774e+12
+1382,Lac Caouachigamau,1.795e+12
+1383,Lac Yasinski,1.497e+12
+1384,Lac Bridgar,1.284e+12
+1385,Lac du Vieux Comptoir,1.516e+12
+1386,Lac Duxbury,1.31e+12
+1387,Lac Jolliet,1.781e+12
+1388,Lac Camousitchouane,2.692e+12
+1389,Lac Tscau,1.577e+12
+1390,Lac Théodat,3.391e+12
+1391,Lac Quénonisca,2.05e+12
+1392,Lac Tilly,2.525e+12
+1393,Lac Sauvolles,4.048e+12
+1394,Lac Woollett,3.129e+12
+1395,Lac Bellinger,3.129e+12
+1396,Lac Ouescapis,1.829e+12
+1397,Lac au Goéland,9.015e+12
+1398,Lac Grasset,2.994e+12
+1399,Pagwachuan Lake,1.16e+12
+1400,Lac Waswanipi,6.496e+12
+1401,McKay Lake,1.16e+12
+1402,Lac Opawica,4.64e+12
+1403,Pierre Lake,6.96e+11
+1404,Nagagami Lake,2.095e+12
+1405,Little Abitibi Lake,1.164e+12
+1406,Lac Pusticamica,3.027e+12
+1407,Lac Nicobi,2.103e+12
+1408,Lac Hébert,1.641e+12
+1409,Lac Turgeon,9.413e+11
+1410,Kabinakagami Lake,4.236e+12
+1411,Lake Val d'Or,1.181e+12
+1412,White Lake,2.362e+12
+1413,Lac Macamic,1.889e+12
+1414,Esnagi Lake,2.607e+12
+1415,Frederick House Lake,1.889e+12
+1416,Lac Preissac,4.043e+12
+1417,Lac Malartic,3.805e+12
+1418,Lac Tiblemont,1.67e+12
+1419,Lac de Montigny,2.386e+12
+1420,Lac Guéguen,2.155e+12
+1421,Horwood Lake,1.916e+12
+1422,Lac Fournière,1.437e+12
+1423,Lac Matchi-Manitou,1.916e+12
+1424,Réservoir Decelles,8.92e+12
+1425,Rush Lake,1.442e+12
+1426,Lac des Quinze,5.563e+12
+1427,Wenebegon Lake,1.699e+12
+1428,Ramsey Lake,7.038e+12
+1429,Lady Evelyn Lake,4.854e+12
+1430,Lac Dumoine,4.398e+12
+1431,Rocky Island Lake,2.687e+12
+1432,Ranger Lake,1.226e+12
+1433,Lac Grindstone,3.922e+12
+1434,Wanapitei Lake,3.677e+12
+1435,Quirke Lake,9.868e+11
+1436,Lake Panache,5.198e+12
+1437,Opeongo Lake,3.248e+12
+1438,Lake of Bays,2.27e+12
+1439,Lake Rosseau,4.288e+12
+1440,Lake Muskoka,4.048e+12
+1441,Lac Obatogamau,3.26e+12
+1442,Lac das Vents,1.863e+12
+1443,Lac Rohault,3.492e+12
+1444,Lac Poutrincourt,1.407e+12
+1445,Lac Kempt,7.281e+12
+1446,Reservoir Taureau,3.922e+12
+1447,Stony Lake,2.553e+12
+1448,Cameron Lake,7.66e+11
+1449,Sturgeon Lake,2.553e+12
+1450,Chemong Lake,2.043e+12
+1451,Lake Scugog,3.596e+12
+1452,Dafoe Lake,1.611e+12
+1453,Threepoint Lake,2.014e+12
+1454,Flatrock Lake,2.225e+12
+1455,Paint Lake,4.248e+12
+1456,Wuskwatim Lake,1.618e+12
+1457,Burntwood Lake,5.08e+12
+1458,Wintering Lake,4.673e+12
+1459,Landing Lake,4.694e+12
+1460,Mari Lake,1.64e+12
+1461,Kisseynew Lake,4.942e+12
+1462,Sutton Lake,1.877e+12
+1463,Kistigan Lake,3.309e+12
+1464,Echoing Lake,1.662e+12
+1465,Stull Lake,3.963e+12
+1466,Little Sachigo Lake,3.352e+12
+1467,Sachigo Lake,6.127e+12
+1468,Makoop Lake,2.77e+12
+1469,Nikip Lake,1.941e+12
+1470,Magiss Lake,1.294e+12
+1471,Weagamow Lake,5.392e+12
+1472,Windigo Lake,2.392e+12
+1473,North Spirit Lake,2.838e+12
+1474,MacDowell Lake,4.164e+12
+1475,Opinnagau Lake,2.113e+12
+1476,Shibogama Lake,6.365e+11
+1477,Kingfisher Lake,1.933e+12
+1478,Winisk Lake,7.549e+12
+1479,Wapikopa Lake,4.314e+12
+1480,Kanuchuan Lake,6.039e+12
+1481,Mameigwess Lake,3.479e+12
+1482,Kabania Lake,2.63e+12
+1483,Ozhiski Lake,3.741e+12
+1484,Keezhik Lake,2.661e+12
+1485,Pledger Lake,1.356e+12
+1486,Ogoki Lake,2.713e+12
+1487,Marshall Lake,9.145e+11
+1488,Esnagami Lake,2.286e+12
+1489,Onaman Lake,2.764e+12
+1490,Birch Lake,5.141e+12
+1491,Savant Lake,5.011e+12
+1492,Oak Lake,3.644e+12
+1493,Clay Lake,3.442e+12
+1494,Seseganaga Lake,5.048e+12
+1495,Eagle Lake,1.04e+13
+1496,Dinorwic Lake,5.085e+12
+1497,Dryberry Lake,3.712e+12
+1498,Atikwa Lake,2.794e+12
+1499,Manitou Lake,6.309e+12
+1500,Otukamamoan Lake,2.118e+12
+1501,Miminiska Lake,3.117e+12
+1502,Eabamet Lake,4.008e+12
+1503,Attwood Lake,2.235e+12
+1504,Makokibatan Lake,3.59e+12
+1505,Shabuskwia Lake,2.019e+12
+1506,Whitewater Lake,3.843e+12
+1507,Wabakimi Lake,2.95e+12
+1508,Smoothrock Lake,6.605e+12
+1509,Caribou Lake,3.189e+12
+1510,Garden Lake,1.164e+12
+1511,Black Sturgeon Lake,1.869e+12
+1512,Lac des Iles,9.346e+11
+1513,Whitefish Lake,9.545e+11
+1514,Candle Lake,3.38e+12
+1515,Last Mountain Lake,5.856e+12
+1516,Knee Lake,1.005e+13
+1517,Semmens Lake,2.87e+12
+1518,Setting Lake,4.51e+12
+1519,Duck Lake,2.471e+12
+1520,File Lake,1.853e+12
+1521,Wekusko Lake,5.148e+12
+1522,Walker Lake,4.756e+12
+1523,Edmund Lake,3.722e+12
+1524,Limestone Lake,1.454e+12
+1525,Reed Lake,4.963e+12
+1526,Simonhouse Lake,2.492e+12
+1527,Lawford Lake,2.7e+12
+1528,Webber Lake,1.877e+12
+1529,Sharpe Lake,4.172e+12
+1530,Hargrave Lake,2.285e+12
+1531,Suggi Lake,3.337e+12
+1532,Windy Lake,1.669e+12
+1533,Beaver Hill Lake,6.884e+12
+1534,Kiskitto Lake,4.399e+12
+1535,Pierce Lake,3.98e+12
+1536,Red Sucker Lake,6.494e+12
+1537,Rocky Lake,3.771e+12
+1538,Root Lake,1.683e+12
+1539,Stevenson Lake,8.205e+12
+1540,Reader Lake,1.683e+12
+1541,Seeber Lake,1.69e+12
+1542,William Lake,3.592e+12
+1543,Bigstone Lake,3.182e+12
+1544,Gunisao Lake,2.983e+12
+1545,Red Deer Lake,5.823e+12
+1546,Katimik Lake,2.166e+12
+1547,Weaver Lake,2.382e+12
+1548,Kaweenakumik Lake,2.599e+12
+1549,Wrong Lake,1.522e+12
+1550,Swan Lake,7.204e+12
+1551,Sisib Lake,1.739e+12
+1552,Pelican Lake,3.711e+12
+1553,McInnes Lake,2.192e+12
+1554,Ponass Lakes,1.965e+12
+1555,Family Lake,7.702e+12
+1556,Stout Lake,4.401e+12
+1557,Big Quill Lake,8.395e+12
+1558,Little Quill Lake,5.523e+12
+1559,Nungesser Lake,2.682e+12
+1560,Little Vermilion Lake,2.459e+12
+1561,Red Lake,5.63e+12
+1562,Gullrock Lake,3.153e+12
+1563,Pakwash Lake,3.177e+12
+1564,Sydney Lake,2.723e+12
+1565,Nejanilini Lake,1.073e+13
+1566,Shannon Lake,7.821e+12
+1567,Blackfish Lake,2.205e+12
+1568,Hara Lake,2.205e+12
+1569,Egenolf Lake,3.124e+12
+1570,Shethanei Lake,5.384e+12
+1571,Ireland Lake,5.172e+12
+1572,Maria Lake,2.97e+12
+1573,Tadoule Lake,9.33e+12
+1574,Theriau Lake,2.25e+12
+1575,North Knife Lake,4.523e+12
+1576,Waterbury Lake,4.146e+12
+1577,South Knife Lake,1.885e+12
+1578,Chipewyan Lake,3.22e+12
+1579,Big Sand Lake,9.563e+12
+1580,Etawney Lake,2.665e+12
+1581,Wells Lake,2.704e+12
+1582,Goldsand Lake,3.509e+12
+1583,Vandekerckhove Lake,2.925e+12
+1584,Barrington Lake,4.874e+12
+1585,Nokomis Lake,3.899e+12
+1586,Eden Lake,2.559e+12
+1587,Waskaiowaka Lake,7.085e+12
+1588,Laurie Lake,2.952e+12
+1589,Gauer Lake,5.511e+12
+1590,McGavock Lake,1.78e+12
+1591,Kamuchawie Lake,4.37e+12
+1592,Russell Lake,4.767e+12
+1593,Rat Lake,3.792e+12
+1594,Harding Lake,2.395e+12
+1595,Laughland Lake,1.447e+12
+1596,Hansteen Lake,1.85e+12
+1597,Middle Lake,2.114e+12
+1598,Lady Melville Lake,1.019e+13
+1599,Darby Lake,2.961e+12
+1600,Hall Lake,1.127e+13
+1601,Nagvaak Lake,2.712e+12
+1602,Hansine Lake,4.137e+12
+1603,Munroe Lake,1.286e+12
+1604,Brooks Lake,2.527e+12
+1605,Penylan Lake,3.706e+12
+1606,Porter Lake,4.066e+12
+1607,Manchester Lake,2.556e+12
+1608,Dolby Lake,2.742e+12
+1609,McCann Lake,2.929e+12
+1610,Coventry Lake,4.136e+12
+1611,Smalltree Lake,2.599e+12
+1612,Sherwood Lake,2.091e+12
+1613,Ivanhoe Lake,2.995e+12
+1614,Abitau Lake,2.125e+12
+1615,Ingalls Lake,5.668e+12
+1616,Atzinging Lake,2.849e+12
+1617,Dunvegan Lake,3.205e+12
+1618,Sovereign Lake,3.78e+12
+1619,Fontaine Lake,2.7e+12
+1620,Misaw Lake,3.222e+12
+1621,Nunim Lake,1.273e+12
+1622,Snyder Lake,1.28e+12
+1623,Phelps Lake,3.839e+12
+1624,Bompas Lake,9.046e+11
+1625,Imikula Lake,2.177e+12
+1626,Nowyak Lake,3.032e+12
+1627,Boland Lake,2.88e+12
+1628,Casimir Lake,7.327e+12
+1629,Hicks Lake,8.225e+12
+1630,Watterson Lake,2.585e+12
+1631,Elliott Lake,6.376e+12
+1632,Ray Lake,2.599e+12
+1633,Tatinnai Lake,4.852e+12
+1634,Thaolintoa Lake,3.311e+12
+1635,Hurwitz Lake,3.136e+12
+1636,Thuchonilini Lake,1.927e+12
+1637,Hyde Lake,2.466e+12
+1638,Poorfish Lake,2.125e+12
+1639,deBartok Lake,3.897e+12
+1640,Baralzon Lake,5.013e+12
+1641,Fehet Lake,3.713e+12
+1642,Armit Lake,4.204e+12
+1643,Bissett Lake,1.734e+12
+1644,Parker Lake,4.47e+12
+1645,Gibson Lake,2.874e+12
+1646,MacQuoid Lake,3.991e+12
+1647,Hanway Lake,2.075e+12
+1648,Nutarawit Lake,4.687e+12
+1649,Townsend Lake,2.454e+12
+1650,Mosquito Lake,7.405e+12
+1651,Victory Lake,3.456e+12
+1652,Mary Lake,3.642e+12
+1653,Big Rocky Lake,4.163e+12
+1654,Sid Lake,4.163e+12
+1655,Gravel Hill Lake,2.997e+12
+1656,Carr Lake,2.847e+12
+1657,Heninga Lake,2.527e+12
+1658,Sibbeston Lake,1.694e+12
+1659,Antoine Lake,1.017e+12
+1660,Cormack Lake,1.568e+12
+1661,Trainor Lake,1.24e+12
+1662,Bishop Lake,1.487e+12
+1663,Ghurka Lake,2.562e+12
+1664,Migration Lake,1.366e+12
+1665,Thistle Lake,1.669e+12
+1666,Thonokied Lake,8.819e+12
+1667,Tarantula Lake,2.306e+12
+1668,Moraine Lake,3.114e+12
+1669,Smart Lake,4.47e+12
+1670,Mary Frances Lake,6.586e+12
+1671,Campbell Lake,4.498e+12
+1672,Tyrrell Lake,8.404e+12
+1673,Beaverhill Lake,2.781e+12
+1674,Tent Lake,2.648e+12
+1675,Eileen Lake,4.496e+12
+1676,Maxhamish Lake,1.8e+12
+1677,Kotcho Lake,2.205e+12
+1678,Namur Lake,1.545e+12
+1679,Gassend Lake,1.336e+12
+1680,Niwelin Lake,2.288e+12
+1681,Carcajou Lake,1.101e+12
+1682,Tadek Lake,9.777e+11
+1683,Yeltea Lake,1.548e+12
+1684,Manuel Lake,2.095e+12
+1685,Tweed Lake,9.848e+11
+1686,Kilekale Lake,1.7e+12
+1687,Lac à Jacques,2.46e+12
+1688,Sam McRae Lake,1.312e+12
+1689,Turton Lake,1.614e+12
+1690,Brackett Lake,1.497e+12
+1691,Blackwater Lake,5.798e+12
+1692,Wrigley Lake,1.104e+12
+1693,Fish Lake,3.879e+12
+1694,Greasy Lake,2.114e+12
+1695,Highland Lake,1.309e+12
+1696,Kikerk Lake,3.166e+12
+1697,Kiglikavik Lake,3.939e+12
+1698,Bulmer Lake,2.944e+12
+1699,Lac Tach,4.231e+12
+1700,Wentzel Lake,1.303e+12
+1701,Itchen Lake,4.728e+12
+1702,Lever Lake,1.785e+12
+1703,Wopmay Lake,1.96e+12
+1704,Rawalpindi Lake,3.467e+12
+1705,Whitewolf Lake,1.669e+12
+1706,Grant Lake,1.517e+12
+1707,Big Lake,2.276e+12
+1708,Etna Lake,2.306e+12
+1709,Winter Lake,1.547e+12
+1710,Indin Lake,6.228e+12
+1711,Snare Lake,2.647e+12
+1712,Basler Lake,3.134e+12
+1713,Wecho Lake,3.604e+12
+1714,Saddle Lake,1.892e+12
+1715,Back Lake,2.996e+12
+1716,Lake of the Enemy,3.967e+12
+1717,Kwejinne Lake,3.154e+12
+1718,Camsell Lake,5.395e+12
+1719,Hislop Lake,1.277e+12
+1720,Beniah Lake,3.991e+12
+1721,Lac Tte d'Ours,1.767e+12
+1722,Clive Lake,2.424e+12
+1723,Bartlett Lake,5.172e+12
+1724,Weyburn Lake,1.463e+12
+1725,Garde Lake,2.781e+12
+1726,Lac Levis,2.139e+12
+1727,Hornell Lake,1.998e+12
+1728,Gordon Lake,4.364e+12
+1729,Duncan Lake,1.951e+12
+1730,Willow Lake,4.995e+12
+1731,Gagnon Lake,5.359e+12
+1732,Rutledge Lake,4.574e+12
+1733,Taltson Lake,3.77e+12
+1734,Thubun Lakes,2.897e+12
+1735,Falaise Lake,2.742e+12
+1736,Sparks Lake,3.963e+12
+1737,Thekulthili Lake,6.931e+12
+1738,Tsu Lake,3.154e+12
+1739,Hill Island Lake,3.523e+12
+1740,Copp Lake,2.671e+12
+1741,Andrew Lake,1.79e+12
+1742,Tsalwor Lake,1.98e+12
+1743,Colin Lake,1.809e+12
+1744,Richards Lake,2.389e+12
+1745,Riou Lake,5.329e+12
+1746,Engler Lake,1.103e+12
+1747,Davy Lake,3.509e+12
+1748,Wapata Lake,1.857e+12
+1749,Pasfield Lake,5.626e+12
+1750,Engemann Lake,1.713e+12
+1751,Mayson Lake,2.094e+12
+1752,Weitzel Lake,1.913e+12
+1753,Forrest Lake,2.678e+12
+1754,Lloyd Lake,2.897e+12
+1755,Wathaman Lake,3.314e+12
+1756,Oliver Lake,6.268e+12
+1757,Highrock Lake,2.925e+12
+1758,Careen Lake,2.925e+12
+1759,Black Birch Lake,4.289e+12
+1760,Upper Foster Lake,4.505e+12
+1761,Spear Lake,1.771e+12
+1762,Lac la Loche,5.141e+12
+1763,McIntosh Lake,2.417e+12
+1764,Dillon Lake,1.812e+12
+1765,Vermette Lake,1.416e+12
+1766,Kazan Lake,2.832e+12
+1767,Besnard Lake,6.299e+12
+1768,Winefred Lake,3.439e+12
+1769,Nemeiben Lake,5.689e+12
+1770,Canoe Lake,4.898e+12
+1771,Lac la Plonge,5.511e+12
+1772,Egg Lake,3.075e+12
+1773,Arsenault Lake,1.845e+12
+1774,Lac la Biche,6.589e+12
+1775,Keeley Lake,2.677e+12
+1776,Smoothstone Lake,5.997e+12
+1777,Waterhen Lake,2.7e+12
+1778,Sled Lake,2.712e+12
+1779,Clarke Lake,3.755e+12
+1780,Delaronde Lake,4.839e+12
+1781,Crean Lake,3.352e+12
+1782,Frog Lake,2.104e+12
+1783,Turtle Lake,2.97e+12
+1784,Sullivan Lake,4.181e+12
+1785,Deception Lake,3.936e+12
+1786,Macoun Lake,3.149e+12
+1787,Brabant Lake,2.395e+12
+1788,Big Sandy Lake,2.086e+12
+1789,North Wabasca Lake,2.993e+12
+1790,South Wabasca Lake,2.005e+12
+1791,Utikuma Lake,6.415e+12
+1792,Calling Lake,3.674e+12
+1793,Snipe Lake,1.435e+12
+1794,Lac Ste. Anne,2.122e+12
+1795,Chip Lake,2.758e+12
+1796,Pigeon Lake,2.804e+12
+1797,Buffalo Lake,2.838e+12
+1798,Gull Lake,3.044e+12
+1799,Quesnel Lake,1.131e+13
+1800,Hobson Lake,1.522e+12
+1801,Horsefly Lake,3.93e+12
+1802,Clearwater Lake,8.767e+11
+1803,Charlotte Lake,3.068e+12
+1804,Chilko Lake,5.588e+12
+1805,Tatlayoko Lake,2.004e+12
+1806,Taseko Lakes,2.012e+12
+1807,Kinaskan Lake,1.148e+12
+1808,Babine Lake,1.668e+13
+1809,Inzana Lake,1.853e+12
+1810,Takla Lake,1.016e+13
+1811,Stuart Lake,1.038e+13
+1812,Trembleur Lake,4.324e+12
+1813,Carp Lake,1.654e+12
+1814,Tezzeron Lake,3.102e+12
+1815,Great Beaver Lake,1.454e+12
+1816,Morice Lake,3.576e+12
+1817,Fraser Lake,1.893e+12
+1818,François Lake,9.467e+12
+1819,Eutsuk Lake,4.392e+13
+1820,Tatuk Lake,1.704e+12
+1821,Mayo Lake,4.125e+12
+1822,Little Salmon Lake,3.852e+12
+1823,Frances Lake,4.798e+12
+1824,Wolf Lake,2.102e+12
+1825,Harlequin Lake,1.637e+12
+1826,Atlin Lake,1.291e+13
+1827,Dezadeash Lake,2.466e+12
+1828,Kusawa Lake,5.845e+12
+1829,Parsons Lake,1.67e+12
+1830,Sitidgi Lake,5.743e+12
+1831,Hyndman Lake,1.193e+12
+1832,Crosswind Lake,8.325e+11
+1833,Klutina Lake,2.372e+12
+1834,Beluga Lake,1.542e+12
+1835,Chignik Lake,3.774e+12
+1836,Laguna Atasta,3.058e+12
+1837,Lago Petén Itzá,4.113e+12
+1838,Laguna de Ibans,2.413e+12
+1839,Lago de Yojoa,3.118e+12
+1840,Lago de Ilopango,2.09e+12
+1841,Lago Tecocomulco,1.347e+12
+1842,Laguna Atotonilco,1.679e+12
+1843,Lago Yuriria,2.353e+12
+1844,Presa Huapango,1.684e+12
+1845,Lago Cuitzeo,1.112e+13
+1846,Laguna Sayula,4.038e+12
+1847,Lago de Pátzcuaro,3.376e+12
+1848,Lago de Texcoco,2.026e+12
+1849,Laguna Totolcingo,6.767e+11
+1850,Lago Catemaco,2.721e+12
+1851,Laguna Agua Brava,1.06e+13
+1852,Laguna El Caimanero,5.274e+12
+1853,Presa Lázaro Cárdenas,1.293e+12
+1854,Presa Francisco Zarco,3.89e+12
+1855,Laguna Santiaguillo,7.153e+12
+1856,Presa Adolfo Lópes Mateos,4.539e+12
+1857,Laguna Los Clavos,1.269e+12
+1858,Laguna de Guzmán,9.179e+11
+1859,Laguna Babícora,5.305e+12
+1860,Presa Abelardo L. Rodríguez,3.132e+11
+1861,Presa Luis L. León (El Granero),5.646e+12
+1862,Laguna Bustillos,9.442e+11
+1863,Laguna Los Mexicanos,1.579e+12
+1864,Presa Adolfo Ruiz Cortines (Mocuzari),2.865e+12
+1865,Laguna La Leche,1.273e+12
+1866,Theodore Roosevelt Lake,2.983e+12
+1867,San Carlos Reservoir,2.695e+12
+1868,Strawberry Reservoir,3.012e+12
+1869,San Luis Reservoir,1.999e+12
+1870,Lake Almanor,3.005e+12
+1871,Honey Lake,5.463e+12
+1872,Clear Lake,4.727e+12
+1873,Lake Berryessa,2.801e+12
+1874,Mono Lake,5.361e+12
+1875,Isabella Lake,1.454e+12
+1876,Warm Springs Reservoir,5.183e+11
+1877,Great Central Lake,3.038e+12
+1878,Cowichan Lake,2.589e+12
+1879,Dworshak Reservoir,5.883e+12
+1880,Fern Ridge Reservoir,1.541e+12
+1881,Wickiup Reservoir,1.814e+12
+1882,Crater Lake,1.835e+12
+1883,Lake Abert,3.944e+12
+1884,Lower Klamath Lake,2.666e+12
+1885,Clear Lake Reservoir,2.666e+12
+1886,Cascade Reservoir,3.564e+12
+1887,Mahood Lake,1.767e+12
+1888,Canim Lake,2.43e+12
+1889,Bonaparte Lake,1.571e+12
+1890,Seton Lake,1.815e+12
+1891,Anderson Lake,1.588e+12
+1892,Lillooet Lake,1.143e+12
+1893,Powell Lake,3.901e+12
+1894,Adams Lake,4.712e+12
+1895,Shuswap Lake,1.149e+13
+1896,Mabel Lake,2.95e+12
+1897,Okanagan Lake,1.059e+13
+1898,Slocan Lake,1.842e+12
+1899,Priest Lake,3.081e+12
+1900,Banks Lake,3.604e+12
+1901,Coeur D'Alene Lake,4.354e+12
+1902,Potholes Reservoir,2.443e+12
+1903,Chaplin Lake,4.115e+12
+1904,Kootenay Lake,1.341e+13
+1905,Lake Koocanusa,1.082e+13
+1906,Old Wives Lake,8.261e+12
+1907,Pakowki Lake,4.907e+12
+1908,St. Mary Reservoir,1.869e+12
+1909,Fife Lake,1.869e+12
+1910,Fresno Reservoir,2.834e+12
+1911,Tiber Reservoir,2.378e+12
+1912,Hungry Horse Reservoir,4.295e+12
+1913,Clark Canyon Reservoir,1.269e+12
+1914,Blackfoot Reservoir,2.36e+12
+1915,Blue Mesa Reservoir,2.247e+12
+1916,Navajo Reservoir,4.293e+12
+1917,Buffalo Bill Reservoir,1.021e+12
+1918,Ocean Lake,1.307e+12
+1919,Harlan County Reservoir,2.739e+12
+1920,Kirwin Reservoir,1.104e+12
+1921,Waconda Lake,2.213e+12
+1922,Optima Lake,2.013e+12
+1923,Waurika Lake,2.071e+12
+1924,O.C. Fisher Lake,1.222e+12
+1925,Laguna El Barril,1.937e+12
+1926,Presa Venustiano Carranza (Don Martn),3.178e+11
+1927,Choke Canyon Reservoir,5.036e+12
+1928,Lake Corpus Christi,3.79e+12
+1929,Lake Conroe,3.705e+12
+1930,Lake Travis,5.249e+12
+1931,Somerville Lake,1.856e+12
+1932,Canyon Lake,1.552e+12
+1933,Lake Verret,2.794e+12
+1934,Lake Joe Pool,1.811e+12
+1935,Norfork Lake,6.038e+12
+1936,Greers Ferry Lake,6.12e+12
+1937,Millwood Lake,2.679e+12
+1938,Ray Roberts Lake,5.081e+12
+1939,Wright Patman Lake,5.69e+12
+1940,Lavon Lake,3.901e+12
+1941,Lewisville Lake,4.201e+12
+1942,Grapevine Lake,1.203e+12
+1943,Lake O' The Pines,9.021e+11
+1944,Lake Fork Reservoir,6.315e+12
+1945,Lake Ray Hubbard,3.909e+12
+1946,Lake Tawakoni,4.811e+12
+1947,Bayou D'Arbonne Lake,2.41e+12
+1948,Caddo Lake,3.314e+12
+1949,Cedar Creek Reservoir,4.537e+12
+1950,Lake Whitney,5.162e+12
+1951,Navarro Mills Lake,1.825e+12
+1952,Waco Lake,1.527e+12
+1953,Catahoula Lake,3.665e+12
+1954,Sam Rayburn Reservoir,1.747e+13
+1955,Belton Lake,3.678e+12
+1956,Stillhouse Hollow Lake,1.843e+12
+1957,Lake Livingston,1.046e+13
+1958,B. A. Steinhagen Reservoir,2.154e+12
+1959,Lake Buchanan,3.384e+12
+1960,El Dorado Lake,1.131e+12
+1961,Lake Hamilton,1.476e+12
+1962,Tuttle Creek Lake,5.81e+12
+1963,Milford Lake,3.606e+12
+1964,Perry Lake,1.942e+12
+1965,Clinton Lake,1.394e+12
+1966,Melvern Lake,1.961e+12
+1967,Marion Reservoir,1.404e+12
+1968,Lake Of The Ozarks,1.154e+13
+1969,Harry S. Truman Reservoir,1.52e+13
+1970,John Redmond Reservoir,1.408e+12
+1971,Pomme De Terre Lake,1.697e+12
+1972,Cheney Reservoir,1.697e+12
+1973,Stockton Lake,5.104e+12
+1974,Lake o' the Cherokees,1.093e+13
+1975,Kaw Lake,3.442e+12
+1976,Bull Shoals Lake,1.438e+13
+1977,Lake Oolagah,5.175e+12
+1978,Table Rock Lake,8.626e+12
+1979,Beaver Lake,6.34e+12
+1980,Keystone Lake,5.199e+12
+1981,Fort Gibson Lake,4.632e+12
+1982,Canton Lake,1.158e+12
+1983,Tenkiller Ferry Lake,4.071e+12
+1984,Robert S. Kerr Reservoir,6.717e+12
+1985,Lake Dardanelle,6.425e+12
+1986,Eufaula Lake,1.58e+13
+1987,Wister Lake,1.47e+12
+1988,Lake Ouachita,7.07e+12
+1989,De Gray Reservoir,4.141e+12
+1990,Broken Bow Lake,2.367e+12
+1991,Lake Greeson,5.929e+11
+1992,Hugo Lake,6.522e+12
+1993,Pine Creek Lake,1.186e+12
+1994,Lake Red Rock,2.419e+12
+1995,Long Lake,1.475e+12
+1996,Otter Tail Lake,1.727e+12
+1997,Big Muddy Lake,2.11e+12
+1998,Medicine Lake,1.665e+12
+1999,Plum Lakes,2.552e+12
+2000,Whitemouth Lake,2.804e+12
+2001,Kakagi Lake,3.505e+12
+2002,Agassiz Pool,2.378e+12
+2003,Northern Light Lake,5.727e+12
+2004,Devils Lake,6.704e+12
+2005,Lac des Allemands,2.173e+12
+2006,Ross R. Barnett Reservoir,3.925e+12
+2007,Grenada Lake,1.042e+13
+2008,Laurel River Lake,1.717e+12
+2009,Lake Cumberland,1.002e+13
+2010,Cherokee Lake,4.621e+12
+2011,Arkabutla Lake,6.775e+12
+2012,Pickwick Lake,4.115e+12
+2013,Sardis Lake,6.199e+12
+2014,Enid Lake,6.818e+12
+2015,Lewis Smith Lake,6.818e+12
+2016,Nolin Lake,1.139e+12
+2017,Green River Lake,2.849e+12
+2018,Barren River Lake,2.29e+12
+2019,Dale Hollow Reservoir,5.175e+12
+2020,Norris Lake,9.51e+12
+2021,J. Percy Priest Lake,3.184e+12
+2022,Center Hill Lake,4.342e+12
+2023,Tims Ford Lake,2.341e+12
+2024,Lake Wappapello,2.29e+12
+2025,Rend Lake,3.097e+12
+2026,Pokegama Lake,1.218e+12
+2027,Rathbun Lake,2.168e+12
+2028,Thomas Hill Reservoir,1.104e+12
+2029,Mark Twain Lake,3.864e+12
+2030,Lake Shelbyville,4.14e+12
+2031,Carlyle Lake,3.633e+12
+2032,Basswood Lake,1.922e+12
+2033,Vermilion Lake,6.006e+12
+2034,Turtle-Flambeau Flowage,1.986e+12
+2035,Lake Chippewa,2.491e+12
+2036,Lake Dubay,3.309e+12
+2037,Mullett Lake,2.263e+12
+2038,Burt Lake,2.507e+12
+2039,Houghton Lake,3.073e+12
+2040,Lake Mendota,1.569e+12
+2041,Lake Koshkonong,1.835e+12
+2042,Grand Lake-Saint Marys,2.179e+12
+2043,Brookville Lake,2.484e+12
+2044,Monroe Lake,3.059e+12
+2045,Patoka Lake,2.527e+12
+2046,Cave Run Lake,1.693e+12
+2047,Raystown Lake,2.179e+12
+2048,Lake Anna,2.822e+12
+2049,Powell River,2.3e+12
+2050,Watauga Lake,1.155e+12
+2051,Falls Lake Reservoir,3.763e+12
+2052,B. Everett Jordan Lake,2.908e+12
+2053,Lake Mattamuskeet,4.954e+12
+2054,Weiss Lake,5.039e+12
+2055,Guntersville Lake,9.721e+12
+2056,Douglas Lake,5.789e+12
+2057,Chickamauga Lake,9.658e+12
+2058,Watts Bar Lake,1.163e+13
+2059,Fort Loudoun Lake,5.802e+12
+2060,Lake Norman,5.815e+12
+2061,High Rock Lake,3.78e+12
+2062,Lake Wylie,1.467e+12
+2063,Hiwassee Lake,2.049e+12
+2064,Chatuge Lake,2.053e+12
+2065,Lake Wateree,2.362e+12
+2066,Lake Greenwood,2.958e+12
+2067,Allatoona Lake,3.261e+12
+2068,Lake Sinclair,9.265e+12
+2069,Martin Lake,7.532e+12
+2070,East Lake Tohopekaliga,1.892e+12
+2071,Crescent Lake,3.115e+12
+2072,Orange Lake,1.56e+12
+2073,Tsala Apopka Lake,1.255e+12
+2074,Lake Griffin,1.568e+12
+2075,Lake Monroe,4.078e+12
+2076,Lake Harris,2.828e+12
+2077,Lake Harney,2.514e+12
+2078,Tohopekaliga Lake,3.158e+12
+2079,Chautauqua Lake,1.856e+12
+2080,Allegheny Reservoir,3.466e+12
+2081,Pymatuning Reservoir,2.674e+12
+2082,Mosquito Creek Lake,1.075e+12
+2083,Lac Témiscouata,3.857e+12
+2084,Square Lake,2.192e+12
+2085,West Grand Lake,3.279e+12
+2086,Chamberlain Lake,2.228e+12
+2087,Pemadumcook Lake,3.748e+12
+2088,Millinocket Lake,1.249e+12
+2089,Flagstaff Lake,3.784e+12
+2090,Richardson Lake,1.782e+12
+2091,Lac Saint-François,1.993e+12
+2092,Lac Memphremagog,3.542e+12
+2093,Mooselookmeguntic Lake,3.036e+12
+2094,Lake George,4.406e+12
+2095,Quabbin Reservoir,3.966e+12
+2096,Great Sacandaga Lake,4.692e+12
+2097,Lac la Croix,8.323e+12
+2098,Eğirdir,1.072e+13
+2099,Beyşehir,1.499e+13
+2100,Engozero,1.13e+13
+2101,Ozero Pitlyarskiy Sor,2.054e+12
+2102,McLeod Bay,3.811e+13
+2103,Lago de Nicaragua,1.08e+14
+2104,Keuka Lake,2.9e+12
+2105,Seneca Lake,6.065e+12
+2106,Cayuga Lake,6.31e+12
+2107,Lake Santiago Ixcuintla,1.663e+12
+2108,Yellowstone Lake,9.448e+12
+2109,Teshekpuk Lake,1.713e+13
+2110,Split Lake,1.078e+13
+2111,Canandaigua Lake,2.366e+12
+2112,Owasco Lake,1.311e+12
+2113,Skaneateles Lake,2.622e+12
+2114,Lac des Mille Lacs,8.236e+12
+2115,Lake Louise,3.807e+12
+2116,Lower Red Lake,1.269e+13
+2117,Lake Winnipesaukee,6.22e+12
+2118,Lake Dillingham,2.757e+12
+2119,Lake Nyac,3.383e+12
+2120,Lake Havasu,4.723e+12
+2121,Chiputneticook Lakes,6.497e+12
+2122,Aishihik Lake,6.304e+12
+2123,Lake Kotlit,2.468e+12
+2124,Lake Cat Lake,3.814e+12
+2125,Lake Chapleau,5.707e+12
+2126,Canyon Ferry Lake,4.918e+12
+2127,Jackson Lake,4.122e+12
+2128,Cass Lake,2.177e+12
+2129,Lake Winnibigoshish,6.047e+12
+2130,Marmion Lake,7.295e+12
+2131,Lac du Bonnet,4.344e+12
+2132,Kluane Lake,9.082e+12
+2133,Lynx Lake,1.688e+13
+2134,Lake Logan,1.609e+12
+2135,Lake Traverse,2.499e+12
+2136,Lake Charles,6.209e+12
+2137,Lake Lafayette,5.598e+12
+2138,Washburn Lake,5.625e+12
+2139,Napaktulik,2.299e+13
+2140,Sebago Lake,3.876e+12
+2141,Moosehead Lake,1.099e+13
+2142,Lake Kissimmee,4.112e+12
+2143,Lake Guadalajara,2.676e+12
+2144,Lake Lansdowne House,8.986e+12
+2145,Keller Lake,8.461e+12
+2146,Tathlina Lake,1.356e+13
+2147,Selwyn Lake,1.683e+13
+2148,Nonacho Lake,2.493e+13
+2149,Aberdeen Lake,4.458e+13
+2150,Lake Fort Chipewyan,2.042e+12
+2151,Lake Red Lake,1.829e+12
+2152,Minnitaki Lake,8.061e+12
+2153,Contwoyto Lake,4.12e+13
+2154,Nueltin Lake,5.438e+13
+2155,Lake Tuxpan,2.328e+12
+2156,Lesser Slave Lake,2.581e+13
+2157,Lake Payne,1.746e+13
+2158,Lake Celaya,5.047e+12
+2159,Lake San Juan del Río,2.692e+12
+2160,Lac Minto,2.395e+13
+2161,Hebgen Lake,2.538e+12
+2162,Lake Walcott,2.637e+12
+2163,Lake Granby,1.643e+12
+2164,Garry Lake,3.497e+13
+2165,Lake Minchumina,2.05e+12
+2166,Travaillant Lake,2.441e+12
+2167,Lac Chavigny,1.206e+13
+2168,Lake Nueva Ocotepeque,5.212e+12
+2169,Lake Chalatenango,2.087e+12
+2170,Lake Bilwi,4.167e+12
+2171,Lake Nacozari de García,1.544e+12
+2172,Presa Miguel Hidalgo,3.524e+12
+2173,Lake Banff,1.829e+12
+2174,Lake Apopka,3.456e+12
+2175,Lake Istokpoga,3.496e+12
+2176,Lake Coatzacoalcos,3.405e+12
+2177,Laguna de Pueblo Viejo,3.649e+12
+2178,Laguna Chil,3.649e+12
+2179,Zeta Lake,9.401e+12
+2180,Lake Hooper Bay,2.045e+12
+2181,Lake Togiak,1.286e+12
+2182,Tetlin Lake,1.939e+12
+2183,Lake Berens River,9.536e+12
+2184,Lake Timmins,4.28e+12
+2185,North Caribou Lake,9.312e+12
+2186,Lake Forteau,3.365e+12
+2187,Lake St-Augustin,2.838e+12
+2188,Lake Plétipi,1.153e+13
+2189,Lake Sudbury,6.596e+12
+2190,Lake Kipawa,1.319e+13
+2191,Big Rideau Lake,6.599e+12
+2192,Chesuncook Lake,5.978e+12
+2193,Whitefish Bay,3.579e+13
+2194,Saginaw Bay,4.921e+13
+2195,North Channel,6.828e+13
+2196,Georgian Bay,2.3e+14
+2197,Ozero Yarroto Vtoroye,4.275e+12
+2198,Lake Chany,4.056e+13
+2199,Lake Bangweulu,4.254e+13
+2200,Inarijrvi,3.657e+13
+2201,Lake Lappeenranta,5.892e+12
+2202,Ozero Nerpich'ye,4.803e+12
+2203,Lake Novy Port,3.395e+12
+2204,Lake Savonlinna,5.112e+11
+2205,Daguan Hu,7.451e+12
+2206,Ozero Mogotoyevo,6.368e+12
+2207,Lake Tampere,1.936e+13
+2208,Langa Co,8.615e+12
+2209,Siletitengiz Kli,1.412e+13
+2210,Ozero Bustakh,5.546e+12
+2211,Ozero Chërnoye,6.847e+12
+2212,Ozero Chukochye,4.89e+12
+2213,Lake Huangshi,5.578e+12
+2214,Lake Macheng,5.23e+12
+2215,Weishan Hu,7.659e+12
+2216,Huangtang Hu,7.14e+12
+2217,Lake Puqi,6.83e+12
+2218,Uddjaure,1.282e+13
+2219,Lake Skadar,9.546e+12
+2220,Lake Río Bueno,4.076e+12
+2221,Lake Schaffhausen,2.893e+12
+2222,Reg Nuur,5.278e+12
+2223,Banggong Co,9.823e+12
+2224,Loch Ness,2.317e+12
+2225,Dood-Tsagaan Nuur,3.8e+12
+2226,Lake Gay,1.193e+13
+2227,Lake Débo,1.106e+13
+2228,Lake Katowice,1.842e+12
+2229,Aursund,2.962e+12
+2230,Lake Moss,2.183e+12
+2231,Øyeren,3.581e+12
+2232,Lake Gävle,8.679e+12
+2233,Lake Vyborg,6.833e+12
+2234,Lake Illichivsk,8.663e+12
+2235,Lake Lembeni,5.723e+12
+2236,Lake Yueyang,9.987e+12
+2237,Siljan,8.015e+12
+2238,Torneträsk,1.392e+13
+2239,Lago de  Erepecu,2.078e+13
+2240,Ulansuhai Nur,6.487e+12
+2241,Dongting Hu,2.447e+13
+2242,Virihaure,8.335e+12
+2243,Ozero Teletskoye,7.319e+12
+2244,Lake Zhenjiang,3.048e+12
+2245,Ge Hu,5.487e+12
+2246,Lake Sasykkol,1.623e+13
+2247,Lake Villarica,4.727e+12
+2248,Lago San Martín,3.057e+13
+2249,Lake Kwania,2.077e+13
+2250,Lake Librazhd,8.626e+12
+2251,Lago di Garda,9.246e+12
+2252,Lake Bacabal,2.503e+12
+2253,Lake Linköping,2.985e+12
+2254,Hornavan,4.599e+12
+2255,Lago Nahuel Huapí,1.599e+13
+2256,Lago Grande,7.52e+12
+2257,Lake Xau,3.342e+12
+2258,Lake Adobed,1.406e+12
+2259,Koka Reservoir,4.253e+12
+2260,Lake Gemeri,2.106e+12
+2261,Lake Jamaame,4.659e+12
+2262,Lake Golela,3.82e+12
+2263,Laguna de Bay,2.22e+13
+2264,Lake Puerto Quijarro,5.469e+12
+2265,Lago La Plata,2.792e+12
+2266,Lago Fontana,3.046e+12
+2267,Ozero Dyupkun,9.809e+12
+2268,Lake Murray,1.281e+13
+2269,Elsen Nur,5.854e+12
+2270,Lake Trincomalee,3.549e+12
+2271,Lac Onangué,1.362e+13
+2272,Lac Mai-Ndombe,4.835e+13
+2273,Lake Rentenue,1.021e+13
+2274,Lake Khmelnytskyy,1.863e+12
+2275,Lough Derg,4.961e+12
+2276,Lake Ros Comain,8.451e+11
+2277,Lough Ree,3.819e+12
+2278,Lough Allen,1.676e+12
+2279,Loch Lochy,1.17e+12
+2280,Lake Sopore,3.254e+12
+2281,Lake Rawalpindi,7.487e+12
+2282,Lago Concepción,6.152e+12
+2283,Lake Toumodi,3.205e+12
+2284,Lake Cotonou,4.63e+12
+2285,Lake Mwingi,1.792e+12
+2286,Masinga Res.,9.317e+12
+2287,Lake Bunyonyi,3.225e+12
+2288,Qagan Nur,5.297e+12
+2289,Ozero Labaz,1.066e+13
+2290,Lake Xuanzhou,4.598e+12
+2291,Lake Suzhou,4.886e+12
+2292,Lake Nanchang,7.554e+12
+2293,Lake Shishou,5.315e+12
+2294,Dongping Hu,4.342e+12
+2295,Lake Kolozero,2.519e+12
+2296,Bolmen,6.239e+12
+2297,Åsnen,5.314e+12
+2298,Foxen,1.097e+13
+2299,Müritz,3.622e+12
+2300,Schweriner See,2.758e+12
+2301,Upper Lough Erne,2.304e+12
+2302,Lac Alaotra,5.469e+12
+2303,Lago de Valencia,8.463e+12
+2304,Laguna Iberá,6.936e+12
+2305,Laguna Huaitunas,6.637e+12
+2306,Laguna Ragaguado,8.732e+12
+2307,Lago Musters,9.555e+12
+2308,Lago Cardiel,8.265e+12
+2309,Lago Rupanco,8.152e+12
+2310,Lake Cheshi,9.569e+12
+2311,Ebinur Hu,1.218e+13
+2312,Lake Cottbus,6.679e+11
+2313,Lake Mawson Station,1.172e+12
+2314,Lac Upemba,1.17e+13
+2315,Lauwerszee,1.925e+12
+2316,Lake Potsdam,1.31e+12
+2317,Lake Berlin,8.592e+11
+2318,Jezioro Dąbie,1.917e+12
+2319,Marqakol,1.015e+13
+2320,Ozero Beloye,1.821e+12
+2321,Achit Nuur,7.218e+12
+2322,Lake Teeli,1.367e+12
+2323,Ozero Ozhogino,3.666e+12
+2324,Ozero Sagarychye,2.437e+12
+2325,Ozero Bakul,2.437e+12
+2326,Ozero Soluntakh,3.692e+12
+2327,Ozero Bolshoy Olr,1.881e+12
+2328,Ozero Krugovatoye,2.131e+12
+2329,Ozero Ilirgytgyn,3.099e+12
+2330,Ozero Elgygytgyn,3.006e+12
+2331,Ozero Kronotskoye,6.589e+12
+2332,Luoma Hu,2.964e+12
+2333,Lake Huainan,6.654e+12
+2334,Lake Fuyang,3.63e+12
+2335,Wuchang Hu,5.568e+12
+2336,Lake Luohe,2.701e+12
+2337,Lake Nanyang,3.594e+12
+2338,Dalai Nur,5.996e+12
+2339,Kenohan Jempang,7.167e+12
+2340,Lake Taal,4.17e+12
+2341,Ozero Kiyeng-Kyuyel,2.3e+12
+2342,Ozero Gusinoye,3.814e+12
+2343,Lake Novyy Uoyin,8.055e+11
+2344,Ozero Busani,1.219e+12
+2345,Ozero Baunt,2.653e+12
+2346,Ozero Kipylyushi,2.059e+12
+2347,Ozero Isinginskoye,1.078e+12
+2348,Ozero Bolshaya Kharga,1.083e+12
+2349,Ozero Bolshoye Yeravnoye,2.174e+12
+2350,Ozero Arakhley,3.507e+12
+2351,Ozero Irgen,1.1e+12
+2352,Telmen Nuur,4.942e+12
+2353,Sangiyn Dalay Nuur,5.842e+12
+2354,Hh Nuur,2.784e+12
+2355,Lake Borzya,4.657e+11
+2356,Lake Manzhouli,1.397e+12
+2357,Lake Choibalsan,9.675e+11
+2358,Lake Arxan,1.456e+12
+2359,Lake Daqing,1.738e+12
+2360,Ulgain Gobi,6.016e+12
+2361,Ozero Tembenchi,3.377e+12
+2362,Ozero Vivi,7.175e+12
+2363,Ozero Agata,4.715e+12
+2364,Ozero Severnoye,3.717e+12
+2365,Ozero Ayan,4.205e+12
+2366,Ozero Kokora,3.973e+12
+2367,Ozero Portnyagino,6.899e+12
+2368,Ozero Kungasalakh,5.133e+12
+2369,Aqqikkol Hu,8.281e+12
+2370,Gas Hu,6.475e+12
+2371,Hoh Sai Hu,7.56e+12
+2372,Huiten Nur,6.12e+12
+2373,Lumajangdong Co,8.597e+12
+2374,Gozha Co,6.746e+12
+2375,Gyaring Co,1.073e+13
+2376,Ngangzi Co,9.52e+12
+2377,Alesayqin Ha,4.976e+12
+2378,Ozero Samotlor,1.896e+12
+2379,Ozero Tormemtor,3.791e+12
+2380,Ozero Chrtovo,4.204e+12
+2381,Ozero Chaselskoye,2.46e+12
+2382,Ozero Untor,3.291e+12
+2383,Munduyskoye Ozero,2.834e+12
+2384,Ozero Sobachye,3.212e+12
+2385,Ozero Glubokoye,5.183e+12
+2386,Ozero Purinskoye,2.217e+12
+2387,Ozero Ayaturku,2.681e+12
+2388,Lake Kupina,2.285e+12
+2389,Ozero Bol'shoye Topol'noye,2.995e+12
+2390,Ozero Kuchukskoye,3.898e+12
+2391,Ozero Maraldy,1.534e+12
+2392,Ozero Gorkoye,4.584e+12
+2393,Ozero Tandovo,2.665e+12
+2394,Ebeyty Lake,2.688e+12
+2395,Ozero Ik,2.395e+12
+2396,Ozero Artevo,1.352e+12
+2397,Ozero Bolshoy Uvat,3.844e+12
+2398,Ozero Bolshoy Shishkarym,1.903e+12
+2399,Ozero Andreyevskoye,2.401e+12
+2400,Ozero Tuman,2.714e+12
+2401,Ozero Yakh-Tur,1.98e+12
+2402,Ozero Leushinskiy Tuman,6.659e+12
+2403,Ozero Tursuntskiy Tuman,2.995e+12
+2404,Ozero Syrkovoye,2.628e+12
+2405,Lake Khanty Mansiysk,5.109e+12
+2406,Ozero Enetor,1.247e+12
+2407,Ozero Ergipskiy Sor,6.307e+12
+2408,Ozero Bolshoy Sor,3.919e+12
+2409,Ozero Vandmtor,4.329e+12
+2410,Ozero Bolshoy Kazymskiy Sor,2.365e+12
+2411,Ozero Shuryshkarskiy Sor,3.935e+12
+2412,Ozero Yasaveyto,2.114e+12
+2413,Ozero Teke,4.648e+12
+2414,Qyzylqaq Kli,4.474e+12
+2415,Žalauly Kli,2.157e+12
+2416,Shreksor Kli,2.849e+12
+2417,Qarasor Kli,5.297e+12
+2418,Ozero Sartlan,5.535e+12
+2419,Iken Zhbolat Lake,2.139e+12
+2420,Qiyakty Kli,2.073e+12
+2421,Kerey Kli,1.842e+12
+2422,Qozhakl,2.035e+12
+2423,Yke Lake,2.477e+12
+2424,Saryqopa Kli,5.258e+12
+2425,Lake Turgay,3.901e+12
+2426,Shaghalalytengiz Kli,6.075e+12
+2427,Lake Kurtamysh,2.514e+12
+2428,Zharman Kli,3.327e+12
+2429,Iken Aqsuat Kli,3.562e+12
+2430,Koybaghar Kli,3.044e+12
+2431,Imantau Kli,2.373e+12
+2432,Qalybek Kli,2.746e+12
+2433,Kishi Qaraoy Kli,2.735e+12
+2434,Lake Hämeenlinna,4.284e+12
+2435,Lake Helsinki,4.251e+12
+2436,Randijaure,9.004e+12
+2437,Storuman,7.487e+12
+2438,Tyrifjorden,4.63e+12
+2439,Lake Molde,3.032e+12
+2440,Lake Trondheim,3.373e+12
+2441,Snåsavatnet,4.983e+12
+2442,Lake Rørvik,2.261e+12
+2443,Røssvatnet,6.603e+12
+2444,Lake Finnsnes,3.654e+12
+2445,Lake Mariestad,3.359e+12
+2446,Lake Norrköping,2.799e+12
+2447,Lake Kiel,1.466e+12
+2448,Lake Chernyakhovsk,4.19e+12
+2449,Lake Elbląg,3.394e+12
+2450,Lake Ełk,5.493e+12
+2451,Lake Oral,4.992e+12
+2452,Lake Miass,2.857e+12
+2453,Lake Dombarovskiy,2.487e+12
+2454,Lake Viljandi,2.104e+12
+2455,Songhua Hu,6.479e+12
+2456,Yueliang Pao,2.499e+12
+2457,Lake Ciudad del Este,1.816e+13
+2458,Puma Yumco,7.239e+12
+2459,Rye Patch Reservoir,2.717e+12
+2460,Khashm el Girba Dam,4.157e+12
+2461,Mingevir Reservoir,1.518e+13
+2462,Ubolratna Reservoir,7.205e+12
+2463,Xinfengjiang Shuiku,1.277e+13
+2464,Krishna Raja Sagar,2.448e+12
+2465,Lake Kandy,4.266e+12
+2466,Bhadra Reservoir,5.568e+12
+2467,Tungabhadra,1.141e+13
+2468,Novosibirsk Reservoir,2.804e+13
+2469,Buhayrat ath Tharthar,3.089e+13
+2470,Saksak Dagi,1.149e+13
+2471,Kiev Reservoir,1.486e+13
+2472,Lake Imandra,2.739e+13
+2473,Ondozero,5.519e+12
+2474,Rikkavesi,8.506e+12
+2475,Cheboksary Reservoir,3.139e+13
+2476,Kemijärvi,8.502e+12
+2477,Paduskoye More,1.868e+13
+2478,Porttipahta Reservoir,1.042e+13
+2479,Lokan Tekojarvi,1.403e+13
+2480,Akkajaure,6.645e+12
+2481,Stora Lulevatten,8.043e+12
+2482,Mjøsa,1.104e+13
+2483,M'Bakaou Reservoir,1.282e+13
+2484,Lake São João del Rei,7.343e+12
+2485,Tiete,1.456e+13
+2486,Barra Bonita,2.831e+13
+2487,Bariri,4.806e+13
+2488,Lake Andradina,2.78e+13
+2489,Lake Passos,1.477e+13
+2490,Lake Novillo,1.188e+13
+2491,Lake Mohave,4.371e+12
+2492,Lac Low,6.306e+12
+2493,Tobin Lake,8.486e+12
+2494,Sipiwesk Lac,1.292e+13
+2495,Ogoki Reservoir,1.379e+13
+2496,Umfreville Lake,5.258e+12
+2497,Lake Kenora,4.572e+12
+2498,Lac Seul,3.986e+13
+2499,Dozois Reservoir,9.192e+12
+2500,Lake Péribonca,6.655e+12
+2501,Réservoir de La Grande 2,5.556e+13
+2502,Saratov Reservoir,3.066e+13
+2503,Nizhnekamsk Reservoir,2.546e+13
+2504,Serebryanskoe Reservoir,1.044e+13
+2505,Ataturk Barajt,2.098e+13
+2506,Réservoir de La Grande 3,4.858e+13
+2507,Williston Lake,4.71e+13
+2508,Lake Oahe,5.834e+13
+2509,Lower Arrow Lake,5.336e+12
+2510,Amistad Reservoir,1.09e+13
+2511,Lake Chelan,7.902e+12
+2512,Réservoir de Caniapiscau,2.221e+13
+2513,Lac Bermen,1.859e+13
+2514,Kentucky Lake,1.498e+13
+2515,J. Strom Thurmond Lake,1.459e+13
+2516,Kinbasket Lake,1.135e+13
+2517,Shasta Lake,7.046e+12
+2518,Wheeler Lake,1.058e+13
+2519,Franklin D. Roosevelt Lake,4.503e+12
+2520,Upper Arrow Lake,8.883e+12
+2521,Caballo Reservoir,2.401e+12
+2522,Elephant Butte Reservoir,2.995e+12
+2523,Lake Diefenbaker,1.922e+13
+2524,Ossokmanuan Lake,6.204e+12
+2525,Red Bluff Lake,3.036e+12
+2526,Brantley Lake,2.109e+12
+2527,Lake C.W. McConaughy,4.57e+12
+2528,Seminoe Reservoir,5.318e+12
+2529,Trinity Lake,5.406e+12
+2530,John H. Kerr Reservoir,1.093e+13
+2531,Lake Texoma,1.307e+13
+2532,Flaming Gorge Reservoir,6.2e+12
+2533,American Falls Reservoir,5.768e+12
+2534,Presa de la Boquilla,4.45e+12
+2535,Presa del Infiernillo,2.851e+13
+2536,Presa de la Angostura,2.924e+13
+2537,Petenwell Lake,6.699e+12
+2538,Lake Seminole,7.076e+12
+2539,Lake Barkley,1.004e+13
+2540,Presa Marte R. Gomez,6.748e+12
+2541,Lake Moultrie,5.391e+12
+2542,Lake Marion,7.173e+12
+2543,Lake Meredith,4.08e+12
+2544,Ute Reservoir,2.336e+12
+2545,Conchas Lake,4.08e+12
+2546,Toledo Bend Reservoir,2.286e+13
+2547,Palisades Reservoir,2.868e+12
+2548,Glendo Reservoir,2.373e+12
+2549,Pathfinder Reservoir,3.966e+12
+2550,Presa Nezahualcyotl,9.589e+12
+2551,Presa Manuel vila Camacho,2.712e+12
+2552,Presa Vicente Guerrero,7.203e+12
+2553,Presa Alvaro Obregon,7.275e+12
+2554,Lake Oroville,6.331e+12
+2555,Boysen Reservoir,3.128e+12
+2556,Hartwell Lake,8.561e+12
+2557,Lake Sidney Lanier,9.466e+12
+2558,Lake Gaston,7.475e+12
+2559,Smith Mountain Lake,7.138e+12
+2560,Walter F. George Reservoir,7.91e+12
+2561,Réservoir Outardes Quatre,2.524e+13
+2562,Logan Martin Lake,3.579e+12
+2563,Mitchell Lake,3.909e+12
+2564,Toktogul Suu Saktagychy,1.573e+13
+2565,Professor Doctor Ingenieur W. J. Van Blommestein Meer,4.035e+13
+2566,Represa Itaipu,6.186e+13
+2567,Represa Três Marias,5.028e+13
+2568,Repressa de Jupia,4.24e+13
+2569,Shardara Bgeni,1.294e+13
+2570,Krasnoyarsk Reservoir,4.529e+13
+2571,Kostroma Reservoir,1.798e+13
+2572,Uglich Reservoir,4.442e+12
+2573,Ivankovo Reservoir,1.201e+13
+2574,Tarbela Dam,1.302e+13
+2575,Lago de Cahora Bassa,4.385e+13
+2576,Roseires Reservoir,1.439e+13
+2577,Votkinsk Reservoir,2.82e+13
+2578,Kama Reservoir,6.201e+13
+2579,Buhayrat al-Assad,1.853e+13
+2580,Keban Baraji,2.899e+13
+2581,Volgograd Reservoir,4.544e+13
+2582,Gorky Reservoir,3.512e+13
+2583,Ust-Ilimsk Reservoir,4.113e+13
+2584,Obanbori Qayroqum,9.56e+12
+2585,Embalse de Entrepeas,3.532e+12
+2586,Gobind Sagar Reservoir,1.04e+13
+2587,Hinakud Dam,2.064e+13
+2588,Nagarjuna Sagar Dam,1.374e+13
+2589,Danjiangkou Shuiku,2.26e+13
+2590,Kapchagay Reservoir,2.067e+13
+2591,Bloemhof Dam,1.396e+13
+2592,Vaal Dam,1.501e+13
+2593,Wyangala Reservoir,2.679e+12
+2594,Lac de Kossou,6.713e+13
+2595,Zeya Reservoir,8.093e+13
+2596,Embalse de Orellana,2.219e+12
+2597,Chao Nen Dam,1.595e+13
+2598,Xinanjiang Shuiku,2.025e+13
+2599,Guanting Shuiku,2.458e+12
+2600,Embalse de Cala,4.427e+12
+2601,Represa Porto Primavera,2.86e+13
+2602,Lake Mulwala,3.191e+12
+2603,Lake Hume,6.947e+12
+2604,Kaptai Lake,2.28e+13
+2605,Lac de Buyo,3.097e+13
+2606,Embalse de Guri,3.553e+13
+2607,Lago Rincón del Bonete,4.891e+13
+2608,Embalse Ezequiel Ramos Mexia,1.881e+13
+2609,Tsimlyansk Reservoir,7.348e+13
+2610,Represa de São Simão,3.364e+13
+2611,Camatague,4.589e+12
+2612,Embalse de Guárico,6.016e+12
+2613,Barragem Itumbiara,2.383e+13
+2614,Burrendong Reservoir,9.943e+12
+2615,Vanderkloof Dam,6.508e+12
+2616,Gariep Dam,1.143e+13
+2617,Stanley Reservoir,6.659e+12
+2618,Gandhi Sagar Dam,1.043e+13
+2619,Bhumphol K. K. Nam,4.106e+12
+2620,Siri Kit Dam,8.861e+12
+2621,Represa Agua Vermetha,2.796e+13
+2622,Represa Furnas,7.728e+13
+2623,Represa Itarare,2.107e+13
+2624,Represa Iepe,3.999e+13
+2625,Senanayake Samudra,4.977e+12
+2626,Embalse de Buendía,4.087e+12
+2627,Baidagang Shuiku,2.515e+12
+2628,Khantayskoye Reservoir,3.46e+13
+2629,Kauno marios,2.677e+12
+2630,Supung Reservoir,7.336e+12
+2631,Lake Eyre North,1.45e+14
+2632,Lake Disappointment,2.337e+13
+2633,Lake Mackay,6.568e+13
+2634,Lake Gairdner,8.245e+13
+2635,Lake Torrens,9.599e+13
+2636,Lake Frome,4.87e+13
+2637,Lake Barlee,4.76e+13
+2638,Lake Eyre South,2.751e+13
+2639,Lake Bedourie,1.201e+13
+2640,Lake Mildura,1.315e+13
+2641,Lake Amadeus,2.474e+13
+2642,Lake Carnegie,3.733e+13
+2643,Lake Moore,3.022e+13
+2644,Lake Carey,2.443e+13
+2645,Lake Everard,3.09e+13
+2646,Lake Newcastle Waters,1.089e+13
+2647,Lake Kaltukatjara,1.183e+13
+2648,Lake Neale,1.014e+13
+2649,Lake Wells,2.015e+13
+2650,Lake Ballard,1.498e+13
+2651,Lake Goongarrie,1.12e+13
+2652,Lake Ceduna,9.691e+12
+2653,Lake Cowan,2.073e+13
+2654,Laguna Madre,4.558e+13
+2655,Etang Saumâtre,4.073e+12
+2656,Lagoa Mirim,7.502e+13
+2657,IJsselmeer,3.392e+13
+2658,Kaliningradskiy Zaliv,9.513e+12
+2659,Zalew Wislany,8.552e+12
+2660,Lake Razazah,2.892e+13
+2661,Alakol,4.991e+13
+2662,Mar Chiquita,3.915e+13
+2663,Lake Abaya,2.635e+13
+2664,Lake Assal,1.755e+12
+2665,Tengiz Köli,3.189e+13
+2666,Har Nuur,2.179e+13
+2667,Lago Poopó,3.432e+13
+2668,Chew Bahir,1.607e+13
+2669,Lake Chamo,8.555e+12
+2670,Lake Abbe,7.379e+12
+2671,Lake Eyasi,2.325e+13
+2672,Lake Natron,1.361e+13
+2673,Aydar Ko‘l,4.46e+13
+2674,Great Bitter Lake,7.102e+12
+2675,Airag Lake,3.765e+12
+2676,Qypshaq Kli,2.754e+12
+2677,Ozero Shalkar,3.644e+12
+2678,Lake Tekapo,3.359e+12
+2679,Lake Ohau,2.055e+12
+2680,Lake Wakatipu,1.063e+13
+2681,Lake Pukaki,4.638e+12
+2682,Lake Manapouri,5.281e+12
+2683,Lake Te Anau,1.417e+13
+2684,Lake Hawea,4.61e+12
+2685,Lake Rotorua,2.54e+12
+2686,Lake Wairarapa,2.965e+12
+2687,Lake Benmore,3.329e+12
+2688,Lake Coleridge,2.353e+12
+2689,Lake Waikaremoana,2.515e+12
+2690,Lake Hauroko,4.498e+12
+2691,Lake Poteriteri,2.491e+12
+2692,Lake Monowai,1.999e+12
+2693,Lake Rotoroa,1.604e+12
+2694,Lake Rotoiti,1.069e+12
+2695,Lake Dunstan,2.03e+12
+2696,St. Marys River,8.142e+12
+2697,Lake Aral,3.476e+12
+2698,Lake Pedder,8.39e+12
+2699,Lake Gordon,9.493e+12
+2700,Presa Miguel Alemán,1.021e+13
+2701,Lago Gatun,1.627e+13

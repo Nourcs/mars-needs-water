@@ -1,0 +1,4 @@
+Models in this folder are from Kenney (www.kenney.nl), released under Creative Commons Zero (CC0):
+free to use in personal and commercial projects, no attribution required (crediting Kenney is appreciated).
+Source: github.com/KenneyNL Starter Kits (City Builder, 3D Platformer, Basic Scene, Racing).
+Converted to Mars Needs Water's vertex-coloured mesh format (.bytes) by a bake script; see Runtime/World/Kit.cs.

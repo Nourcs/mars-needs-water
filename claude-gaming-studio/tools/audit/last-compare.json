@@ -1,0 +1,421 @@
+{
+ "cities": [
+  {
+   "name": "La Paz",
+   "real": 3640,
+   "game": 3786
+  },
+  {
+   "name": "Lhasa",
+   "real": 3650,
+   "game": 3631
+  },
+  {
+   "name": "Quito",
+   "real": 2850,
+   "game": 2868
+  },
+  {
+   "name": "Bogota",
+   "real": 2640,
+   "game": 2563
+  },
+  {
+   "name": "Addis Ababa",
+   "real": 2355,
+   "game": 2606
+  },
+  {
+   "name": "Mexico City",
+   "real": 2240,
+   "game": 2252
+  },
+  {
+   "name": "Kabul",
+   "real": 1790,
+   "game": 1794
+  },
+  {
+   "name": "Nairobi",
+   "real": 1795,
+   "game": 1673
+  },
+  {
+   "name": "Johannesburg",
+   "real": 1753,
+   "game": 1719
+  },
+  {
+   "name": "Denver",
+   "real": 1609,
+   "game": 1605
+  },
+  {
+   "name": "Tehran",
+   "real": 1190,
+   "game": 1268
+  },
+  {
+   "name": "Madrid",
+   "real": 667,
+   "game": 630
+  },
+  {
+   "name": "Ulaanbaatar",
+   "real": 1350,
+   "game": 1425
+  },
+  {
+   "name": "Kathmandu",
+   "real": 1400,
+   "game": 1280
+  },
+  {
+   "name": "Salt Lake City",
+   "real": 1288,
+   "game": 1334
+  },
+  {
+   "name": "Calgary",
+   "real": 1045,
+   "game": 1062
+  },
+  {
+   "name": "Munich",
+   "real": 520,
+   "game": 517
+  },
+  {
+   "name": "Sao Paulo",
+   "real": 760,
+   "game": 742
+  },
+  {
+   "name": "Brasilia",
+   "real": 1172,
+   "game": 1060
+  },
+  {
+   "name": "Ankara",
+   "real": 938,
+   "game": 897
+  },
+  {
+   "name": "Windhoek",
+   "real": 1655,
+   "game": 1692
+  },
+  {
+   "name": "Canberra",
+   "real": 578,
+   "game": 589
+  },
+  {
+   "name": "Alice Springs",
+   "real": 545,
+   "game": 589
+  },
+  {
+   "name": "Fresno",
+   "real": 94,
+   "game": 92
+  },
+  {
+   "name": "Moscow",
+   "real": 156,
+   "game": 140
+  },
+  {
+   "name": "Delhi",
+   "real": 216,
+   "game": 225
+  },
+  {
+   "name": "Paris",
+   "real": 35,
+   "game": 60
+  },
+  {
+   "name": "Cairo",
+   "real": 23,
+   "game": 36
+  }
+ ],
+ "city_height_median_error_m": 29.212814148436244,
+ "city_height_worst_error_m": 250.9573559050864,
+ "peaks": [
+  {
+   "name": "Mount Everest",
+   "real": 8849,
+   "game": 7111
+  },
+  {
+   "name": "Aconcagua",
+   "real": 6961,
+   "game": 5181
+  },
+  {
+   "name": "Denali",
+   "real": 6190,
+   "game": 4987
+  },
+  {
+   "name": "Kilimanjaro",
+   "real": 5895,
+   "game": 4836
+  },
+  {
+   "name": "Mount Elbrus",
+   "real": 5642,
+   "game": 4322
+  },
+  {
+   "name": "Mont Blanc",
+   "real": 4806,
+   "game": 3345
+  },
+  {
+   "name": "Mount Fuji",
+   "real": 3776,
+   "game": 2352
+  },
+  {
+   "name": "Mauna Kea",
+   "real": 4207,
+   "game": 3767
+  },
+  {
+   "name": "Mount Whitney",
+   "real": 4421,
+   "game": 3818
+  },
+  {
+   "name": "Vinson Massif",
+   "real": 4892,
+   "game": 4027
+  },
+  {
+   "name": "Puncak Jaya",
+   "real": 4884,
+   "game": 4197
+  },
+  {
+   "name": "Aoraki Mount Cook",
+   "real": 3724,
+   "game": 2393
+  }
+ ],
+ "deeps": [
+  {
+   "name": "Challenger Deep",
+   "real": -10920,
+   "game": -10511
+  },
+  {
+   "name": "Puerto Rico Trench",
+   "real": -8380,
+   "game": -8439
+  },
+  {
+   "name": "Dead Sea shore",
+   "real": -430,
+   "game": -262
+  },
+  {
+   "name": "Death Valley",
+   "real": -86,
+   "game": 26
+  }
+ ],
+ "land_sea": {
+  "samples": 112132,
+  "agree_pct": 99.55231334498626,
+  "real_land_game_sea_pct": 0.12663646416723148,
+  "real_sea_game_land_pct": 0.3210501908465023,
+  "real_land_pct": 28.935,
+  "game_land_pct": 29.131666666666668
+ },
+ "towns": {
+  "reference_places": 7342,
+  "game_towns": 6931,
+  "reference_found_pct": 94.48379188232089,
+  "missing": 405,
+  "largest_missing": [
+   [
+    "Yélimané",
+    988
+   ],
+   [
+    "Cacolo",
+    984
+   ],
+   [
+    "Juina",
+    980
+   ],
+   [
+    "General Eugenio Alejandrino Garay",
+    972
+   ],
+   [
+    "Principe da Beira",
+    956
+   ],
+   [
+    "Skagway",
+    955
+   ],
+   [
+    "Cuevo",
+    953
+   ],
+   [
+    "Govorovo",
+    943
+   ],
+   [
+    "Dirj",
+    931
+   ],
+   [
+    "Yulara",
+    930
+   ],
+   [
+    "Tuktoyaktuk",
+    929
+   ],
+   [
+    "Berens River",
+    892
+   ]
+  ],
+  "towns_in_the_sea": 51,
+  "towns_in_the_sea_examples": [
+   "Douala",
+   "Virginia Beach",
+   "Stockholm",
+   "Managua",
+   "Yueyang",
+   "Cotonou",
+   "Tolyatti",
+   "Ulyanovsk",
+   "Makhachkala",
+   "Pasuruan",
+   "Naberezhnyye Chelny",
+   "Al-Qatif"
+  ]
+ },
+ "capitals": {
+  "reference": 200,
+  "found": 200,
+  "missing": []
+ },
+ "countries": {
+  "reference": 242,
+  "with_a_town": 207,
+  "without": [
+   "Bahrain",
+   "Macao",
+   "W. Sahara",
+   "New Caledonia",
+   "Barbados",
+   "Kiribati",
+   "St. Vin. and Gren.",
+   "Jersey",
+   "Guernsey",
+   "Marshall Is.",
+   "Sint Maarten",
+   "Monaco",
+   "Turks and Caicos Is.",
+   "St-Martin",
+   "British Virgin Is.",
+   "Palau",
+   "Anguilla",
+   "Nauru",
+   "Tuvalu",
+   "Wallis and Futuna Is.",
+   "St-Barthélemy",
+   "Siachen Glacier",
+   "St. Pierre and Miquelon",
+   "Montserrat",
+   "Saint Helena",
+   "Br. Indian Ocean Ter.",
+   "Indian Ocean Ter.",
+   "Norfolk Island",
+   "Niue",
+   "Vatican",
+   "Fr. S. Antarctic Lands",
+   "Pitcairn Is.",
+   "S. Geo. and the Is.",
+   "Heard I. and McDonald Is.",
+   "Ashmore and Cartier Is."
+  ]
+ },
+ "lakes": {
+  "reference": 3284,
+  "found_pct": 99.96954933008526,
+  "over_100km2": 1360,
+  "over_100km2_found_pct": 100.0,
+  "largest_missing": [
+   "Millerton Lake"
+  ]
+ },
+ "lake_levels": [
+  {
+   "name": "Lake Titicaca",
+   "real": 3812,
+   "game": 3803
+  },
+  {
+   "name": "Lake Baikal",
+   "real": 455,
+   "game": 464
+  },
+  {
+   "name": "Lake Victoria",
+   "real": 1135,
+   "game": 557
+  },
+  {
+   "name": "Lake Superior",
+   "real": 183,
+   "game": 186
+  },
+  {
+   "name": "Lake Tahoe",
+   "real": 1897,
+   "game": 2041
+  },
+  {
+   "name": "Lake Geneva",
+   "real": 372,
+   "game": 371
+  },
+  {
+   "name": "Lake Tanganyika",
+   "real": 773,
+   "game": 835
+  },
+  {
+   "name": "Great Salt Lake",
+   "real": 1280,
+   "game": 1252
+  },
+  {
+   "name": "Issyk-Kul",
+   "real": 1607,
+   "game": 1623
+  },
+  {
+   "name": "Lake Constance",
+   "real": 395,
+   "game": 417
+  }
+ ],
+ "glaciers": {
+  "reference": 1886,
+  "found_pct": 99.89395546129374
+ },
+ "rivers_reference_km": 1088766
+}
