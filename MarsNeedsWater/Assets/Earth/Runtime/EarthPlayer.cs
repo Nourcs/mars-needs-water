@@ -26,7 +26,9 @@ namespace MarsNeedsWater.Earth
         GameObject body, car, plane;
         Jeep jeep;
         Vector3 drive, pull;                // the jeep's momentum along the ground, and how hard it is being pushed about
-        float steerNow, airFor, climb, camY;
+        float steerNow, airFor, climb, camY, camLift, camDist = 7.5f;
+        bool jeepHidden;
+        readonly RaycastHit[] camHits = new RaycastHit[16];
         bool camSnap = true;
         float yaw, pitch = 10f, fall, carSpeed, flySpeed = 60f;
         bool third, placing = true, locked;
@@ -119,7 +121,7 @@ namespace MarsNeedsWater.Earth
 
         void StopJeep()
         {
-            drive = pull = Vector3.zero; steerNow = airFor = climb = 0f; camSnap = true;
+            drive = pull = Vector3.zero; steerNow = airFor = climb = camLift = 0f; camDist = 7.5f; camSnap = true;
             if (jeep != null) jeep.Settle();
         }
 
@@ -238,14 +240,27 @@ namespace MarsNeedsWater.Earth
             if (!air)
             {
                 float top = kb.leftShiftKey.isPressed ? j.BoostSpeed : j.TopSpeed;
-                if (f > 0 && along < 0f) along = Mathf.MoveTowards(along, 0f, j.Brake * dt);
-                else if (f > 0 && along < top) along = Mathf.MoveTowards(along, top, j.Accel * (1f - 0.55f * along / top) * dt);
-                else if (f < 0 && along > 0f) along = Mathf.MoveTowards(along, 0f, j.Brake * dt);
-                else if (f < 0) along = Mathf.MoveTowards(along, -j.ReverseSpeed, j.Accel * 0.8f * dt);
-                else along = Mathf.MoveTowards(along, 0f, j.Coast * dt);
-                if (along > top) along = Mathf.MoveTowards(along, top, j.Coast * 2f * dt);     // let go of Shift: ease back down
-                if (hand) along = Mathf.MoveTowards(along, 0f, j.Handbrake * dt);
-                side *= Mathf.Exp(-(hand ? j.HandbrakeGrip : j.Grip) * dt);
+                // gravity along the slope: a crawl up steep hills, faster down them
+                float slope = j.SlopeAlong, steep = Mathf.Abs(slope) * Mathf.Rad2Deg;
+                float downhill = -j.SlopeGravity * Mathf.Sin(slope);
+                bool holding = hand && Mathf.Abs(along) < 1.5f && steep < j.MaxClimbAngle;     // the handbrake holds it on a hill
+                if (!holding) along += downhill * dt;
+                // the engine pushes rather than setting a speed, harder at low speed; past the steepest climb the wheels just spin
+                float traction = Mathf.Clamp01((j.MaxClimbAngle + 5f - steep) / 5f);
+                if (f > 0 && along < 0f) along = Mathf.MoveTowards(along, 0f, j.Brake * traction * dt);
+                else if (f > 0 && along < top) along = Mathf.Min(top, along + j.Accel * (1f - 0.8f * along / top) * traction * dt);
+                else if (f < 0 && along > 0f) along = Mathf.MoveTowards(along, 0f, j.Brake * traction * dt);
+                else if (f < 0 && along > -j.ReverseSpeed) along = Mathf.Max(-j.ReverseSpeed, along - j.Accel * 0.8f * traction * dt);
+                else if (f == 0) along = Mathf.MoveTowards(along, 0f, j.Coast * dt);
+                if (along > top) along = Mathf.MoveTowards(along, top, (j.Coast * 2f + Mathf.Max(downhill, 0f)) * dt);     // top speed holds downhill too
+                if (along < -top) along = Mathf.MoveTowards(along, -top, (j.Coast * 2f + Mathf.Max(-downhill, 0f)) * dt);
+                if (hand) along = Mathf.MoveTowards(along, 0f, j.Handbrake * traction * dt);
+                // sideways: grip fades on steep side slopes and the jeep slips down them
+                float sideSteep = Mathf.Abs(j.SlopeSide) * Mathf.Rad2Deg;
+                float sideGrip = Mathf.Lerp(1f, 0.15f, Mathf.InverseLerp(j.SideSlipAngle, j.SideSlipAngle + 20f, sideSteep));
+                if (sideSteep > j.SideSlipAngle)
+                    side -= Mathf.Sign(j.SlopeSide) * j.SlopeGravity * Mathf.Sin((sideSteep - j.SideSlipAngle) * Mathf.Deg2Rad) * dt;
+                side *= Mathf.Exp(-(hand ? j.HandbrakeGrip : j.Grip) * sideGrip * traction * dt);
             }
             steerNow = Mathf.Lerp(steerNow, s, 1f - Mathf.Exp(-j.SteerSpeed * dt));
             float sp = Mathf.Abs(along);
@@ -504,10 +519,58 @@ namespace MarsNeedsWater.Earth
             if (!chase) { cam.transform.SetPositionAndRotation(head, look); return; }
             float dist = Current == Mode.Fly ? 13f : Current == Mode.Drive ? 7.5f : 4f;
             Vector3 target = head + Vector3.up * (Current == Mode.Walk ? 0.2f : 0.6f);
-            Vector3 back = look * Vector3.back;
-            RaycastHit hit;
-            if (Physics.SphereCast(target, 0.25f, back, out hit, dist)) dist = Mathf.Max(0.6f, hit.distance);
-            cam.transform.SetPositionAndRotation(target + back * dist, look);
+            if (Current != Mode.Drive)
+            {
+                Vector3 back = look * Vector3.back;
+                float d = CameraCast(target, back, dist);
+                cam.transform.SetPositionAndRotation(target + back * Mathf.Max(0.6f, d), look);
+                if (jeepHidden) ShowJeep(true);
+                return;
+            }
+
+            // in the jeep: behind and above, and never inside it or under the ground. Where the hill or a wall
+            // behind would pull the camera in close, it climbs higher and looks down instead.
+            float dt = Time.deltaTime;
+            float want = 0f, room = dist;
+            for (float lift = 0f; lift <= 70f; lift += 10f)
+            {
+                Quaternion q = Quaternion.Euler(Mathf.Max(pitch, -10f) + lift, yaw, 0f);
+                Vector3 back = q * Vector3.back;
+                float d = CameraCast(target, back, dist);
+                float gy;
+                Vector3 at = target + back * d;
+                bool clear = d > dist * 0.6f && !(world.Ground(at, out gy, false, false) && at.y < gy + 1.0f);
+                if (clear || lift >= 70f) { want = lift; room = d; break; }
+            }
+            camLift = Mathf.Lerp(camLift, want, 1f - Mathf.Exp(-(want > camLift ? 12f : 2.5f) * dt));
+            camDist = Mathf.Lerp(camDist, room, 1f - Mathf.Exp(-(room < camDist ? 20f : 3f) * dt));
+            Quaternion orbit = Quaternion.Euler(Mathf.Max(pitch, -10f) + camLift, yaw, 0f);
+            Vector3 dir = orbit * Vector3.back;
+            float cd = Mathf.Min(camDist, CameraCast(target, dir, camDist));
+            Vector3 pos = target + dir * cd;
+            float ground;
+            if (world.Ground(pos, out ground, false, false) && pos.y < ground + 0.8f) pos.y = ground + 0.8f;
+            Quaternion view = camLift > 0.5f ? Quaternion.LookRotation(target - pos) : look;
+            cam.transform.SetPositionAndRotation(pos, Quaternion.Slerp(look, view, Mathf.Clamp01(camLift / 10f)));
+            // last resort: if it still ends up in the jeep, hide the jeep rather than show its insides
+            bool tooClose = (pos - (transform.position + Vector3.up * 0.2f)).magnitude < 1.6f;
+            if (tooClose != jeepHidden) ShowJeep(!tooClose);
+        }
+
+        /// <summary>How far the camera can go from target along dir before it hits something other than the player.</summary>
+        float CameraCast(Vector3 target, Vector3 dir, float dist)
+        {
+            int n = Physics.SphereCastNonAlloc(target, 0.3f, dir, camHits, dist, ~0, QueryTriggerInteraction.Ignore);
+            float best = dist;
+            for (int i = 0; i < n; i++)
+                if (camHits[i].collider != cc && camHits[i].distance > 0f && camHits[i].distance < best) best = camHits[i].distance;
+            return best;
+        }
+
+        void ShowJeep(bool show)
+        {
+            jeepHidden = !show;
+            foreach (Renderer r in car.GetComponentsInChildren<Renderer>()) r.enabled = show;
         }
     }
 }

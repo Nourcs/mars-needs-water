@@ -55,6 +55,11 @@ namespace MarsNeedsWater.Earth
         [Tooltip("Gravity on the jeep, m/s per second. Lower = longer air time.")] public float Gravity = 22f;
         [Tooltip("How much of the climb speed over a crest turns into a jump (0 = stays glued down).")] [Range(0f, 1.5f)] public float Launch = 0.9f;
 
+        [Header("Hills")]
+        [Tooltip("Pull of gravity along a slope, m/s^2 at a vertical wall: slows it uphill, speeds it up downhill.")] public float SlopeGravity = 16f;
+        [Tooltip("Steepest slope the engine can still climb, degrees. Steeper and it slides back down.")] public float MaxClimbAngle = 40f;
+        [Tooltip("Side slopes steeper than this (degrees) start losing grip and slipping sideways downhill.")] public float SideSlipAngle = 22f;
+
         [Header("Steering")]
         [Tooltip("How fast it turns at low speed, degrees per second at full lock.")] public float SteerRate = 90f;
         [Tooltip("Speed (m/s) at which turning is halved: lower = more understeer at speed.")] public float Understeer = 32f;
@@ -75,8 +80,12 @@ namespace MarsNeedsWater.Earth
         [Header("Body motion")]
         [Tooltip("Nose dive braking / squat accelerating, radians per m/s^2 (before the springs).")] public float DiveSquat = 0.5f;
         [Tooltip("Body roll in corners, radians per m/s^2 of sideways pull (before the springs).")] public float BodyRoll = 0.6f;
-        [Tooltip("Most the body can pitch on its springs, degrees.")] public float MaxPitch = 22f;
-        [Tooltip("Most the body can roll on its springs, degrees.")] public float MaxRoll = 18f;
+        [Tooltip("Most the body can pitch on its springs, degrees.")] public float MaxPitch = 40f;
+        [Tooltip("Most the body can roll on its springs, degrees.")] public float MaxRoll = 35f;
+
+        /// <summary>The slope of the ground under the wheels, radians: nose up (uphill) positive, right side up positive.</summary>
+        public float SlopeAlong { get; private set; }
+        public float SlopeSide { get; private set; }
 
         /// <summary>Ground height (world y) under a point, if known.</summary>
         public delegate bool GroundAt(Vector3 world, out float y);
@@ -137,6 +146,7 @@ namespace MarsNeedsWater.Earth
         public void Settle()
         {
             heave = pitch = lean = heaveV = pitchV = leanV = 0f;
+            SlopeAlong = SlopeSide = 0f;
             for (int i = 0; i < 4; i++) { wheelUp[i] = 0f; touching[i] = true; }
             Pose();
         }
@@ -162,6 +172,14 @@ namespace MarsNeedsWater.Earth
                 float gy;
                 Vector3 at = transform.TransformPoint(new Vector3(WX[i], AxleY, WZ[i]));
                 groundUp[i] = !air && ground != null && ground(at, out gy) ? gy - bottom : -10f;
+            }
+            if (!air && groundUp[0] > -5f && groundUp[1] > -5f && groundUp[2] > -5f && groundUp[3] > -5f)
+            {
+                float along = Mathf.Atan2((groundUp[0] + groundUp[1] - groundUp[2] - groundUp[3]) * 0.5f, FrontZ - RearZ);
+                float side = Mathf.Atan2((groundUp[1] + groundUp[3] - groundUp[0] - groundUp[2]) * 0.5f, 2f * Track);
+                float t = 1f - Mathf.Exp(-10f * dt);
+                SlopeAlong = Mathf.Lerp(SlopeAlong, along, t);
+                SlopeSide = Mathf.Lerp(SlopeSide, side, t);
             }
 
             float k = Mathf.Max(Stiffness, 1f), c = 2f * Damping * Mathf.Sqrt(k);
