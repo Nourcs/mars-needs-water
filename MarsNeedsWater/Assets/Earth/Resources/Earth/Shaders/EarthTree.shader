@@ -166,6 +166,12 @@ Shader "MarsNeedsWater/EarthTree"
                 half ao = i.tintAo.a;
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
                 half shadow = sun.shadowAttenuation;
+                // stylized: the leaf and bark pictures are flattened into a few tones, like cut paper
+                half tl = max(dot(alb.rgb, half3(0.3, 0.55, 0.15)), 0.004);
+                half steps = foliage ? 3.0 : 2.5;
+                half q = tl * steps * 3.2;
+                half tq = (floor(q) + smoothstep(0.35, 0.65, frac(q))) / (steps * 3.2);
+                alb.rgb *= lerp(1.0, max(tq, 0.03) / tl, 0.8);
                 half ndl = foliage ? (dot(n, sun.direction) + 0.35) / 1.35 : dot(n, sun.direction);
                 half3 sky = SampleSH(n);
                 half3 col = ToonLight(ToonPop(alb.rgb, foliage ? 1.5 : 1.25), ndl, shadow, sun.color, sky, ao);

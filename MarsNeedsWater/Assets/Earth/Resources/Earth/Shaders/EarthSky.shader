@@ -9,7 +9,7 @@ Shader "MarsNeedsWater/EarthSky"
         _Horizon ("Horizon (same as the fog)", Color) = (0.78, 0.92, 1.0, 1)
         _CloudLight ("Cloud, sunny side", Color) = (1.0, 0.99, 0.96, 1)
         _CloudShade ("Cloud, shaded side", Color) = (0.70, 0.78, 0.96, 1)
-        _Cover ("How much sky the clouds fill", Range(0, 1)) = 0.42
+        _Cover ("How much sky the clouds fill", Range(0, 1)) = 0.37
     }
 
     SubShader
@@ -86,14 +86,14 @@ Shader "MarsNeedsWater/EarthSky"
                 // clouds on a flat layer far overhead
                 if (d.y > 0.01)
                 {
-                    float2 p = d.xz / (d.y + 0.08) * 1.15 + _Time.y * float2(0.006, 0.0025);
-                    // bend the layer so banks of cloud curl instead of running in lines
-                    float2 q = p + (float2(Noise(p * 0.7 + 11.0), Noise(p * 0.7 - 5.0)) - 0.5) * 1.1;
-                    float cut = 1.0 - _Cover * (0.75 + 0.5 * Noise(p * 0.23 + 2.0));
+                    // a gently domed layer: clouds keep their round shape instead of stretching out towards the horizon
+                    float2 p = d.xz / (d.y * 0.55 + 0.45) * 2.7 + _Time.y * float2(0.012, 0.005);
+                    float2 q = p + (float2(Noise(p * 0.9 + 11.0), Noise(p * 0.9 - 5.0)) - 0.5) * 0.5;
+                    float cut = 1.0 - _Cover * (0.86 + 0.28 * Noise(p * 0.23 + 2.0));
                     float f = Puff(q);
-                    float body = smoothstep(cut - 0.03, cut + 0.035, f);
+                    float body = smoothstep(cut - 0.012, cut + 0.02, f);
                     // the same shape looked up a step towards the sun: where it is thinner there, this side is lit
-                    float2 toSun = normalize(sun.direction.xz + 1e-4) * 0.16;
+                    float2 toSun = normalize(sun.direction.xz + 1e-4) * 0.22;
                     float f2 = Puff(q + toSun);
                     float lit = smoothstep(-0.015, 0.05, f - f2 + 0.02) ;
                     float core = smoothstep(cut + 0.05, cut + 0.2, f);          // thick middles sit in their own shade

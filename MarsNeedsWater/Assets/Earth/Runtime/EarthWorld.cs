@@ -114,7 +114,10 @@ namespace MarsNeedsWater.Earth
 
         static Shader Lit()
         {
-            Shader s = Shader.Find("Universal Render Pipeline/Lit");
+            // the stylized stand-in for URP's Lit (same property names), then Lit itself
+            Shader s = Resources.Load<Shader>("Earth/Shaders/EarthToonLit");
+            if (s != null && s.isSupported) return s;
+            s = Shader.Find("Universal Render Pipeline/Lit");
             return s != null ? s : Shader.Find("Standard");
         }
 

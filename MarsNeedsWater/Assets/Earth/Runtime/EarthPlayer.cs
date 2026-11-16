@@ -86,8 +86,7 @@ namespace MarsNeedsWater.Earth
             go.transform.localPosition = pos;
             go.transform.localScale = scale;
             Renderer r = go.GetComponent<Renderer>();
-            Shader s = Shader.Find("Universal Render Pipeline/Lit");
-            var m = new Material(s != null ? s : Shader.Find("Standard"));
+            Material m = EarthWorld.Mat(null, 0.2f);
             if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", colour);
             m.color = colour;
             r.sharedMaterial = m;

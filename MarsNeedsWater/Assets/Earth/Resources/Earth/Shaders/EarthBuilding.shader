@@ -460,7 +460,7 @@ Shader "MarsNeedsWater/EarthBuilding"
             }
             // weather: streaks down from the top, dirt at the foot
             float streak = BNoise(float2(u * 5.0, v * 0.3) + seed * 53.0, 9.0);
-            float wAmt = weather ? 1.0 : 0.4;
+            float wAmt = weather ? 0.3 : 0.08;       // stylized: walls stay clean
             col *= 1.0 - wAmt * 0.22 * smoothstep(0.5, 0.95, streak + (BFbm(uv * 0.8 + seed * 5.0, 12.0) - 0.5) * 0.5);
             col *= 1.0 - wAmt * 0.14 * saturate(1.0 - v / 0.3);
             if (v < 0.0)
@@ -966,7 +966,9 @@ Shader "MarsNeedsWater/EarthBuilding"
                 half3 V = normalize(_WorldSpaceCameraPos - i.positionWS);
                 half3 Hv = normalize(sun.direction + V);
                 half spec = ToonSpec(dot(n, Hv), smoothness);
-                half3 col = ToonLight(ToonPop(albedo), ndlRaw, shadow, sun.color, sky, 1.0) + sun.color * spec * shadow;
+                // stylized: paint is brighter and more colourful than the real wall
+                albedo = ToonPop(pow(max(albedo, 0.0), 0.86), 1.65);
+                half3 col = ToonLight(albedo, ndlRaw, shadow, sun.color, sky, 1.0) + sun.color * spec * shadow;
                 col += ToonRim(n, V, sun.direction, sky, 0.12) * albedo;
 
                 if (glass > 0.001)
