@@ -173,6 +173,7 @@ namespace MarsNeedsWater.Earth
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Linear;
             RenderSettings.fogColor = new Color(0.70f, 0.80f, 0.92f);
+            EarthLook.Apply();
         }
 
         // ------------------------------------------------------------ background building

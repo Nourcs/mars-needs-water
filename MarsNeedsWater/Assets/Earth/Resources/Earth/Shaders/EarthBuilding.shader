@@ -926,6 +926,7 @@ Shader "MarsNeedsWater/EarthBuilding"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "EarthToon.hlsl"
 
             struct Varyings
             {
@@ -959,12 +960,14 @@ Shader "MarsNeedsWater/EarthBuilding"
 
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
                 half shadow = sun.shadowAttenuation;
-                half ndl = saturate(dot(n, sun.direction));
+                half ndlRaw = dot(n, sun.direction);
+                half ndl = saturate(ndlRaw);
                 half3 sky = SampleSH(n);
                 half3 V = normalize(_WorldSpaceCameraPos - i.positionWS);
                 half3 Hv = normalize(sun.direction + V);
-                half spec = pow(saturate(dot(n, Hv)), exp2(10.0 * smoothness + 1.0)) * smoothness * 0.35;
-                half3 col = albedo * (sun.color * ndl * shadow + sky) + sun.color * spec * shadow;
+                half spec = ToonSpec(dot(n, Hv), smoothness);
+                half3 col = ToonLight(ToonPop(albedo), ndlRaw, shadow, sun.color, sky, 1.0) + sun.color * spec * shadow;
+                col += ToonRim(n, V, sun.direction, sky, 0.12) * albedo;
 
                 if (glass > 0.001)
                 {

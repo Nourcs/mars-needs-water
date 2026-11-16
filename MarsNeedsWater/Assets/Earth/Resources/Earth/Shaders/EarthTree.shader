@@ -121,6 +121,7 @@ Shader "MarsNeedsWater/EarthTree"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "EarthToon.hlsl"
 
             struct Varyings
             {
@@ -165,8 +166,9 @@ Shader "MarsNeedsWater/EarthTree"
                 half ao = i.tintAo.a;
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
                 half shadow = sun.shadowAttenuation;
-                half ndl = foliage ? saturate((dot(n, sun.direction) + 0.4) / 1.4) : saturate(dot(n, sun.direction));
-                half3 col = alb.rgb * (sun.color * ndl * shadow * lerp(0.6, 1.0, ao) + SampleSH(n) * ao);
+                half ndl = foliage ? (dot(n, sun.direction) + 0.35) / 1.35 : dot(n, sun.direction);
+                half3 sky = SampleSH(n);
+                half3 col = ToonLight(ToonPop(alb.rgb, foliage ? 1.5 : 1.25), ndl, shadow, sun.color, sky, ao);
                 if (foliage)
                 {
                     // sunlight through the leaves when looking towards the sun

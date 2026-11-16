@@ -57,6 +57,7 @@ Shader "MarsNeedsWater/EarthGround"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "EarthToon.hlsl"
 
             struct Attributes
             {
@@ -277,24 +278,27 @@ Shader "MarsNeedsWater/EarthGround"
                     float3 B = cross(T, nGeo);
                     if (dot(B, float3(0, 0, 1)) < 0) B = -B;
                     float3 nd = normalize(nGeo + (T * nt.x + B * nt.y) * detail);
-                    albedo = lerp(mapCol, near, detail);
-                    n = nd;
-                    ao = lerp(1.0, sumO / sumW, detail);
-                    smooth = lerp(0.1, sumS / sumW, detail);
+                    // stylized: mostly the map's flat colour laid on in big soft brush strokes, with only a hint of
+                    // the detailed texture left to tell grass from sand from rock
+                    half3 paint = mapCol * lerp(0.9, 1.12, smoothstep(0.3, 0.7, Fbm(world * 1.7, 71u)));
+                    paint *= lerp(0.94, 1.06, smoothstep(0.4, 0.6, Fbm(world * 6.3, 73u)));
+                    albedo = lerp(mapCol, lerp(paint, near, 0.3), detail);
+                    n = normalize(lerp(nGeo, nd, 0.3));
+                    ao = lerp(1.0, sumO / sumW, detail * 0.4);
+                    smooth = lerp(0.1, sumS / sumW, detail) * 0.5;
                 }
 
                 // light: sun with shadows, sky, a soft highlight on wet and icy ground
                 float4 sc = TransformWorldToShadowCoord(i.positionWS);
                 Light sun = GetMainLight(sc);
                 half shadow = sun.shadowAttenuation;
-                half ndl = saturate(dot(n, sun.direction));
-                // the big shape of the hill shades a little too, so detail does not flatten it
-                ndl *= lerp(1.0, saturate(dot(nGeo, sun.direction) * 1.2 + 0.1), 0.25);
+                // flat ground takes the light fully; only real slopes turn into the shade band
+                half ndl = dot(n, sun.direction) * 0.6 + dot(nGeo, sun.direction) * 0.4 + 0.12;
                 half3 sky = SampleSH(n);
                 half3 V = normalize(_WorldSpaceCameraPos - i.positionWS);
                 half3 H = normalize(sun.direction + V);
-                half spec = pow(saturate(dot(n, H)), exp2(10.0 * smooth + 1.0)) * smooth * 0.35;
-                half3 col = albedo * (sun.color * ndl * shadow + sky * ao) + sun.color * spec * shadow;
+                half spec = ToonSpec(dot(n, H), smooth);
+                half3 col = ToonLight(ToonPop(albedo), ndl, shadow, sun.color, sky, ao) + sun.color * spec * shadow;
                 col = MixFog(col, i.fog);
                 return half4(col, 1);
             }

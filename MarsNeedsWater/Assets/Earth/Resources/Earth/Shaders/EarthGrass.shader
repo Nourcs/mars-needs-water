@@ -109,6 +109,7 @@ Shader "MarsNeedsWater/EarthGrass"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "EarthToon.hlsl"
 
             struct Varyings
             {
@@ -147,8 +148,9 @@ Shader "MarsNeedsWater/EarthGrass"
                 }
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
                 half shadow = sun.shadowAttenuation;
-                half ndl = saturate(dot(n, sun.direction));
-                half3 col = albedo * (sun.color * ndl * shadow + SampleSH(n));
+                // blades take the light of the lawn they stand on, not of their own thin faces
+                half ndl = _Stone > 0.5 ? dot(n, sun.direction) : sun.direction.y + 0.1;
+                half3 col = ToonLight(ToonPop(albedo, _Stone > 0.5 ? 1.2 : 1.5), ndl, shadow, sun.color, SampleSH(half3(0, 1, 0)), 1.0);
                 if (_Stone < 0.5)
                 {
                     // light shining through thin blades from behind

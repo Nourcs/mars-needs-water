@@ -8,10 +8,10 @@ Shader "MarsNeedsWater/EarthWater"
         _WaveTex ("Wave normals (rg) and foam (b)", 2D) = "gray" {}
         _WaterMask ("The map's water pixels for this square (set per square)", 2D) = "white" {}
         _TileSize ("Width of this square, game metres (set per square)", Float) = 1
-        _DeepColour ("Deep sea", Color) = (0.015, 0.11, 0.20, 1)
-        _LakeColour ("Deep lake", Color) = (0.03, 0.14, 0.13, 1)
+        _DeepColour ("Deep sea", Color) = (0.02, 0.36, 0.72, 1)
+        _LakeColour ("Deep lake", Color) = (0.04, 0.46, 0.56, 1)
         _FoamColour ("Foam", Color) = (0.93, 0.96, 1.0, 1)
-        _SkyZenith ("Sky overhead", Color) = (0.28, 0.48, 0.80, 1)
+        _SkyZenith ("Sky overhead", Color) = (0.22, 0.52, 0.98, 1)
         _SkyHorizon ("Sky at the horizon", Color) = (0.70, 0.80, 0.92, 1)
     }
 
@@ -37,6 +37,7 @@ Shader "MarsNeedsWater/EarthWater"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "EarthToon.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
 
@@ -191,7 +192,7 @@ Shader "MarsNeedsWater/EarthWater"
                 half4 t3 = SAMPLE_TEXTURE2D(_WaveTex, sampler_WaveTex, uv3);
                 float n1 = Noise(p / 31.0 + 7.1), n2 = Noise(p / 13.0 - 3.7);
                 float2 s1 = Turn(t1.rg * 2 - 1, 0.0), s2 = Turn(t2.rg * 2 - 1, 0.83), s3 = Turn(t3.rg * 2 - 1, 2.29);
-                float fine = lerp(0.42, 0.22, lake) * saturate(1.25 - dist / 2500.0);
+                float fine = lerp(0.2, 0.11, lake) * saturate(1.25 - dist / 2500.0);     // stylized: a calm, clean surface
                 float2 slope = swellSlope + (s1 * (0.3 + 0.5 * n1) + s2 * (0.2 + 0.4 * n2) + s3 * 0.25) * fine;
 
                 float ringFoam = 0;
@@ -245,11 +246,14 @@ Shader "MarsNeedsWater/EarthWater"
                 half3 ambient = SampleSH(half3(0, 1, 0));
                 half3 lit = sun.color * (saturate(sun.direction.y) * (0.45 + 0.55 * shadow)) + ambient;
 
-                float3 sigma = lerp(float3(1.10, 0.30, 0.22), float3(0.95, 0.45, 0.55), lake);
+                float3 sigma = lerp(float3(0.9, 0.16, 0.12), float3(0.8, 0.2, 0.26), lake);
                 float3 keep = exp(-sigma * path);
-                float cloud = 1 - exp(-path * lerp(0.16, 0.38, lake));
+                float cloud = 1 - exp(-path * lerp(0.2, 0.34, lake));
                 half3 deep = lerp(_DeepColour.rgb, _LakeColour.rgb, lake) * lit;
-                half3 water = lerp(below * keep, deep, cloud);
+                // stylized: a bright turquoise band in the shallows, stepping to the deep colour
+                half3 shallow = lerp(half3(0.10, 0.80, 0.78), half3(0.16, 0.74, 0.62), lake) * lit;
+                half3 body = lerp(shallow, deep, smoothstep(0.5, 3.5, path));
+                half3 water = lerp(below * keep, body, cloud);
 
                 // light shining through the thin top of a wave when you look towards the sun
                 float2 viewH = normalize(-V.xz + 1e-5), sunH = normalize(sun.direction.xz + 1e-5);
@@ -264,6 +268,7 @@ Shader "MarsNeedsWater/EarthWater"
                 if (front)
                 {
                     float fres = 0.02 + 0.98 * pow(1 - saturate(dot(N, V)), 5);
+                    fres *= 0.55;                                                     // stylized: the water keeps its own colour
                     fres = lerp(fres, 1, saturate((dist - 1500) / 40000) * 0.6);      // far off the sea is mostly sky
                     float3 R = reflect(-V, N);
                     half3 sky = Sky(R);
@@ -278,7 +283,8 @@ Shader "MarsNeedsWater/EarthWater"
                     colour = lerp(water, sky, fres);
                     float3 H = normalize(sun.direction + V);
                     float nh = saturate(dot(N, H));
-                    colour += sun.color * shadow * (pow(nh, 900) * 8.0 + pow(nh, 90) * 0.12) * saturate(sun.direction.y * 4);
+                    // stylized: the sun breaks into crisp sparkles rather than a smooth sheen
+                    colour += sun.color * shadow * (smoothstep(0.35, 0.5, pow(nh, 500)) * 1.6 + pow(nh, 90) * 0.05) * saturate(sun.direction.y * 4);
                 }
                 else
                 {
@@ -300,7 +306,7 @@ Shader "MarsNeedsWater/EarthWater"
                 float rough = saturate((Noise(p / 18.0 + _WaterTime * float2(0.03, -0.02)) - 0.72) * 6.0);
                 float crest = (1 - lake) * rough * saturate((swell / 0.2 - 0.45) * 2.5) * saturate(1.2 - dist / 500);
                 float foam = max(max(shore, hugging * 0.8), max(surf * 0.6, crest * 0.6)) + ringFoam;
-                foam = saturate(smoothstep(0.25, 0.75, foam * (0.55 + foamNoise)));
+                foam = saturate(smoothstep(0.42, 0.56, foam * (0.55 + foamNoise)));      // stylized: foam with a clean edge
                 colour = lerp(colour, _FoamColour.rgb * lit, foam * 0.9);
 
                 // soft edge where the surface meets the bank (the bank is above water past this line)

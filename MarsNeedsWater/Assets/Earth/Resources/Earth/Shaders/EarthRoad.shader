@@ -342,6 +342,7 @@ Shader "MarsNeedsWater/EarthRoad"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "EarthToon.hlsl"
 
             struct Varyings
             {
@@ -380,17 +381,17 @@ Shader "MarsNeedsWater/EarthRoad"
                 float3 T = normalize(float3(1, 0, 0) - nGeo * nGeo.x);
                 float3 B = cross(T, nGeo);
                 if (dot(B, float3(0, 0, 1)) < 0) B = -B;
-                float3 n = normalize(nGeo + (T * bump.x + B * bump.y) * 0.35);
+                float3 n = normalize(nGeo + (T * bump.x + B * bump.y) * 0.12);
 
                 float4 sc = TransformWorldToShadowCoord(i.positionWS);
                 Light sun = GetMainLight(sc);
                 half shadow = sun.shadowAttenuation;
-                half ndl = saturate(dot(n, sun.direction));
+                half ndl = dot(n, sun.direction) + 0.12;
                 half3 sky = SampleSH(n);
                 half3 V = normalize(_WorldSpaceCameraPos - i.positionWS);
                 half3 H = normalize(sun.direction + V);
-                half spec = pow(saturate(dot(n, H)), exp2(10.0 * smoothness + 1.0)) * smoothness * 0.35;
-                half3 col = albedo * (sun.color * ndl * shadow + sky) + sun.color * spec * shadow;
+                half spec = ToonSpec(dot(n, H), smoothness);
+                half3 col = ToonLight(ToonPop(albedo), ndl, shadow, sun.color, sky, 1.0) + sun.color * spec * shadow;
                 col = MixFog(col, i.fog);
                 return half4(col, 1);
             }
