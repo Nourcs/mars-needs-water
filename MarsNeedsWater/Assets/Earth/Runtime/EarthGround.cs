@@ -32,12 +32,23 @@ namespace MarsNeedsWater.Earth
         {
             Shader sh = Shader.Find("MarsNeedsWater/EarthGround");
             if (sh == null || !sh.isSupported) { Debug.LogWarning("EarthGround shader missing: flat ground colours"); return null; }
-            if (albedo == null)
+            // load again if either set is missing (Unity may have dropped them between plays, or a file was still
+            // importing last time): a failed load is never kept
+            if (albedo == null || normal == null)
             {
+                if (albedo != null) Object.Destroy(albedo);
+                if (normal != null) Object.Destroy(normal);
                 albedo = Load("_a", false);
                 normal = Load("_n", true);
             }
-            if (albedo == null || normal == null) { Debug.LogWarning("Ground textures missing in Resources/Earth/Ground: flat ground colours"); return null; }
+            if (albedo == null || normal == null)
+            {
+                if (albedo != null) Object.Destroy(albedo);
+                if (normal != null) Object.Destroy(normal);
+                albedo = normal = null;
+                Debug.LogWarning("Ground textures could not be loaded from Resources/Earth/Ground (see the warning above): flat ground colours");
+                return null;
+            }
 
             var mean = new Vector4[GroundKind.Count];
             for (int k = 0; k < GroundKind.Count; k++)
@@ -61,12 +72,22 @@ namespace MarsNeedsWater.Earth
             {
                 for (int k = 0; k < GroundKind.Count; k++)
                 {
-                    var file = Resources.Load<TextAsset>("Earth/Ground/" + GroundKind.Names[k] + suffix);
-                    if (file == null || !tmp.LoadImage(file.bytes, false)) return null;
+                    string name = "Earth/Ground/" + GroundKind.Names[k] + suffix;
+                    var file = Resources.Load<TextAsset>(name);
+                    if (file == null) { Debug.LogWarning("Ground texture not found: Resources/" + name + ".bytes"); return Fail(arr); }
+                    if (!tmp.LoadImage(file.bytes, false))
+                    {
+                        Debug.LogWarning("Ground texture is not a readable PNG: Resources/" + name + ".bytes (" + file.bytes.Length + " bytes)");
+                        return Fail(arr);
+                    }
                     if (arr == null)
                         arr = new Texture2DArray(tmp.width, tmp.height, GroundKind.Count, TextureFormat.RGBA32, true, linear)
-                        { wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Trilinear, anisoLevel = 8 };
-                    if (tmp.width != arr.width || tmp.height != arr.height) return null;
+                        { wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Trilinear, anisoLevel = 8, hideFlags = HideFlags.DontSave };
+                    if (tmp.width != arr.width || tmp.height != arr.height)
+                    {
+                        Debug.LogWarning("Ground texture " + name + " is " + tmp.width + "x" + tmp.height + ", the others are " + arr.width + "x" + arr.height);
+                        return Fail(arr);
+                    }
                     Color32[] px = tmp.GetPixels32();
                     var bytes = new byte[px.Length * 4];
                     for (int i = 0; i < px.Length; i++)
@@ -80,6 +101,12 @@ namespace MarsNeedsWater.Earth
                 return arr;
             }
             finally { Object.Destroy(tmp); }
+        }
+
+        static Texture2DArray Fail(Texture2DArray arr)
+        {
+            if (arr != null) Object.Destroy(arr);
+            return null;
         }
 
         /// <summary>The world moved by 'delta' (x, z): keep the textures where they were on the ground.</summary>

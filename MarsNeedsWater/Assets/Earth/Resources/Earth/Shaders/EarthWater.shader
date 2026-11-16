@@ -157,14 +157,25 @@ Shader "MarsNeedsWater/EarthWater"
             {
                 float3 pos = i.positionWS;
                 float depthHere = i.data.x, lake = saturate(i.data.y), stream = saturate(i.data.y - 1);
-                // the map's own outline of the water: sharp, and softened (for the band of foam along the shore)
-                float onMap = smoothstep(0.3, 0.7, SAMPLE_TEXTURE2D(_WaterMask, sampler_WaterMask, i.tileUV).r);
-                float nearShore = SAMPLE_TEXTURE2D_BIAS(_WaterMask, sampler_WaterMask, i.tileUV, 2.5).r;
                 float3 toCam = _WorldSpaceCameraPos - pos;
                 float dist = length(toCam);
                 float3 V = toCam / max(dist, 1e-4);
                 float2 p = pos.xz + _WaterOffset.xy;
 
+                // ---- the shoreline. The map's water pixels are a couple of metres wide, which drew a blocky edge with
+                // square notches. The outline is read slightly blurred (rounded corners) at a spot pushed about by noise
+                // (a wandering, natural line), and the water washes up and back over it.
+                float msize = max(_TileSize, 1.0);
+                float2 wob = (float2(Noise(p / 6.0 + 4.1), Noise(p / 6.0 - 9.3)) - 0.5) * 2.4
+                           + (float2(Noise(p / 1.7 + 1.3), Noise(p / 1.7 - 5.1)) - 0.5) * 0.7;
+                float2 shoreUV = i.tileUV + float2(wob.x, -wob.y) / msize;
+                float edgeField = 0.5 * SAMPLE_TEXTURE2D_BIAS(_WaterMask, sampler_WaterMask, shoreUV, 0.6).r
+                                + 0.5 * SAMPLE_TEXTURE2D_BIAS(_WaterMask, sampler_WaterMask, shoreUV, 1.6).r;
+                float nearShore = SAMPLE_TEXTURE2D_BIAS(_WaterMask, sampler_WaterMask, shoreUV, 2.5).r;
+                float swashPhase = _WaterTime * 0.75 + Noise(p / 23.0 + 0.7) * 6.2832;
+                float swash = (sin(swashPhase) * 0.5 + 0.5) * (1 - 0.7 * lake) * (1 - stream) * saturate(1.5 - dist / 400.0);
+                float waterline = 0.5 + 0.2 * swash;                 // higher = the water has drawn back
+                float onMap = smoothstep(waterline - 0.05, waterline + 0.05, edgeField);
                 // ---- the surface's slope: swell, finer ripples, rings
                 float2 swellSlope;
                 float calm = Calm(depthHere, i.data.y);
@@ -278,7 +289,11 @@ Shader "MarsNeedsWater/EarthWater"
 
                 // ---- foam: shores, things standing in the water, rings, crests out at sea
                 half foamNoise = saturate(t1.b * 0.4 + t2.b * 0.35 + t3.b * 0.25);
-                float shore = max(saturate((0.9 - nearShore) * 3.5) * onMap, saturate(1 - depthHere / 0.06) * 0.5) * (1 - stream) * saturate(1.5 - dist / 3000);
+                // a broken line of froth riding the edge of the wash, and lines of foam rolling in towards the beach
+                float edgeFoam = saturate(1 - abs(edgeField - waterline - 0.05) / 0.07) * (0.55 + 0.45 * cos(swashPhase)) * (0.5 + Noise(p / 2.3));
+                float rollPhase = nearShore * 30.0 + _WaterTime * 1.3 + Noise(p / 8.0 - 2.2) * 5.0;
+                float rolling = saturate((0.97 - nearShore) * 2.5) * saturate(sin(rollPhase) * 1.8 - 0.8) * Noise(p / 4.0 + 6.6) * 1.4;
+                float shore = max(max(edgeFoam, rolling) * onMap, saturate(1 - depthHere / 0.06) * 0.3) * (1 - stream) * saturate(1.5 - dist / 3000);
                 float hugging = dist < 400 ? saturate(1 - through * max(abs(V.y), 0.15) / 0.08) * (1 - stream) : 0;
                 float surf = (1 - lake) * saturate(1 - depthHere / 0.8) * saturate(sin(depthHere * 9.0 - _WaterTime * 1.6) * 1.4 - 0.3);
                 // whitecaps: only now and then, where a random patch of rough water meets a high crest

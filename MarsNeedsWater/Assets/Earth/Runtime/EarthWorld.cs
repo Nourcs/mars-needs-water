@@ -25,7 +25,7 @@ namespace MarsNeedsWater.Earth
         static readonly float[] MaxAlt = { 2500f, 14000f, 1e9f, 1e9f };
         static readonly float[] Sink = { 0f, 0.6f, 2.5f, 10f };
 
-        sealed class Part { public Vector3[] V, N; public Vector2[] U; public int[] I; }
+        sealed class Part { public Vector3[] V, N; public Vector2[] U; public Vector4[] U1, U2; public int[] I; }
 
         sealed class Prepared
         {
@@ -68,7 +68,7 @@ namespace MarsNeedsWater.Earth
         volatile bool quit;
         float nextRefresh;
         bool patchesDirty;
-        Material groundBase, flatMat;
+        Material groundBase, flatMat, roadMat;
         Material[] wallMats;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -95,6 +95,7 @@ namespace MarsNeedsWater.Earth
             player.Init(this);
             gameObject.AddComponent<EarthLandmarks>().Init(this);
             StartGround();
+            StartTrees();
             for (int i = 0; i < 4; i++)
             {
                 var th = new Thread(Work) { IsBackground = true, Name = "EarthTiles" + i };
@@ -141,29 +142,12 @@ namespace MarsNeedsWater.Earth
             for (int i = 0; i < 256; i++) px[i] = Col(Style.Palette[i]);
             pal.SetPixels32(px); pal.Apply();
             flatMat = Mat(pal, 0.08f);
+            roadMat = EarthRoads.MakeMaterial();       // the realistic road surface (EarthRoad.shader); flat colours if missing
 
-            wallMats = new Material[Style.Walls.Length];
-            for (int k = 0; k < wallMats.Length; k++)
-            {
-                const int n = 64;
-                var t = new Texture2D(n, n, TextureFormat.RGBA32, true) { wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Bilinear, anisoLevel = 4 };
-                var p = new Color32[n * n];
-                Color32 wall = Col(Style.Walls[k]);
-                Color32 glass = (k % 3 == 0) ? new Color32(58, 74, 92, 255) : (k % 3 == 1) ? new Color32(70, 86, 98, 255) : new Color32(48, 60, 78, 255);
-                Color32 frame = Color32.Lerp(wall, new Color32(255, 255, 255, 255), 0.35f);
-                Color32 band = Color32.Lerp(wall, new Color32(0, 0, 0, 255), 0.12f);
-                for (int y = 0; y < n; y++)
-                    for (int x = 0; x < n; x++)
-                    {
-                        Color32 c = wall;
-                        if (y < 4) c = band;
-                        bool inWin = x >= 16 && x < 48 && y >= 16 && y < 52;
-                        if (inWin) c = (x < 18 || x >= 46 || y < 18 || y >= 50) ? frame : glass;
-                        p[y * n + x] = c;
-                    }
-                t.SetPixels32(p); t.Apply(true);
-                wallMats[k] = Mat(t, 0.2f);
-            }
+            // every building, walls and roofs alike, is drawn by one material (EarthBuilding.shader)
+            Material building = EarthBuildings.MakeMaterial();
+            wallMats = new Material[Buildings.Chunks];
+            for (int k = 0; k < wallMats.Length; k++) wallMats[k] = building;
         }
 
         void SetUpScene()
@@ -256,6 +240,15 @@ namespace MarsNeedsWater.Earth
                 p.V[i] = new Vector3(m.P[i * 3], m.P[i * 3 + 1], m.P[i * 3 + 2]);
                 p.N[i] = new Vector3(m.N[i * 3], m.N[i * 3 + 1], m.N[i * 3 + 2]);
                 p.U[i] = new Vector2(m.U[i * 2], m.U[i * 2 + 1]);
+            }
+            if (m.X != null && m.X.Count == n * 4 && m.Y != null && m.Y.Count == n * 4)
+            {
+                p.U1 = new Vector4[n]; p.U2 = new Vector4[n];
+                for (int i = 0; i < n; i++)
+                {
+                    p.U1[i] = new Vector4(m.X[i * 4], m.X[i * 4 + 1], m.X[i * 4 + 2], m.X[i * 4 + 3]);
+                    p.U2[i] = new Vector4(m.Y[i * 4], m.Y[i * 4 + 1], m.Y[i * 4 + 2], m.Y[i * 4 + 3]);
+                }
             }
             return p;
         }
@@ -391,12 +384,12 @@ namespace MarsNeedsWater.Earth
                     MeshFilter mf = Child(t, "Walls", p.Walls[i], wallMats[i], true);
                     if (mf != null) colliders.Enqueue(new KeyValuePair<long, MeshFilter>(t.Key, mf));
                 }
-            MeshFilter roofs = Child(t, "Roofs", p.Roofs, flatMat, true);
+            MeshFilter roofs = Child(t, "Roofs", p.Roofs, wallMats[0], true);
             if (roofs != null) colliders.Enqueue(new KeyValuePair<long, MeshFilter>(t.Key, roofs));
-            Child(t, "Roads", p.Roads, flatMat, false);
+            Child(t, "Roads", p.Roads, roadMat != null ? roadMat : flatMat, false);
             MeshFilter decks = Child(t, "Bridges", p.Bridges, flatMat, true);
             if (decks != null) colliders.Enqueue(new KeyValuePair<long, MeshFilter>(t.Key, decks));
-            Child(t, "Trees", p.Trees, flatMat, true);
+            TreesShown(t);
 
             Place(t);
             tiles[t.Key] = t;
@@ -408,7 +401,9 @@ namespace MarsNeedsWater.Earth
             if (p == null) return null;
             var mesh = new Mesh();
             if (p.V.Length > 65000) mesh.indexFormat = IndexFormat.UInt32;
-            mesh.vertices = p.V; mesh.normals = p.N; mesh.uv = p.U; mesh.triangles = p.I;
+            mesh.vertices = p.V; mesh.normals = p.N; mesh.uv = p.U;
+            if (p.U1 != null) { mesh.SetUVs(1, p.U1); mesh.SetUVs(2, p.U2); }
+            mesh.triangles = p.I;
             mesh.RecalculateBounds();
             t.Meshes.Add(mesh);
             var go = new GameObject(name);
@@ -426,6 +421,7 @@ namespace MarsNeedsWater.Earth
             Tile t;
             if (!tiles.TryGetValue(key, out t)) return;
             tiles.Remove(key);
+            TreesGone(key);
             foreach (Mesh m in t.Meshes) Destroy(m);
             Destroy(t.Texture); Destroy(t.Material); Destroy(t.Root);
             if (t.WaterMask != null) Destroy(t.WaterMask);

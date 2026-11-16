@@ -150,6 +150,46 @@ Shader "MarsNeedsWater/EarthGround"
                 g /= max(g.x + g.y + g.z, 1e-4);
                 alb = a[0] * g.x + a[1] * g.y + a[2] * g.z;
                 nrm = n[0] * g.x + n[1] * g.y + n[2] * g.z;
+                // where copies overlap the mix goes flat and greyish, which shows the hexagon grid from afar:
+                // push the colour back away from the kind's average by as much as the mix flattened it
+                float boost = min(rsqrt(max(dot(g, g), 0.25)), 1.6);
+                alb.rgb = max(_GroundMean[kind].rgb + (alb.rgb - _GroundMean[kind].rgb) * boost, 0.0);
+            }
+
+            // the same kind's texture, much larger and again hex-tiled (colour only), for its big patches
+            half3 HexBig(int kind, float2 world, float2 wdx, float2 wdy, float scale)
+            {
+                float2 st = world / scale;
+                float2 dx = wdx / scale, dy = wdy / scale;
+                float2 q = st * 3.4641016;
+                float2 sk = float2(q.x - 0.57735027 * q.y, 1.15470054 * q.y);
+                int2 base = (int2)floor(sk);
+                float3 t = float3(frac(sk), 0);
+                t.z = 1.0 - t.x - t.y;
+                float s = step(0.0, -t.z);
+                float s2 = 2.0 * s - 1.0;
+                float3 w = float3(-t.z * s2, s - t.y * s2, s - t.x * s2);
+                int2 vs[3] = { base + int2(s, s), base + int2(s, 1 - s), base + int2(1 - s, s) };
+                half3 sum = 0;
+                float3 g = w * w * w;
+                g /= max(g.x + g.y + g.z, 1e-4);
+                [unroll] for (int i = 0; i < 3; i++)
+                {
+                    uint h = Hash(uint2(vs[i]) + uint2(kind * 389u + 5u, kind * 541u + 3u));
+                    float2 off = float2((h & 0xffffu), (h >> 16)) / 65535.0;
+                    float ang = (Hash(uint2(h, 191u)) & 0xffffu) / 65535.0 * 6.2831853;
+                    float c = cos(ang), sn = sin(ang);
+                    float2x2 r = float2x2(c, -sn, sn, c);
+                    sum += SAMPLE_TEXTURE2D_ARRAY_GRAD(_Albedo, sampler_Albedo, mul(r, st) + off, kind, mul(r, dx), mul(r, dy)).rgb * g[i];
+                }
+                return sum;
+            }
+
+            // smooth noise over three unrelated sizes: never repeats
+            float Fbm(float2 p, uint s)
+            {
+                return ValueNoise(p / 23.0, s) * 0.5 + ValueNoise(mul(float2x2(0.8, -0.6, 0.6, 0.8), p) / 61.0, s + 1u) * 0.3
+                     + ValueNoise(mul(float2x2(0.28, 0.96, -0.96, 0.28), p) / 157.0, s + 2u) * 0.2;
             }
 
             // ---------------------------------------------------------------- main
@@ -216,14 +256,13 @@ Shader "MarsNeedsWater/EarthGround"
                         half3 ratio = mapCol / max(_GroundMean[kk].rgb, 0.003);
                         ratio = clamp(ratio, 0.25, 4.0);
                         half3 c = la[j2].rgb * ratio;
-                        // the same kind's texture seen seven times larger shapes its big patches (dunes for sand,
-                        // slabs for rock, drifts for snow, clumps for grass), so no two kinds share one pattern
-                        float2x2 mr = float2x2(0.8253, -0.5646, 0.5646, 0.8253);
-                        float ms = 1.0 / (_GroundParams[kk].x * 7.0);
-                        float2 mst = mul(mr, world * ms) + 0.37;
-                        half3 macro = SAMPLE_TEXTURE2D_ARRAY_GRAD(_Albedo, sampler_Albedo, mst, kk, mul(mr, wdx * ms), mul(mr, wdy * ms)).rgb;
+                        // the same kind's texture seen about seven times larger shapes its big patches (dunes for
+                        // sand, slabs for rock, drifts for snow, clumps for grass); hex-tiled too, and broken up by
+                        // noise that has no repeat at all
+                        half3 macro = HexBig(kk, world, wdx, wdy, _GroundParams[kk].x * 6.7);
                         half ml = dot(macro, half3(0.3, 0.5, 0.2)) / max(dot(_GroundMean[kk].rgb, half3(0.3, 0.5, 0.2)), 0.003);
-                        c *= lerp(1.0, clamp(ml, 0.5, 1.6), 0.4);
+                        c *= lerp(1.0, clamp(ml, 0.5, 1.6), 0.35);
+                        c *= lerp(0.84, 1.16, Fbm(world, 31u + (uint)kk * 3u));
                         sumA += c * bw;
                         sumN += ln[j2].xy * _GroundParams[kk].z * bw;
                         sumO += lerp(1.0, ln[j2].z, _GroundParams[kk].w) * bw;

@@ -151,6 +151,84 @@ namespace MarsNeedsWater.Earth
             piece.Add((int)Math.Round(p[i * 2 - 1] + (p[i * 2 + 1] - p[i * 2 - 1]) * f));
         }
 
+        // ------------------------------------------------------------ buildings in the way
+
+        const int LineRow = 6;
+        const float DeckMargin = 0.3f;          // game metres kept clear on either side of a deck
+
+        /// <summary>
+        /// The bridges of a tile, for Blocked: ax, ay, bx, by, half width (all as fractions of the tile) and
+        /// which road it is, for every straight stretch. Null if the tile has no bridge.
+        /// </summary>
+        internal static float[] Lines(List<TileBuilder.RoadItem> roads, int extent, float tileSize)
+        {
+            List<float> list = null;
+            for (int q = 0; q < roads.Count; q++)
+            {
+                TileBuilder.RoadItem r = roads[q];
+                if (r.Bridge.Count == 0) continue;
+                if (list == null) list = new List<float>();
+                float hw = (r.Style.RealWidth * TileBuilder.RoadScale * 0.5f + 0.15f + DeckMargin) / tileSize;
+                foreach (int[] p in r.Bridge)
+                    for (int i = 0; i + 3 < p.Length; i += 2)
+                    {
+                        list.Add(p[i] / (float)extent); list.Add(p[i + 1] / (float)extent);
+                        list.Add(p[i + 2] / (float)extent); list.Add(p[i + 3] / (float)extent);
+                        list.Add(hw); list.Add(q);
+                    }
+            }
+            return list != null ? list.ToArray() : null;
+        }
+
+        /// <summary>
+        /// Would a building with this outline (tile whole-number coordinates) stand in the way on a bridge?
+        /// The map draws bridge towers, piers and toll gates as buildings, and built like any other they are
+        /// walls across the deck. A building is in the way if a bridge runs right through it (in one side and
+        /// out another), or if it sits on the deck (its middle, or half its corners, within the deck's width).
+        /// One that a bridge merely ends in, like a footbridge into a shopping centre, is left alone.
+        /// </summary>
+        internal static bool Blocked(float[] lines, int[] ring, double extent)
+        {
+            if (lines == null) return false;
+            int n = ring.Length / 2;
+            double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
+            for (int i = 0; i < n; i++)
+            {
+                double x = ring[i * 2] / extent, y = ring[i * 2 + 1] / extent;
+                if (x < minX) minX = x; if (x > maxX) maxX = x;
+                if (y < minY) minY = y; if (y > maxY) maxY = y;
+            }
+            double cx = (minX + maxX) * 0.5, cy = (minY + maxY) * 0.5;
+            bool[] on = null;
+            int onCount = 0, crossings = 0, road = -1;
+            for (int s = 0; s < lines.Length; s += LineRow)
+            {
+                double ax = lines[s], ay = lines[s + 1], bx = lines[s + 2], by = lines[s + 3], hw = lines[s + 4];
+                if (Math.Max(ax, bx) < minX - hw || Math.Min(ax, bx) > maxX + hw || Math.Max(ay, by) < minY - hw || Math.Min(ay, by) > maxY + hw) continue;
+                if (Away(cx, cy, ax, ay, bx, by) < hw * hw) return true;
+                if ((int)lines[s + 5] != road) { road = (int)lines[s + 5]; crossings = 0; }
+                if (on == null) on = new bool[n];
+                for (int i = 0, j = n - 1; i < n; j = i, i++)
+                {
+                    double px = ring[i * 2] / extent, py = ring[i * 2 + 1] / extent, qx = ring[j * 2] / extent, qy = ring[j * 2 + 1] / extent;
+                    double d1 = (bx - ax) * (py - ay) - (by - ay) * (px - ax), d2 = (bx - ax) * (qy - ay) - (by - ay) * (qx - ax);
+                    double d3 = (qx - px) * (ay - py) - (qy - py) * (ax - px), d4 = (qx - px) * (by - py) - (qy - py) * (bx - px);
+                    if (d1 * d2 < 0 && d3 * d4 < 0 && ++crossings >= 2) return true;
+                    if (!on[i] && Away(px, py, ax, ay, bx, by) < hw * hw) { on[i] = true; onCount++; }
+                }
+            }
+            return onCount * 2 >= n && onCount > 0;
+        }
+
+        /// <summary>The square of how far x,y is from the stretch a to b.</summary>
+        static double Away(double x, double y, double ax, double ay, double bx, double by)
+        {
+            double dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+            double f = len2 > 0 ? Math.Min(1, Math.Max(0, ((x - ax) * dx + (y - ay) * dy) / len2)) : 0;
+            double ex = x - (ax + dx * f), ey = y - (ay + dy * f);
+            return ex * ex + ey * ey;
+        }
+
         // ------------------------------------------------------------ the bridges of a tile
 
         sealed class Piece
@@ -162,6 +240,7 @@ namespace MarsNeedsWater.Earth
             public int[] Stations;      // a joint every 25 m or so along it, ends included
             public bool Centre;
             public float Width; public int Pal;
+            public TileBuilder.RoadItem Item;     // the road it carries (its look: lanes, lines)
         }
 
         sealed class Node
@@ -575,7 +654,7 @@ namespace MarsNeedsWater.Earth
                         line.Add(lx); line.Add((float)deck); line.Add(lz); line.Add(ly); line.Add(narrow); line.Add((float)wetHere);
                     }
                 }
-                Deck(t, line, p.Width, p.Pal);
+                Deck(t, line, p.Width, p.Pal, p.Item);
             }
         }
 
@@ -597,7 +676,7 @@ namespace MarsNeedsWater.Earth
         /// <summary>The stretch of a piece from point a to point b.</summary>
         static Piece Part(Piece p, int a, int b)
         {
-            var q = new Piece { Centre = p.Centre, Width = p.Width, Pal = p.Pal, P = new double[(b - a + 1) * 2], At = new double[b - a + 1] };
+            var q = new Piece { Centre = p.Centre, Width = p.Width, Pal = p.Pal, Item = p.Item, P = new double[(b - a + 1) * 2], At = new double[b - a + 1] };
             Array.Copy(p.P, a * 2, q.P, 0, q.P.Length);
             for (int i = 0; i < q.At.Length; i++) q.At[i] = p.At[a + i] - p.At[a];
             q.Len = q.At[q.At.Length - 1];
@@ -738,7 +817,7 @@ namespace MarsNeedsWater.Earth
         {
             if (run.Count >= 4)
             {
-                var p = new Piece { P = run.ToArray(), Centre = centre, Width = r.Style.RealWidth * TileBuilder.RoadScale, Pal = r.Style.Pal };
+                var p = new Piece { P = run.ToArray(), Centre = centre, Width = r.Style.RealWidth * TileBuilder.RoadScale, Pal = r.Style.Pal, Item = r };
                 int n = p.P.Length / 2;
                 p.At = new double[n];
                 for (int i = 1; i < n; i++)
@@ -758,7 +837,7 @@ namespace MarsNeedsWater.Earth
         const int Row = 6;
 
         /// <summary>line holds x, deck height, z, ground height and width factor for each point along the centre.</summary>
-        static void Deck(TileResult t, List<float> line, float width, int pal)
+        static void Deck(TileResult t, List<float> line, float width, int pal, TileBuilder.RoadItem item = null)
         {
             int n = line.Count / Row;
             if (n < 2) return;
@@ -768,6 +847,7 @@ namespace MarsNeedsWater.Earth
             float full = width * 0.5f + 0.15f;
             var run = new BridgeRun { HalfWidth = full, P = new float[n * 3], MinX = float.MaxValue, MinZ = float.MaxValue, MaxX = float.MinValue, MaxZ = float.MinValue };
             int pl = -1, pr = -1, plb = -1, prb = -1, pls = -1, prs = -1, plsb = -1, prsb = -1;
+            var topL = new List<float>(n * 3); var topR = new List<float>(n * 3);     // the road surface laid on top (RoadLook)
             float sincePier = 6f;
             for (int i = 0; i < n; i++)
             {
@@ -793,6 +873,8 @@ namespace MarsNeedsWater.Earth
                     tl = Skirt(yl - gl); tr = Skirt(yr - gr);
                 }
                 int l = m.Add(x + ox, yl, z + oz, 0, 1, 0, cu, cv), r = m.Add(x - ox, yr, z - oz, 0, 1, 0, cu, cv);
+                float ih = (hw - 0.15f) / hw;                                         // the carriageway, inside the deck's lip
+                topL.Add(x + ox * ih); topL.Add(yl); topL.Add(z + oz * ih); topR.Add(x - ox * ih); topR.Add(yr); topR.Add(z - oz * ih);
                 int lb = m.Add(x + ox, yl - tl, z + oz, 0, -1, 0, su, sv), rb = m.Add(x - ox, yr - tr, z - oz, 0, -1, 0, su, sv);
                 int ls = m.Add(x + ox, yl, z + oz, -dz, 0, dx, su, sv), lsb = m.Add(x + ox, yl - tl, z + oz, -dz, 0, dx, su, sv);
                 int rs = m.Add(x - ox, yr, z - oz, dz, 0, -dx, su, sv), rsb = m.Add(x - ox, yr - tr, z - oz, dz, 0, -dx, su, sv);
@@ -815,6 +897,7 @@ namespace MarsNeedsWater.Earth
                 }
             }
             t.BridgeRuns.Add(run);
+            if (item != null) RoadLook.DeckTop(t, item, topL, topR);
         }
 
         /// <summary>How far down the side of the deck goes: to the ground while it is low, a plain slab once it is up.</summary>

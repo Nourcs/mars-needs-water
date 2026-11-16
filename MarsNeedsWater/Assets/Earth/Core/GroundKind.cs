@@ -64,6 +64,16 @@ namespace MarsNeedsWater.Earth
             return l[(hash >> 7) % (uint)l.Length];
         }
 
+        /// <summary>A shade of this kind that changes gradually with u (0..1): neighbouring u give neighbouring shades.</summary>
+        public static uint LookSmooth(byte kind, float u)
+        {
+            uint[] l = Looks[kind < Count ? kind : 0];
+            if (l.Length == 1) return l[0];
+            float f = Math.Max(0f, Math.Min(0.9999f, u)) * (l.Length - 1);
+            int i = (int)f;
+            return Mix(l[i], l[Math.Min(i + 1, l.Length - 1)], f - i);
+        }
+
         // ------------------------------------------------------------ noise, the same everywhere on the globe
 
         static uint Hash(int x, int y, int s)
@@ -250,7 +260,9 @@ namespace MarsNeedsWater.Earth
 
                     if (k != was)
                     {
-                        uint c = Look(k, (uint)(broad * 997) * 7919u);
+                        // pick the shade from the broad noise smoothly (a hash of it would flip shade at every
+                        // small step of the noise and draw contour-like stripes across mountains)
+                        uint c = LookSmooth(k, broad);
                         if (k == Snow) c = Mix(c, 0xffffff, 0.2f);
                         rgba[p * 4] = (byte)(c >> 16); rgba[p * 4 + 1] = (byte)(c >> 8); rgba[p * 4 + 2] = (byte)c;
                     }

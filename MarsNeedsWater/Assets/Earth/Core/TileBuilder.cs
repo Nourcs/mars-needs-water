@@ -8,6 +8,8 @@ namespace MarsNeedsWater.Earth
     {
         public readonly List<float> P = new List<float>(), N = new List<float>(), U = new List<float>();
         public readonly List<int> I = new List<int>();
+        /// <summary>Two extra sets of four numbers per vertex (texture coordinates 1 and 2), when a mesh needs them (roads).</summary>
+        public List<float> X, Y;
         public int Count { get { return P.Count / 3; } }
 
         public int Add(float x, float y, float z, float nx, float ny, float nz, float u, float v)
@@ -65,6 +67,8 @@ namespace MarsNeedsWater.Earth
         public const int TintN = 128;
         public MeshData[] Walls;
         public MeshData Roofs, Roads, Trees, Bridges;
+        /// <summary>Closest level only: every tree in the square (drawn by EarthTrees).</summary>
+        public List<TreeSpot> TreeSpots;
         public List<BridgeRun> BridgeRuns;
         public int BuildingCount, RoadCount, TreeCount;
 
@@ -290,7 +294,8 @@ namespace MarsNeedsWater.Earth
                 float px = t.Size / texSize;
                 foreach (RoadItem r in roads)
                 {
-                    float w = Math.Max(r.Style.MinPx, r.Style.RealWidth * RoadScale / px);
+                    if (r.Look != null && r.Look.Crosswalk) continue;      // drawn on the street up close only
+                    float w = Math.Max(r.Style.MinPx, RoadLook.PaintWidth(r) * RoadScale / px);
                     foreach (int[] part in r.Plain) { var pts = Line(part, map, texSize); if (pts != null) ras.Line(pts, w, r.Style.Paint, Raster.Paved); }
                     // a bridge is not ground. Close up it is a deck of its own; from afar it is drawn on,
                     // without changing what the ground under it is (so the sea below stays level)
@@ -355,8 +360,8 @@ namespace MarsNeedsWater.Earth
             // ---- things that stand on the ground: only on the closest level ----
             if (Z == 14)
             {
-                BuildBuildings(t, src);
-                BuildRoads(t, roads, seg);
+                Buildings.Build(t, src);
+                RoadLook.Build(t, roads, seg);
                 if (seg != null) Bridges.Build(t, src, roads, seg.Extent, (u, v) => { byte mk = ras.MaskAt(Math.Min(0.9995, Math.Max(0.0005, u)), Math.Min(0.9995, Math.Max(0.0005, v))); return mk == Raster.Ocean || mk == Raster.Water; });
                 BuildTrees(t, ras, baseLayers, zb);
             }
@@ -587,183 +592,9 @@ namespace MarsNeedsWater.Earth
                 }
         }
 
-        // ------------------------------------------------------------ buildings
-
-        static double RingArea(int[] r)
-        {
-            double a = 0;
-            int n = r.Length / 2;
-            for (int i = 0, j = n - 1; i < n; j = i, i++) a += (double)r[j * 2] * r[i * 2 + 1] - (double)r[i * 2] * r[j * 2 + 1];
-            return a * 0.5;
-        }
-
-        static void BuildBuildings(TileResult t, TileSources src)
-        {
-            t.Walls = new MeshData[Style.Walls.Length];
-            for (int i = 0; i < t.Walls.Length; i++) t.Walls[i] = new MeshData();
-            t.Roofs = new MeshData();
-            var layers = Mvt.Decode(src.Buildings.GetTile(14, t.X, t.Y), "building", "building_part");
-            // plain map buildings are left out where a landmark has its own model
-            var clear = new List<double>();
-            var models = new List<Landmark>();
-            double midLat = Geo.TileLat(t.Y + 0.5, 14), midLon = Geo.TileLon(t.X + 0.5, 14);
-            foreach (Landmark lm in Landmarks.All)
-            {
-                if (lm.Build != null && Math.Abs(lm.Lat - midLat) < 0.04 && Math.Abs(lm.Lon - midLon) * Math.Cos(midLat * Geo.Deg) < 0.04) models.Add(lm);
-                if (lm.ClearRadius <= 0) continue;
-                double u = Geo.LonToX(lm.ClearLon, 14) - t.X, v = Geo.LatToY(lm.ClearLat, 14) - t.Y, r = lm.ClearRadius / Geo.Scale / t.Size;
-                if (u < -r - 0.1 || v < -r - 0.1 || u > 1 + r + 0.1 || v > 1 + r + 0.1) continue;
-                clear.Add(u); clear.Add(v); clear.Add(r * r);
-            }
-            MvtLayer parts;
-            layers.TryGetValue("building_part", out parts);
-            bool haveParts = parts != null && parts.Features.Count > 0;
-            foreach (string name in new[] { "building", "building_part" })
-            {
-                MvtLayer L;
-                if (!layers.TryGetValue(name, out L)) continue;
-                bool isPart = name == "building_part";
-                int kH = L.Key("height"), kF = L.Key("num_floors"), kMin = L.Key("min_height"), kParts = L.Key("has_parts");
-                int kCls = L.Key("class"), kSub = L.Key("subtype"), kId = L.Key(isPart ? "building_id" : "id"), kUnder = L.Key("is_underground");
-                double e = L.Extent;
-                foreach (MvtFeature f in L.Features)
-                {
-                    if (f.Type != 3 || f.Parts.Count == 0) continue;
-                    if (L.Flag(f, kUnder)) continue;
-                    if (!isPart && haveParts && L.Flag(f, kParts)) continue;
-                    uint hash = Hash(L.Str(f, kId));
-                    double real = L.Num(f, kH, double.NaN);
-                    if (double.IsNaN(real) || real <= 0)
-                    {
-                        double floors = L.Num(f, kF, double.NaN);
-                        real = !double.IsNaN(floors) && floors > 0 ? Math.Max(3.0, floors * 3.2) : Style.DefaultHeight(L.Str(f, kCls), L.Str(f, kSub), hash);
-                    }
-                    double realMin = L.Num(f, kMin, 0);
-                    if (realMin < 0 || realMin >= real) realMin = 0;
-
-                    // split the feature into polygons: an outer ring followed by its holes
-                    double sign = 0;
-                    var poly = new List<int[]>();
-                    foreach (int[] ring in f.Parts)
-                    {
-                        if (ring.Length < 6) continue;
-                        double a = RingArea(ring);
-                        if (a == 0) continue;
-                        if (sign == 0) sign = Math.Sign(a);
-                        if (Math.Sign(a) == sign)
-                        {
-                            if (poly.Count > 0) AddBuilding(t, poly, e, sign, real, realMin, hash, clear, models);
-                            poly = new List<int[]>();
-                        }
-                        else if (poly.Count == 0) continue;
-                        poly.Add(ring);
-                    }
-                    if (poly.Count > 0) AddBuilding(t, poly, e, sign, real, realMin, hash, clear, models);
-                }
-            }
-        }
-
-        static void AddBuilding(TileResult t, List<int[]> rings, double extent, double sign, double real, double realMin, uint hash, List<double> clear, List<Landmark> models)
-        {
-            int[] outer = rings[0];
-            int minX = int.MaxValue, minY = int.MaxValue, maxX = int.MinValue, maxY = int.MinValue, total = 0;
-            for (int i = 0; i < outer.Length; i += 2)
-            {
-                if (outer[i] < minX) minX = outer[i]; if (outer[i] > maxX) maxX = outer[i];
-                if (outer[i + 1] < minY) minY = outer[i + 1]; if (outer[i + 1] > maxY) maxY = outer[i + 1];
-            }
-            // a building wholly inside the neighbour's part of the buffer is drawn by the neighbour
-            double cx = (minX + maxX) * 0.5, cy = (minY + maxY) * 0.5;
-            if (cx < 0 || cy < 0 || cx >= extent || cy >= extent) return;
-            for (int c = 0; c < clear.Count; c += 3)
-            {
-                double du = cx / extent - clear[c], dv = cy / extent - clear[c + 1];
-                if (du * du + dv * dv < clear[c + 2]) return;
-            }
-            // nor where a landmark's model itself stands (tested at the middle and half way to each corner)
-            foreach (Landmark lm in models)
-                for (int q = 0; q < 5; q++)
-                {
-                    double qx = q == 0 ? cx : cx + (q % 2 == 1 ? minX - cx : maxX - cx) * 0.5, qy = q == 0 ? cy : cy + (q <= 2 ? minY - cy : maxY - cy) * 0.5;
-                    double qla = Geo.TileLat(t.Y + qy / extent, 14), qlo = Geo.TileLon(t.X + qx / extent, 14);
-                    double east = (qlo - lm.Lon) * 111195.0 * Math.Cos(lm.Lat * Geo.Deg) / Geo.Scale, north = (qla - lm.Lat) * 111195.0 / Geo.Scale;
-                    if (Math.Abs(east) > 600 || Math.Abs(north) > 600) break;
-                    if (Landmarks.Covers(lm, east, north)) return;
-                }
-            foreach (int[] r in rings) total += r.Length / 2;
-            if (total > 6000) return;
-
-            var data = new double[total * 2];
-            var px = new float[total]; var py = new float[total]; var pz = new float[total];
-            var holes = rings.Count > 1 ? new int[rings.Count - 1] : null;
-            int k = 0;
-            float gMin = float.MaxValue, gMax = float.MinValue, gSum = 0;
-            for (int ri = 0; ri < rings.Count; ri++)
-            {
-                if (ri > 0) holes[ri - 1] = k;
-                int[] r = rings[ri];
-                for (int i = 0; i < r.Length; i += 2, k++)
-                {
-                    t.Surface(r[i] / extent, r[i + 1] / extent, out px[k], out py[k], out pz[k]);
-                    data[k * 2] = px[k]; data[k * 2 + 1] = pz[k];
-                    if (py[k] < gMin) gMin = py[k]; if (py[k] > gMax) gMax = py[k];
-                    gSum += py[k];
-                }
-            }
-            float gAvg = gSum / total;
-            float top = Math.Max(gAvg + Geo.Height(real), gMax + 0.6f);
-            float bottom = realMin > 0 ? gAvg + Geo.Height(realMin) : gMin - 0.4f;
-            if (bottom >= top) bottom = gMin - 0.4f;
-
-            // roof
-            MeshData roof = t.Roofs;
-            int cell = Style.PalRoof + (int)(hash % Style.RoofCount);
-            float cu = (cell % 16 + 0.5f) / 16f, cv = (cell / 16 + 0.5f) / 16f;
-            int baseIndex = roof.Count;
-            for (int i = 0; i < total; i++) roof.Add(px[i], top, pz[i], 0, 1, 0, cu, cv);
-            List<int> tris = Earcut.Triangulate(data, holes);
-            for (int i = 0; i + 2 < tris.Count; i += 3) roof.Tri(baseIndex + tris[i], baseIndex + tris[i + 1], baseIndex + tris[i + 2], 0, 1, 0);
-
-            // walls
-            MeshData wall = t.Walls[(int)((hash >> 8) % (uint)t.Walls.Length)];
-            float floors = Math.Max(1f, (float)Math.Round(real / 3.2));
-            float vBottom = floors * (bottom - gAvg) / Math.Max(0.1f, top - gAvg);
-            if (realMin > 0) vBottom = (float)Math.Round(realMin / 3.2);
-            int lo = (int)(-extent / 64) + 2, hi = (int)(extent + extent / 64) - 2;
-            k = 0;
-            foreach (int[] r in rings)
-            {
-                int n = r.Length / 2;
-                for (int i = 0; i < n; i++)
-                {
-                    int j = (i + 1) % n;
-                    int ax = r[i * 2], ay = r[i * 2 + 1], bx = r[j * 2], by = r[j * 2 + 1];
-                    // an edge that runs along the tile buffer is a cut, not a real wall
-                    if ((ax <= lo && bx <= lo) || (ax >= hi && bx >= hi) || (ay <= lo && by <= lo) || (ay >= hi && by >= hi)) continue;
-                    int a = k + i, b = k + j;
-                    float dx = px[b] - px[a], dz = pz[b] - pz[a];
-                    float len = (float)Math.Sqrt(dx * dx + dz * dz);
-                    if (len < 0.02f) continue;
-                    float nx = (float)(sign * (by - ay)), nz = (float)(sign * (bx - ax));
-                    float nl = (float)Math.Sqrt(nx * nx + nz * nz);
-                    if (nl < 1e-6f) continue;
-                    nx /= nl; nz /= nl;
-                    float uEnd = Math.Max(1f, (float)Math.Round(len * Geo.Scale / 3.6));
-                    int v0 = wall.Add(px[a], bottom, pz[a], nx, 0, nz, 0, vBottom);
-                    int v1 = wall.Add(px[b], bottom, pz[b], nx, 0, nz, uEnd, vBottom);
-                    int v2 = wall.Add(px[b], top, pz[b], nx, 0, nz, uEnd, floors);
-                    int v3 = wall.Add(px[a], top, pz[a], nx, 0, nz, 0, floors);
-                    wall.Tri(v0, v1, v2, nx, 0, nz);
-                    wall.Tri(v0, v2, v3, nx, 0, nz);
-                }
-                k += n;
-            }
-            t.BuildingCount++;
-        }
-
         // ------------------------------------------------------------ roads and rail
 
-        internal sealed class RoadItem { public MvtFeature F; public Style.Road Style; public List<int[]> Plain = new List<int[]>(), Bridge = new List<int[]>(); }
+        internal sealed class RoadItem { public MvtFeature F; public Style.Road Style; public RoadLook.Look Look; public List<int[]> Plain = new List<int[]>(), Bridge = new List<int[]>(); }
 
         /// <summary>
         /// Cut lines (tile whole-number coordinates) where they enter and leave a zone on the globe.
@@ -826,6 +657,7 @@ namespace MarsNeedsWater.Earth
                 if (nearDeck && sub == "road" && st.RealWidth >= 5f) item.Plain = CutBy(item.Plain, L.Extent, tz, tx, ty, (la, lo) => Landmarks.Landing(la, lo, 220), item.Bridge);
                 list.Add(item);
             }
+            RoadLook.Prepare(list, L, tz, tx, ty);     // widths, lanes, surfaces; pavements and crossings
             list.Sort((a, b) => a.Style.Layer.CompareTo(b.Style.Layer));
             return list;
         }
@@ -952,6 +784,7 @@ namespace MarsNeedsWater.Earth
         static void BuildTrees(TileResult t, Raster ras, Dictionary<string, MvtLayer> baseLayers, int zb)
         {
             t.Trees = new MeshData();
+            t.TreeSpots = new List<TreeSpot>();
             const int Max = 7000;
             MvtLayer L;
             if (baseLayers.TryGetValue("land", out L))
@@ -968,7 +801,7 @@ namespace MarsNeedsWater.Earth
                         if (u < 0 || v < 0 || u >= 1 || v >= 1) continue;
                         byte mk = ras.MaskAt(u, v);
                         if (mk == Raster.Ocean || mk == Raster.Water) continue;
-                        AddTree(t, u, v, Hash(p[0], p[1], 7));
+                        AddTree(t, u, v, Hash(p[0], p[1], 7), true);
                     }
                 }
             }
@@ -980,50 +813,35 @@ namespace MarsNeedsWater.Earth
                     uint h = Hash(t.X * 131 + i, t.Y * 137 + j, 3);
                     double u = (i + (h & 255) / 255.0) * step, v = (j + ((h >> 8) & 255) / 255.0) * step;
                     byte mk = ras.MaskAt(u, v);
-                    uint roll = (h >> 16) % 100;
-                    if ((mk == Raster.Forest && roll < 80) || (mk == Raster.Green && roll < 5)) AddTree(t, u, v, h);
+                    // woods; clumps of trees in parks; lone trees and copses in fields, gardens and savanna
+                    float chance = TreeSpecies.Chance(mk, TreeSpecies.KindAt(ras, u, v), (t.X + u) * t.Size, (t.Y + v) * t.Size);
+                    if (chance <= 0 || ((h >> 16) & 0xffff) / 65536f >= chance) continue;
+                    if (mk != Raster.Forest && !Clear(ras, u, v, 2.5 / t.Size)) continue;
+                    AddTree(t, u, v, h, false);
                 }
         }
 
-        static void AddTree(TileResult t, double u, double v, uint h)
+        /// <summary>Nothing built or paved within r (tile units) of u, v.</summary>
+        static bool Clear(Raster ras, double u, double v, double r)
         {
-            MeshData m = t.Trees;
+            for (int k = 0; k < 8; k++)
+            {
+                double a = k * Math.PI / 4;
+                double uu = Math.Min(0.9995, Math.Max(0.0005, u + Math.Cos(a) * r)), vv = Math.Min(0.9995, Math.Max(0.0005, v + Math.Sin(a) * r));
+                byte m = ras.MaskAt(uu, vv);
+                if (m == Raster.Built || m == Raster.Paved || m == Raster.Water || m == Raster.Ocean) return false;
+            }
+            return true;
+        }
+
+        /// <summary>A tree at u, v: its kind, size and colour come from where it stands (TreeSpecies).</summary>
+        static void AddTree(TileResult t, double u, double v, uint h, bool street)
+        {
             float x, y, z;
             t.Surface(u, v, out x, out y, out z);
-            float height = Geo.Height(7.0 + (h % 1000) / 1000.0 * 9.0);
-            float radius = height * (0.24f + ((h >> 10) % 100) / 100f * 0.1f);
-            int pal = Style.PalTree + (int)((h >> 20) % Style.TreeCount);
-            float cu = (pal % 16 + 0.5f) / 16f, cv = (pal / 16 + 0.5f) / 16f;
-            float tu = (Style.PalDirt % 16 + 0.5f) / 16f, tv = (Style.PalDirt / 16 + 0.5f) / 16f;
-            float trunkTop = y + height * 0.3f, tr = height * 0.05f;
-            float turn = (h >> 5) % 100 / 100f * 6.283f;
-            // trunk: three sides
-            int[] low = new int[3], high = new int[3];
-            for (int s = 0; s < 3; s++)
-            {
-                float a = turn + s * 2.0944f, cx = (float)Math.Cos(a), cz = (float)Math.Sin(a);
-                low[s] = m.Add(x + cx * tr, y - 0.2f, z + cz * tr, cx, 0, cz, tu, tv);
-                high[s] = m.Add(x + cx * tr, trunkTop, z + cz * tr, cx, 0, cz, tu, tv);
-            }
-            for (int s = 0; s < 3; s++)
-            {
-                int n = (s + 1) % 3;
-                float a = turn + (s + 0.5f) * 2.0944f, nx = (float)Math.Cos(a), nz = (float)Math.Sin(a);
-                m.Tri(low[s], low[n], high[n], nx, 0, nz);
-                m.Tri(low[s], high[n], high[s], nx, 0, nz);
-            }
-            // crown: a six-sided cone
-            int tip = m.Add(x, y + height, z, 0, 1, 0, cu, cv);
-            int firstRim = -1, prevRim = -1;
-            for (int s = 0; s < 6; s++)
-            {
-                float a = turn + s * 1.0472f, cx = (float)Math.Cos(a), cz = (float)Math.Sin(a);
-                int rim = m.Add(x + cx * radius, y + height * 0.22f, z + cz * radius, cx * 0.86f, 0.5f, cz * 0.86f, cu, cv);
-                if (prevRim >= 0) { float b = a - 0.5236f; m.Tri(tip, prevRim, rim, (float)Math.Cos(b), 0.5f, (float)Math.Sin(b)); }
-                else firstRim = rim;
-                prevRim = rim;
-            }
-            { float b = turn - 0.5236f; m.Tri(tip, prevRim, firstRim, (float)Math.Cos(b), 0.5f, (float)Math.Sin(b)); }
+            TreeSpot s;
+            if (!TreeSpecies.Make(t.Lat, t.Lon, x, y, z, t.KindAt(x, z), street, h, out s)) return;
+            t.TreeSpots.Add(s);
             t.TreeCount++;
         }
     }
