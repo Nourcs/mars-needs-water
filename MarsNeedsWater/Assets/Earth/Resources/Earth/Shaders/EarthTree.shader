@@ -165,7 +165,7 @@ Shader "MarsNeedsWater/EarthTree"
                 else if (!foliage && !front) n = -n;
                 half ao = i.tintAo.a;
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
-                half shadow = sun.shadowAttenuation;
+                half shadow = ToonShadow(sun.shadowAttenuation, i.positionWS);
                 // stylized: the leaf and bark pictures are flattened into a few tones, like cut paper
                 half tl = max(dot(alb.rgb, half3(0.3, 0.55, 0.15)), 0.004);
                 half steps = foliage ? 3.0 : 2.5;

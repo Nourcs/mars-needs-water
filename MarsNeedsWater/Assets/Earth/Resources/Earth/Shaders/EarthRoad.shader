@@ -385,7 +385,7 @@ Shader "MarsNeedsWater/EarthRoad"
 
                 float4 sc = TransformWorldToShadowCoord(i.positionWS);
                 Light sun = GetMainLight(sc);
-                half shadow = sun.shadowAttenuation;
+                half shadow = ToonShadow(sun.shadowAttenuation, i.positionWS);
                 half ndl = dot(n, sun.direction) + 0.12;
                 half3 sky = SampleSH(n);
                 half3 V = normalize(_WorldSpaceCameraPos - i.positionWS);

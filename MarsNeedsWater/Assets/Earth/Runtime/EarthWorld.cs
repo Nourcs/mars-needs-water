@@ -95,6 +95,7 @@ namespace MarsNeedsWater.Earth
             player.Init(this);
             gameObject.AddComponent<EarthLandmarks>().Init(this);
             StartGround();
+            gameObject.AddComponent<EarthClouds>().Init(this);
             StartTrees();
             for (int i = 0; i < 4; i++)
             {

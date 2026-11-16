@@ -291,7 +291,7 @@ Shader "MarsNeedsWater/EarthGround"
                 // light: sun with shadows, sky, a soft highlight on wet and icy ground
                 float4 sc = TransformWorldToShadowCoord(i.positionWS);
                 Light sun = GetMainLight(sc);
-                half shadow = sun.shadowAttenuation;
+                half shadow = ToonShadow(sun.shadowAttenuation, i.positionWS);
                 // flat ground takes the light fully; only real slopes turn into the shade band
                 half ndl = dot(n, sun.direction) * 0.6 + dot(nGeo, sun.direction) * 0.4 + 0.12;
                 half3 sky = SampleSH(n);

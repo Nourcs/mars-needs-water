@@ -959,7 +959,7 @@ Shader "MarsNeedsWater/EarthBuilding"
                 BSurface(i.uv0, i.uv1, i.uv2, front, albedo, smoothness, glass, glassCol);
 
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
-                half shadow = sun.shadowAttenuation;
+                half shadow = ToonShadow(sun.shadowAttenuation, i.positionWS);
                 half ndlRaw = dot(n, sun.direction);
                 half ndl = saturate(ndlRaw);
                 half3 sky = SampleSH(n);

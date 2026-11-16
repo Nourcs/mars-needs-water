@@ -147,7 +147,7 @@ Shader "MarsNeedsWater/EarthGrass"
                     albedo = lerp(albedo, albedo * half3(1.08, 1.04, 0.8), i.t * i.t);
                 }
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
-                half shadow = sun.shadowAttenuation;
+                half shadow = ToonShadow(sun.shadowAttenuation, i.positionWS);
                 // blades take the light of the lawn they stand on, not of their own thin faces
                 half ndl = _Stone > 0.5 ? dot(n, sun.direction) : sun.direction.y + 0.1;
                 half3 col = ToonLight(ToonPop(albedo, _Stone > 0.5 ? 1.2 : 1.5), ndl, shadow, sun.color, SampleSH(half3(0, 1, 0)), 1.0);

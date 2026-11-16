@@ -9,6 +9,26 @@
 // The shade: sky light plus this cool fill, so shadows read blue-violet instead of dark.
 #define TOON_SHADE_FILL half3(0.045, 0.065, 0.16)
 
+// ---- cloud shadows. EarthClouds.cs draws its clouds, seen from above, into _CloudMap and says where that
+// picture lies; a spot is shaded when the line from it to the sun passes through a cloud.
+TEXTURE2D(_CloudMap);
+float4 _CloudOrigin;     // xy: added to world x, z to get to the picture's own metres; w: height of the clouds (world y)
+float4 _CloudSun;        // xy: metres sideways to the sun per metre up; z: how dark the shadow is (0 = no clouds); w: 1 / width of the picture
+
+// 1 in the open, less under a cloud
+half CloudShade(float3 positionWS)
+{
+    float2 p = positionWS.xz + _CloudOrigin.xy + _CloudSun.xy * max(_CloudOrigin.w - positionWS.y, 0.0);
+    half c = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_LinearRepeat, p * _CloudSun.w, 0).r;
+    return 1.0 - c * _CloudSun.z;
+}
+
+// The sun's shadow on a spot, ready for ToonLight: the shadow map's soft edge drawn crisp, times the clouds' shade.
+half ToonShadow(half shadowAttenuation, float3 positionWS)
+{
+    return smoothstep(0.3, 0.62, shadowAttenuation) * CloudShade(positionWS);
+}
+
 // More colourful and a touch brighter in the mid-tones; near-greys (roads, concrete) stay calm.
 half3 ToonPop(half3 c, half amount)
 {
@@ -21,12 +41,12 @@ half3 ToonPop(half3 c, half amount)
 
 half3 ToonPop(half3 c) { return ToonPop(c, TOON_SATURATION); }
 
-// Light in two soft bands. ndl is the raw dot of normal and sun (-1..1), shadow the sun's shadow (0..1).
+// Light in two soft bands. ndl is the raw dot of normal and sun (-1..1), shadow comes from ToonShadow.
 half ToonBand(half ndl, half shadow)
 {
     half band = smoothstep(-0.03, 0.14, ndl);
     band *= 0.8 + 0.2 * smoothstep(0.3, 0.8, ndl);
-    return band * smoothstep(0.3, 0.62, shadow);
+    return band * shadow;
 }
 
 // The lit colour of a matte surface.

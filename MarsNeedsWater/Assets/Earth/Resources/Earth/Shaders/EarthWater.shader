@@ -230,7 +230,7 @@ Shader "MarsNeedsWater/EarthWater"
                 half3 below = SampleSceneColor(ruv);
 
                 Light sun = GetMainLight(TransformWorldToShadowCoord(pos));
-                half shadow = sun.shadowAttenuation;
+                half shadow = sun.shadowAttenuation * CloudShade(pos);      // clouds shade the water too
 
                 // caustics: the waves focus sunlight into a moving net of bright lines on a shallow bed
                 if (front && dist < 160)

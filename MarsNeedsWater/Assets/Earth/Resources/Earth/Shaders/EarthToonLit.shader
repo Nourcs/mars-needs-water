@@ -65,10 +65,11 @@ Shader "MarsNeedsWater/EarthToonLit"
                 half3 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv).rgb * _BaseColor.rgb;
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
                 half3 sky = SampleSH(n);
+                half shadow = ToonShadow(sun.shadowAttenuation, i.positionWS);
                 half3 V = normalize(_WorldSpaceCameraPos - i.positionWS);
                 half3 H = normalize(sun.direction + V);
-                half3 col = ToonLight(ToonPop(albedo), dot(n, sun.direction), sun.shadowAttenuation, sun.color, sky, 1.0);
-                col += sun.color * ToonSpec(dot(n, H), _Smoothness) * sun.shadowAttenuation;
+                half3 col = ToonLight(ToonPop(albedo), dot(n, sun.direction), shadow, sun.color, sky, 1.0);
+                col += sun.color * ToonSpec(dot(n, H), _Smoothness) * shadow;
                 col += ToonRim(n, V, sun.direction, sky, _Rim) * albedo;
                 return half4(MixFog(col, i.fog), 1);
             }
