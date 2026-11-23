@@ -4,10 +4,10 @@ using UnityEngine;
 namespace MarsNeedsWater.Earth
 {
     /// <summary>
-    /// The player's car: an open-topped off-road 4x4, built in code. Boxy tub and short bonnet, flared arches,
-    /// a tubular roll bar, a fold-flat windscreen, chunky treaded tyres on a raised chassis, a spare on the back
-    /// and a snorkel up the right pillar. Every face takes its colour from a small palette texture with slight
-    /// per-patch variations of each colour, so big panels look worn rather than flat, with nothing repeating.
+    /// The player's car: an open-topped off-road 4x4, built in code from soft, rounded shapes with smooth shading:
+    /// a chunky tub and bonnet, wide curved mudguards, a round-bar roll hoop and windscreen frame, fat tyres with
+    /// rounded tread blocks, a spare on the back and a snorkel up the right pillar. One clean colour per part, taken
+    /// from a small palette texture.
     /// Local space: +z forward, y up, the origin at the player's centre, the ground 0.85 below it.
     /// </summary>
     public sealed class Jeep : MonoBehaviour
@@ -20,26 +20,26 @@ namespace MarsNeedsWater.Earth
         // palette rows
         const int Paint = 0, Flare = 1, Rubber = 2, Tread = 3, Steel = 4, DarkSteel = 5, Rim = 6, Seat = 7,
                   Glass = 8, Lamp = 9, Tail = 10, Amber = 11, Floor = 12, Tube = 13, Grille = 14, PaintLight = 15;
-        const int Variants = 16;
+        const int Variants = 1;
 
         static readonly Color[] Palette =
         {
-            new Color(0.42f, 0.41f, 0.27f),   // olive-khaki paint
-            new Color(0.09f, 0.09f, 0.085f),  // black arch flares
-            new Color(0.055f, 0.055f, 0.055f),// tyre rubber
-            new Color(0.085f, 0.082f, 0.078f),// tread blocks
-            new Color(0.50f, 0.51f, 0.52f),   // bright steel
-            new Color(0.17f, 0.17f, 0.18f),   // dark steel: chassis, bumpers
-            new Color(0.33f, 0.33f, 0.30f),   // wheel rims
-            new Color(0.17f, 0.14f, 0.11f),   // canvas seats
-            new Color(0.52f, 0.62f, 0.67f),   // windscreen glass
-            new Color(0.96f, 0.95f, 0.86f),   // headlight lens
-            new Color(0.62f, 0.07f, 0.05f),   // tail lights
-            new Color(0.90f, 0.52f, 0.10f),   // indicators
-            new Color(0.21f, 0.21f, 0.17f),   // floor mats
-            new Color(0.11f, 0.11f, 0.11f),   // roll bar, snorkel
-            new Color(0.045f, 0.045f, 0.045f),// grille backing
-            new Color(0.47f, 0.46f, 0.31f),   // paint, sun-faded
+            new Color(0.93f, 0.43f, 0.12f),   // paint: a warm orange that stands out on grass, sand and snow
+            new Color(0.14f, 0.14f, 0.16f),   // mudguards
+            new Color(0.075f, 0.075f, 0.08f), // tyre rubber
+            new Color(0.11f, 0.11f, 0.115f),  // tread blocks
+            new Color(0.80f, 0.81f, 0.82f),   // bright metal
+            new Color(0.21f, 0.21f, 0.24f),   // dark metal: chassis, bumpers
+            new Color(0.86f, 0.85f, 0.80f),   // wheel rims
+            new Color(0.63f, 0.43f, 0.25f),   // tan seats
+            new Color(0.62f, 0.82f, 0.93f),   // windscreen glass
+            new Color(1.00f, 0.97f, 0.82f),   // headlight lens
+            new Color(0.85f, 0.12f, 0.08f),   // tail lights
+            new Color(1.00f, 0.62f, 0.10f),   // indicators
+            new Color(0.20f, 0.19f, 0.18f),   // floor
+            new Color(0.13f, 0.13f, 0.15f),   // roll bar, snorkel, dash
+            new Color(0.07f, 0.07f, 0.08f),   // grille backing
+            new Color(0.97f, 0.92f, 0.80f),   // cream
         };
 
         // ---- tuning: change these on the Jeep object in the Hierarchy while playing to try them out
@@ -68,6 +68,21 @@ namespace MarsNeedsWater.Earth
         [Tooltip("Front wheel angle at full lock, degrees.")] public float WheelLock = 32f;
         [Tooltip("Share of full lock left at top speed.")] [Range(0.1f, 1f)] public float HighSpeedLock = 0.2f;
         [Tooltip("How quickly the steering follows the keys.")] public float SteerSpeed = 6f;
+
+        [Header("Drifting")]
+        [Tooltip("Rear sideways grip left while drifting, as a share. Lower = longer, wider slides.")] [Range(0.3f, 1f)] public float DriftRearGrip = 0.68f;
+        [Tooltip("How far sideways (degrees) the jeep must be sliding for a drift to start by itself. The handbrake with some steering starts one at once.")] public float DriftStart = 13f;
+        [Tooltip("How far sideways the jeep slides in a drift with the steering held right over, degrees. Less steering = a shallower slide; none = it straightens.")] public float DriftAngle = 30f;
+        [Tooltip("How firmly the jeep is held at that angle instead of spinning round. Higher = tidier, lower = wilder.")] public float DriftHold = 9f;
+        [Tooltip("In a drift the front wheels turn into the slide by themselves; this is how far past that they bite into the corner, degrees. Higher = tighter drifts.")] public float DriftBite = 12f;
+        [Tooltip("On loose ground (sand, snow, mud) full throttle while steering lets the tail step out: 0 never, 1 a lot.")] [Range(0f, 1f)] public float PowerSlide = 0.45f;
+        [Tooltip("Share of full lock at top speed while drifting, so there is enough steering to catch the slide.")] [Range(0.1f, 1f)] public float DriftLock = 0.55f;
+
+        [Header("Body movement (looks only)")]
+        [Tooltip("How far the body leans out of corners, squats and dives, degrees per m/s^2. 0 = rigid.")] public float BodyLean = 0.42f;
+        [Tooltip("How quickly the body follows, and how much it wobbles after (lower = wobblier).")] public float BodySpring = 9f;
+        [Range(0.1f, 1.5f)] public float BodyDamping = 0.42f;
+        [Tooltip("Turning in the air with the steering keys, rad/s^2.")] public float AirSteer = 1.0f;
 
         [Header("Suspension")]
         [Tooltip("Spring rate per wheel, N/m. Lower = softer and more body roll.")] public float SpringRate = 27000f;
@@ -119,6 +134,25 @@ namespace MarsNeedsWater.Earth
         float steerNow;
         readonly float[] rateF = new float[4], length = new float[4], shown = new float[4], angle = new float[4], spinRate = new float[4], spinAt = new float[4], squash = new float[4];
         readonly bool[] contact = new bool[4];
+
+        // ---- what each wheel is doing, for the tyre tracks and dust (JeepTrails), which also tells the wheels what they are on
+        /// <summary>The ground under each wheel: grip (1 = a dry road), how loose it is (0 hard, 1 deep sand or snow), and how much it holds the wheel back.</summary>
+        [System.NonSerialized] public readonly float[] SurfGrip = { 1f, 1f, 1f, 1f }, SurfLoose = new float[4], SurfDrag = new float[4];
+        [System.NonSerialized] public readonly Vector3[] WheelPoint = new Vector3[4], WheelNormal = new Vector3[4];
+        /// <summary>Sideways slide of each tyre over the ground (m/s), its speed along the ground (m/s), and how much it is spinning or locked (0-1).</summary>
+        [System.NonSerialized] public readonly float[] WheelSlide = new float[4], WheelRoll = new float[4], WheelSpin = new float[4];
+        /// <summary>The wheel stands on the terrain itself (not a bridge, a roof or a landmark).</summary>
+        [System.NonSerialized] public readonly bool[] WheelOnTerrain = new bool[4];
+        public bool WheelDown(int i) { return contact[i] && Body != null && !Body.isKinematic; }
+        /// <summary>0 = gripping, 1 = in a full drift.</summary>
+        public float Drift { get; private set; }
+        /// <summary>How far sideways the body is sliding, degrees (right positive).</summary>
+        public float SlideAngle { get; private set; }
+
+        Transform bodyT;
+        Vector3 lastVel, accel;                  // the body's acceleration in its own axes, smoothed
+        float lastBeta, betaRate;
+        Vector3 leanAt, leanRate;                // x pitch, z roll (degrees), y heave (m)
         /// <summary>What the ride has been like since Reset: for tests and tuning.</summary>
         public sealed class Telemetry
         {
@@ -167,10 +201,11 @@ namespace MarsNeedsWater.Earth
         {
             var root = new GameObject("Jeep");
             Jeep j = root.AddComponent<Jeep>();
-            Material mat = EarthWorld.Mat(PaletteTexture(), 0.18f);
+            Material mat = EarthWorld.Mat(PaletteTexture(), 0.3f);
 
             Mesh bodyMesh = BodyMesh(), wheel = WheelMesh();
             Transform body = Part(root.transform, "Body", bodyMesh, mat, Vector3.zero, Quaternion.identity).transform;
+            j.bodyT = body;
             Part(body, "Spare", wheel, mat, new Vector3(0f, 0.16f, -1.71f), Quaternion.Euler(0f, -90f, 0f));
 
             j.spin = new Transform[4];
@@ -208,6 +243,7 @@ namespace MarsNeedsWater.Earth
             if (Time.fixedDeltaTime > 0.01f) Time.fixedDeltaTime = 0.01f;      // 100 steps a second: at 60 m/s the wheels feel the ground every 0.6 m
             j.Body = rb;
             j.Tune();
+            if (Application.isPlaying) root.AddComponent<JeepTrails>().Init(j);      // tyre tracks, dust and what the ground does to the grip
             return j;
         }
 
@@ -251,6 +287,8 @@ namespace MarsNeedsWater.Earth
             transform.SetPositionAndRotation(pos, r);
             for (int i = 0; i < 4; i++) { length[i] = shown[i] = StaticLen; rateF[i] = 0f; contact[i] = false; spinRate[i] = 0f; }
             steerNow = 0f; Grounded = 0; Afloat = false;
+            Drift = 0f; SlideAngle = 0f; lastBeta = betaRate = 0f; lastVel = accel = Vector3.zero;
+            for (int i = 0; i < 4; i++) WheelSlide[i] = WheelRoll[i] = WheelSpin[i] = 0f;
         }
 
         /// <summary>Lets it go: physics from here on.</summary>
@@ -313,8 +351,29 @@ namespace MarsNeedsWater.Earth
             // a single bump may only throw the body up so hard while the wheels are down
             float rise = rb.linearVelocity.y - lastVy;
             if (lastOn > 0 && rise > BumpKick * dt) rb.linearVelocity -= Vector3.up * (rise - BumpKick * dt) * 0.8f;
-            float lockDeg = WheelLock * Mathf.Lerp(1f, HighSpeedLock, Mathf.Clamp01(Mathf.Abs(fwdSpeed) / Mathf.Max(TopSpeed, 1f)));
+
+            // the body's own acceleration (for the lean of the body) and how far sideways it is sliding
+            accel = Vector3.Lerp(accel, transform.InverseTransformDirection((rb.linearVelocity - lastVel) / dt), 1f - Mathf.Exp(-10f * dt));
+            lastVel = rb.linearVelocity;
+            Vector3 lv = transform.InverseTransformDirection(rb.linearVelocity);
+            float flat = Mathf.Sqrt(lv.x * lv.x + lv.z * lv.z);
+            float beta = flat > 3f ? Mathf.Atan2(lv.x, Mathf.Abs(lv.z)) : 0f;
+            SlideAngle = beta * Mathf.Rad2Deg;
+            betaRate = Mathf.Lerp(betaRate, (beta - lastBeta) / dt, 0.25f);
+            lastBeta = beta;
+
+            // drifting: begun with the handbrake and some steering, or by sliding wide enough; it lasts while the jeep is
+            // still well sideways, and ends quickly once it has straightened
+            float loose = (SurfLoose[2] + SurfLoose[3]) * 0.5f;
+            bool start = flat > 6f && lv.z > 0f && lastOn >= 2 && ((Handbraking && Mathf.Abs(Steer) > 0.1f) || Mathf.Abs(SlideAngle) > DriftStart * Mathf.Lerp(1f, 0.85f, loose));
+            if (start) Drift = Mathf.MoveTowards(Drift, 1f, 5f * dt);
+            else Drift = Mathf.MoveTowards(Drift, 0f, (Mathf.Abs(SlideAngle) < 7f || flat < 4f ? 3f : 0.5f) * dt);
+
+            float lockShare = Mathf.Lerp(1f, HighSpeedLock, Mathf.Clamp01(Mathf.Abs(fwdSpeed) / Mathf.Max(TopSpeed, 1f)));
+            float lockDeg = WheelLock * Mathf.Lerp(lockShare, Mathf.Max(lockShare, DriftLock), Drift);
             float delta = steerNow * lockDeg * Mathf.Deg2Rad;
+            // in a drift the front wheels point where the jeep is going (opposite lock), and a little further into the corner
+            if (Drift > 0.01f) delta = Mathf.Lerp(delta, Mathf.Clamp(beta + steerNow * DriftBite * Mathf.Deg2Rad, -0.8f, 0.8f), Drift);
             angle[0] = angle[1] = angle[2] = angle[3] = 0f;
             if (Mathf.Abs(delta) > 1e-4f)
             {
@@ -341,7 +400,9 @@ namespace MarsNeedsWater.Earth
                 float rate = rateF[i];
                 length[i] = len;
                 contact[i] = hit;
-                if (!hit) { rateF[i] = 0f; squash[i] = LastLoad[i] = LastPush[i] = LastSide[i] = 0f; spinRate[i] *= Mathf.Exp(-0.4f * dt); if (Throttle != 0f) spinRate[i] = Mathf.MoveTowards(spinRate[i], Throttle * top / TyreR, 30f * dt); continue; }
+                WheelOnTerrain[i] = hit && lastCollider != null && lastCollider.name == "Ground";
+                if (hit) { WheelPoint[i] = point; WheelNormal[i] = normal; }
+                if (!hit) { rateF[i] = 0f; squash[i] = LastLoad[i] = LastPush[i] = LastSide[i] = 0f; WheelSlide[i] = WheelRoll[i] = WheelSpin[i] = 0f; spinRate[i] *= Mathf.Exp(-0.4f * dt); if (Throttle != 0f) spinRate[i] = Mathf.MoveTowards(spinRate[i], Throttle * top / TyreR, 30f * dt); continue; }
                 on++;
                 groundUp += normal;
                 if (Ride.Steps % 10 == 0) Ride.Count(Ride.Rode, lastCollider);
@@ -364,11 +425,17 @@ namespace MarsNeedsWater.Earth
                 Vector3 pv = rb.GetPointVelocity(point);
                 float vl = Vector3.Dot(pv, along), vs = Vector3.Dot(pv, side);
                 bool rear = i >= 2, locked = Handbraking && rear;
-                float mu = Mathf.Max(Grip, 0f), maxF = mu * fz;
+                float looseHere = Mathf.Clamp01(SurfLoose[i]);
+                float mu = Mathf.Max(Grip * SurfGrip[i], 0f), maxF = mu * fz;
+                float slideGrip = SlideGrip * Mathf.Lerp(1f, 0.85f, looseHere);
+                // the rear tyres let go a little in a drift, and under power with the wheel turned on loose ground
+                float rearShare = 1f;
+                if (rear && !locked)
+                    rearShare = Mathf.Lerp(1f, DriftRearGrip, Drift) * (1f - PowerSlide * looseHere * Mathf.Clamp01(Throttle) * Mathf.Abs(steerNow) * Mathf.Clamp01(flat / 8f));
 
                 // sideways: grip builds with slip angle up to a peak, then fades a little (never more than it takes to stop the slide)
                 float slip = Mathf.Atan2(vs, Mathf.Max(Mathf.Abs(vl), 0.5f));
-                float fy = -Mathf.Sign(slip) * maxF * (locked ? HandbrakeRearGrip : 1f) * Curve(Mathf.Abs(slip));
+                float fy = -Mathf.Sign(slip) * maxF * (locked ? HandbrakeRearGrip : rearShare) * Curve(Mathf.Abs(slip));
                 float stopY = share * Mathf.Abs(vs) / dt;
                 fy = Mathf.Clamp(fy, -stopY, stopY);
                 if (pv.sqrMagnitude < 1f) fy -= Mathf.Clamp(Vector3.Dot(gv, side) * share, -maxF, maxF);    // parked on a side slope: the tyres hold
@@ -388,21 +455,26 @@ namespace MarsNeedsWater.Earth
                     if (Mathf.Abs(vl) < 0.5f) fx -= Mathf.Clamp(Vector3.Dot(gv, along) * share, -fb, fb);   // holding still on a hill
                 }
                 fx -= vl * RollingResistance;
+                // soft ground holds the wheels back, more the faster they plough through it
+                if (SurfDrag[i] > 0f) fx -= Mathf.Sign(vl) * Mathf.Min(SurfDrag[i] * share * (1f + 0.08f * Mathf.Abs(vl)), stopX);
 
                 // a tyre can only push so hard in all directions together. Cornering grip comes first (traction control and
                 // anti-lock brakes), except for wheels locked by the handbrake, which simply slide.
                 Vector2 f2 = new Vector2(fx, fy);
-                if (locked) { if (f2.magnitude > maxF) f2 = f2.normalized * maxF * SlideGrip; }
+                float spinning = 0f;
+                if (locked) { if (f2.magnitude > maxF) f2 = f2.normalized * maxF * slideGrip; spinning = Mathf.Clamp01(Mathf.Abs(vl) / 3f); }
                 else
                 {
-                    if (Mathf.Abs(f2.y) > maxF) f2.y = Mathf.Sign(f2.y) * maxF * SlideGrip;
+                    if (Mathf.Abs(f2.y) > maxF) f2.y = Mathf.Sign(f2.y) * maxF * slideGrip;
                     float room = Mathf.Sqrt(Mathf.Max(maxF * maxF - f2.y * f2.y, 0.06f * maxF * maxF));
+                    if (Throttle != 0f && !braking && Mathf.Abs(f2.x) > room) spinning = Mathf.Clamp01((Mathf.Abs(f2.x) - room) / Mathf.Max(share * 2f, 1f));
                     f2.x = Mathf.Clamp(f2.x, -room, room);
                 }
+                WheelSlide[i] = vs; WheelRoll[i] = vl; WheelSpin[i] = Mathf.Lerp(WheelSpin[i], spinning, 0.2f);
                 rb.AddForceAtPosition(along * f2.x + side * f2.y, point);
                 LastLoad[i] = fz; LastPush[i] = f2.x; LastSide[i] = f2.y;
                 if (len < minLen) Ride.BottomOuts++;
-                spinRate[i] = locked ? 0f : vl / TyreR;
+                spinRate[i] = locked ? 0f : (vl + Mathf.Sign(Throttle) * WheelSpin[i] * 6f) / TyreR;     // a wheel that has broken loose turns faster than the ground passes
             }
 
             // anti-roll bars: a squashed wheel lifts its side and pulls the other side down
@@ -430,7 +502,7 @@ namespace MarsNeedsWater.Earth
 
             Vector3 v = rb.linearVelocity;
             rb.AddForce(-v * v.magnitude * AirDrag);
-            Assist(on, groundUp, fwdSpeed, delta);
+            Assist(on, groundUp, fwdSpeed, delta, beta);
 
             Swim(dt, fwdSpeed);
             KeepAboveGround();
@@ -439,7 +511,7 @@ namespace MarsNeedsWater.Earth
         void OnCollisionEnter(Collision c) { if (c.relativeVelocity.magnitude > 2f) { Ride.BodyHits++; Ride.Count(Ride.Hit, c.collider); } }
 
         /// <summary>Driving aids: stability control, roll assist, down-force, and levelling the roll in the air.</summary>
-        void Assist(int on, Vector3 groundUp, float fwdSpeed, float delta)
+        void Assist(int on, Vector3 groundUp, float fwdSpeed, float delta, float beta)
         {
             Rigidbody rb = Body;
             Vector3 up = transform.up, fwd = transform.forward, w = rb.angularVelocity;
@@ -447,6 +519,7 @@ namespace MarsNeedsWater.Earth
             {
                 float roll = Vector3.Dot(transform.right, Vector3.up);          // right side up is positive
                 rb.AddTorque(-fwd * (roll * AirLevel + Vector3.Dot(w, fwd) * 0.5f), ForceMode.Acceleration);
+                if (!Afloat) rb.AddTorque(Vector3.up * Mathf.Clamp(Steer, -1f, 1f) * AirSteer, ForceMode.Acceleration);
                 return;
             }
             float v = rb.linearVelocity.magnitude;
@@ -456,10 +529,21 @@ namespace MarsNeedsWater.Earth
             // stability: turn at the rate the front wheels ask for (no more than the tyres can hold), not spin past it
             if (on >= 3 && !Handbraking && Mathf.Abs(fwdSpeed) > 3f)
             {
-                float want = fwdSpeed * Mathf.Tan(delta) / (FrontZ - RearZ), most = Grip * 9.81f / Mathf.Abs(fwdSpeed);
+                float grip = Grip * (SurfGrip[0] + SurfGrip[1] + SurfGrip[2] + SurfGrip[3]) * 0.25f;
+                float want = fwdSpeed * Mathf.Tan(delta) / (FrontZ - RearZ), most = grip * 9.81f / Mathf.Abs(fwdSpeed);
                 want = Mathf.Clamp(want, -most, most);
                 float err = want - Vector3.Dot(w, up);
-                rb.AddTorque(up * err * StabilityAssist * 8f, ForceMode.Acceleration);
+                rb.AddTorque(up * err * StabilityAssist * 8f * (1f - 0.9f * Drift), ForceMode.Acceleration);
+            }
+
+            // in a drift: the steering sets how far sideways it slides, and it is held there rather than left to spin round
+            if (on >= 2 && Drift > 0.01f)
+            {
+                // steering right swings the nose right, so the body slides to the left of where it points (beta < 0).
+                // Sliding further right than wanted means the nose is too far left: turn it right.
+                float wanted = -Mathf.Clamp(Steer, -1f, 1f) * DriftAngle * Mathf.Deg2Rad;
+                float yaw = Mathf.Clamp((beta - wanted) * DriftHold + betaRate * DriftHold * 0.35f, -8f, 8f);
+                rb.AddTorque(up * yaw * Drift, ForceMode.Acceleration);
             }
 
             // roll assist: past a few degrees of lean against the ground, push it back
@@ -580,6 +664,35 @@ namespace MarsNeedsWater.Earth
                 spinAt[i] = Mathf.Repeat(spinAt[i] + spinRate[i] * Mathf.Rad2Deg * dt, 360f);
                 spin[i].localRotation = Quaternion.Euler(spinAt[i], 0f, 0f);
             }
+            LeanBody(dt);
+        }
+
+        /// <summary>
+        /// The body rocks on its springs more than the physics alone would show: out of corners, back under power, onto
+        /// its nose under the brakes, down on a landing, with a little wobble after. Looks only; the wheels stay put.
+        /// </summary>
+        void LeanBody(float dt)
+        {
+            if (bodyT == null) return;
+            bool live = Body != null && !Body.isKinematic && Grounded > 0 && BodyLean > 0f;
+            Vector3 want = Vector3.zero;
+            if (live)
+            {
+                want.x = Mathf.Clamp(-accel.z * BodyLean, -5f, 5f);                 // positive pitches the nose down
+                want.z = Mathf.Clamp(accel.x * BodyLean * 1.2f, -7f, 7f);           // positive leans to the left
+                want.y = Mathf.Clamp(-accel.y * 0.004f, -0.07f, 0.05f);
+            }
+            float w = Mathf.Max(BodySpring, 1f);
+            for (float left = Mathf.Min(dt, 0.1f); left > 1e-5f; left -= 0.01f)   // small steps keep the spring steady at any frame rate
+            {
+                float h = Mathf.Min(left, 0.01f);
+                leanRate += ((want - leanAt) * w * w - leanRate * 2f * BodyDamping * w) * h;
+                leanAt += leanRate * h;
+            }
+            Quaternion r = Quaternion.Euler(leanAt.x, 0f, leanAt.z);
+            Vector3 pivot = new Vector3(0f, AxleY, 0f);                             // it rocks about the axles, not its middle
+            bodyT.localRotation = r;
+            bodyT.localPosition = pivot - r * pivot + new Vector3(0f, leanAt.y, 0f);
         }
 
         // ------------------------------------------------------------ palette
@@ -589,15 +702,10 @@ namespace MarsNeedsWater.Earth
             var t = new Texture2D(Palette.Length, Variants, TextureFormat.RGBA32, false)
                 { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "JeepPalette" };
             var px = new Color32[Palette.Length * Variants];
-            var rng = new System.Random(4417);
             for (int v = 0; v < Variants; v++)
                 for (int c = 0; c < Palette.Length; c++)
                 {
-                    // a little lighter or darker, a little warmer or cooler: dust, sun and wear
-                    float k = 1f + ((float)rng.NextDouble() - 0.5f) * 0.09f;
-                    float warm = ((float)rng.NextDouble() - 0.5f) * 0.025f;
-                    Color b = Palette[c];
-                    px[v * Palette.Length + c] = new Color(Mathf.Clamp01(b.r * k + warm), Mathf.Clamp01(b.g * k), Mathf.Clamp01(b.b * k - warm), 1f);
+                    px[v * Palette.Length + c] = Palette[c];
                 }
             t.SetPixels32(px);
             t.Apply(false, true);
@@ -606,168 +714,139 @@ namespace MarsNeedsWater.Earth
 
         // ------------------------------------------------------------ body
 
+        // Everything is made of soft shapes with smooth shading: boxes with rounded edges, bars swept along curves,
+        // shapes turned on a lathe. One clean colour per part.
         static Mesh BodyMesh()
         {
             var k = new Kit();
-            float top = 0.42f;   // the tub's top edge
+            const float top = 0.45f;   // the tub's top edge
 
-            // chassis: frame rails, axles and differentials, side steps
+            // chassis: frame rails, axles, differentials, dampers, side steps
             for (int s = -1; s <= 1; s += 2)
             {
-                k.Box(new Vector3(s * 0.43f, -0.22f, 0.02f), new Vector3(0.1f, 0.16f, 3.2f), DarkSteel);
-                k.Box(new Vector3(s * 0.69f, -0.19f, -0.02f), new Vector3(0.18f, 0.06f, 1.0f), DarkSteel);
+                k.Round(new Vector3(s * 0.40f, -0.24f, 0.02f), new Vector3(0.12f, 0.14f, 3.0f), 0.04f, DarkSteel, 2);
+                k.Round(new Vector3(s * 0.74f, -0.21f, 0.03f), new Vector3(0.20f, 0.07f, 0.92f), 0.03f, DarkSteel, 2);
             }
             foreach (float z in new[] { FrontZ, RearZ })
             {
-                k.Tube(new Vector3(-Track + 0.12f, AxleY, z), new Vector3(Track - 0.12f, AxleY, z), 0.055f, 8, DarkSteel);
-                k.Box(new Vector3(0.08f, AxleY, z), new Vector3(0.24f, 0.2f, 0.22f), DarkSteel);
-                for (int s = -1; s <= 1; s += 2)   // springs up to the frame
-                    k.Tube(new Vector3(s * 0.43f, AxleY, z), new Vector3(s * 0.43f, -0.3f, z), 0.045f, 8, Steel);
+                k.Tube(new Vector3(-Track + 0.12f, AxleY, z), new Vector3(Track - 0.12f, AxleY, z), 0.055f, 12, DarkSteel);
+                k.Ball(new Vector3(0.08f, AxleY, z), new Vector3(0.15f, 0.13f, 0.14f), DarkSteel);
+                for (int s = -1; s <= 1; s += 2)
+                    k.Tube(new Vector3(s * 0.45f, AxleY, z), new Vector3(s * 0.43f, -0.22f, z), 0.045f, 10, Steel);
             }
 
-            // the tub: an open box with a floor, a dip in the sides for the doorless doorways
-            k.Box(new Vector3(0f, -0.09f, -0.5f), new Vector3(1.24f, 0.06f, 2.0f), Floor);
+            // the tub: an open cockpit with thick rounded walls, low at the doorways
+            k.Round(new Vector3(0f, -0.10f, -0.5f), new Vector3(1.22f, 0.08f, 2.0f), 0.03f, Floor, 2);
             for (int s = -1; s <= 1; s += 2)
             {
-                k.Box(new Vector3(s * 0.595f, (top - 0.12f) * 0.5f, -0.95f), new Vector3(0.05f, top + 0.12f, 1.1f), Paint);
-                k.Box(new Vector3(s * 0.595f, (0.18f - 0.12f) * 0.5f, 0.05f), new Vector3(0.05f, 0.30f, 0.9f), Paint);
-                k.Box(new Vector3(s * 0.605f, top + 0.012f, -0.95f), new Vector3(0.08f, 0.025f, 1.12f), PaintLight);   // rolled top edge
-                k.Box(new Vector3(s * 0.605f, 0.192f, 0.05f), new Vector3(0.08f, 0.025f, 0.9f), PaintLight);
+                k.Round(new Vector3(s * 0.60f, 0.15f, -1.02f), new Vector3(0.15f, 0.60f, 1.08f), 0.065f, Paint);
+                k.Round(new Vector3(s * 0.60f, 0.02f, 0.0f), new Vector3(0.15f, 0.36f, 1.1f), 0.065f, Paint);
             }
-            k.Box(new Vector3(0f, (top - 0.12f) * 0.5f, -1.475f), new Vector3(1.24f, top + 0.12f, 0.05f), Paint);
-            k.Box(new Vector3(0f, (top - 0.12f) * 0.5f, 0.475f), new Vector3(1.24f, top + 0.12f, 0.05f), Paint);     // firewall
-            k.Box(new Vector3(0f, top + 0.012f, -1.475f), new Vector3(1.26f, 0.025f, 0.08f), PaintLight);
+            k.Round(new Vector3(0f, 0.15f, -1.50f), new Vector3(1.35f, 0.60f, 0.15f), 0.065f, Paint);
+            k.Round(new Vector3(0f, 0.17f, 0.50f), new Vector3(1.35f, 0.62f, 0.17f), 0.07f, Paint);       // the cowl under the windscreen
 
-            // bonnet: engine box, a slightly wider lid, latches
-            k.Box(new Vector3(0f, 0.13f, 1.0f), new Vector3(1.16f, 0.5f, 1.0f), Paint);
-            k.Box(new Vector3(0f, 0.40f, 0.99f), new Vector3(1.2f, 0.04f, 1.04f), PaintLight);
-            k.Box(new Vector3(0f, 0.423f, 0.99f), new Vector3(0.5f, 0.012f, 0.9f), Paint);   // a low ridge down the middle
+            // bonnet: one big soft block, narrower and lower towards the nose
+            k.Round(new Vector3(0f, 0.17f, 1.03f), new Vector3(1.27f, 0.60f, 1.04f), 0.16f, Paint, 5, 0.10f, 0.10f);
             for (int s = -1; s <= 1; s += 2)
-                k.Box(new Vector3(s * 0.6f, 0.33f, 1.32f), new Vector3(0.03f, 0.09f, 0.05f), DarkSteel);
+                k.Round(new Vector3(s * 0.25f, 0.455f, 0.82f), new Vector3(0.20f, 0.03f, 0.34f), 0.014f, Flare, 2);   // air vents
 
-            // front: a dark panel with horizontal bars, round lamps either side, indicators below
-            k.Box(new Vector3(0f, 0.14f, 1.505f), new Vector3(0.74f, 0.4f, 0.03f), Grille);
-            for (int b = 0; b < 5; b++)
-                k.Box(new Vector3(0f, -0.02f + b * 0.08f, 1.53f), new Vector3(0.74f, 0.025f, 0.025f), Paint);
+            // nose: a dark panel with three bars, round lamps in bright rings, indicators beneath
+            k.Round(new Vector3(0f, 0.15f, 1.535f), new Vector3(0.56f, 0.30f, 0.07f), 0.035f, Grille, 2);
+            for (int i = 0; i < 3; i++)
+                k.Round(new Vector3(0f, 0.07f + i * 0.08f, 1.572f), new Vector3(0.46f, 0.036f, 0.03f), 0.014f, Steel, 2);
             for (int s = -1; s <= 1; s += 2)
             {
-                k.Box(new Vector3(s * 0.38f, 0.14f, 1.53f), new Vector3(0.03f, 0.4f, 0.03f), Paint);
-                k.Tube(new Vector3(s * 0.48f, 0.22f, 1.49f), new Vector3(s * 0.48f, 0.22f, 1.57f), 0.088f, 16, Steel);
-                k.Tube(new Vector3(s * 0.48f, 0.22f, 1.57f), new Vector3(s * 0.48f, 0.22f, 1.578f), 0.07f, 16, Lamp);
-                k.Box(new Vector3(s * 0.48f, 0.05f, 1.52f), new Vector3(0.08f, 0.045f, 0.03f), Amber);
+                Vector3 lamp = new Vector3(s * 0.415f, 0.2f, 1.5f);
+                k.Lathe(new[] { new Vector2(0.0f, 0.118f), new Vector2(0.06f, 0.118f), new Vector2(0.075f, 0.105f), new Vector2(0.075f, 0.088f) }, 20, Steel, lamp, Vector3.forward);
+                k.Ball(lamp + new Vector3(0f, 0f, 0.068f), new Vector3(0.092f, 0.092f, 0.04f), Lamp);
+                k.Round(new Vector3(s * 0.415f, 0.03f, 1.545f), new Vector3(0.13f, 0.05f, 0.05f), 0.022f, Amber, 2);
             }
 
-            // bumpers, tow points
-            k.Box(new Vector3(0f, -0.2f, 1.64f), new Vector3(1.86f, 0.16f, 0.16f), DarkSteel);
+            // bumpers and tow hooks
+            k.Round(new Vector3(0f, -0.20f, 1.66f), new Vector3(1.82f, 0.17f, 0.18f), 0.075f, DarkSteel);
+            k.Round(new Vector3(0f, -0.20f, -1.61f), new Vector3(1.58f, 0.17f, 0.16f), 0.07f, DarkSteel);
             for (int s = -1; s <= 1; s += 2)
             {
-                k.Box(new Vector3(s * 0.43f, -0.2f, 1.555f), new Vector3(0.1f, 0.1f, 0.05f), DarkSteel);
-                k.Box(new Vector3(s * 0.3f, -0.2f, 1.74f), new Vector3(0.04f, 0.08f, 0.06f), Tail);
+                k.Round(new Vector3(s * 0.40f, -0.2f, 1.56f), new Vector3(0.1f, 0.1f, 0.14f), 0.03f, DarkSteel, 2);
+                k.Round(new Vector3(s * 0.30f, -0.2f, 1.76f), new Vector3(0.065f, 0.095f, 0.07f), 0.028f, Tail, 2);
             }
-            k.Box(new Vector3(0f, -0.2f, -1.56f), new Vector3(1.5f, 0.16f, 0.14f), DarkSteel);
 
-            // rear: tail lights and the spare wheel's bracket
+            // rear: tail lights and the spare wheel's mount
             for (int s = -1; s <= 1; s += 2)
             {
-                k.Box(new Vector3(s * 0.48f, 0.27f, -1.505f), new Vector3(0.09f, 0.11f, 0.015f), Tail);
-                k.Box(new Vector3(s * 0.48f, 0.18f, -1.505f), new Vector3(0.09f, 0.045f, 0.015f), Amber);
+                k.Round(new Vector3(s * 0.50f, 0.27f, -1.575f), new Vector3(0.13f, 0.15f, 0.04f), 0.03f, Tail, 2);
+                k.Round(new Vector3(s * 0.50f, 0.14f, -1.575f), new Vector3(0.13f, 0.06f, 0.04f), 0.02f, Amber, 2);
             }
-            k.Box(new Vector3(0f, 0.16f, -1.53f), new Vector3(0.3f, 0.08f, 0.06f), DarkSteel);
-            k.Tube(new Vector3(0f, 0.16f, -1.5f), new Vector3(0f, 0.16f, -1.56f), 0.05f, 10, DarkSteel);
+            k.Tube(new Vector3(0f, 0.16f, -1.5f), new Vector3(0f, 0.16f, -1.62f), 0.075f, 12, DarkSteel);
 
-            // flared arches over each wheel: painted arch, black lip on its outer edge
+            // wide mudguards curving over each wheel
+            Kit.P[] guard = Kit.RoundRect(0.40f, 0.06f, 0.028f, 3);
             foreach (float z in new[] { FrontZ, RearZ })
                 for (int s = -1; s <= 1; s += 2)
                 {
-                    Arch(k, s, z, 0.53f, 0.585f, 1.0f, 0.035f, Paint);
-                    Arch(k, s, z, 0.555f, 0.97f, 1.03f, 0.05f, Flare);
+                    var path = new List<Vector3>();
+                    for (float a = 14f; a <= 166.01f; a += 9.5f)
+                        path.Add(new Vector3(s * 0.79f, AxleY + Mathf.Sin(a * Mathf.Deg2Rad) * 0.55f, z + Mathf.Cos(a * Mathf.Deg2Rad) * 0.55f));
+                    k.Sweep(path, Vector3.right, guard, Flare, false);
                 }
 
-            // windscreen: a flat frame that would fold forward onto the bonnet, leaning back a little
-            k.Push(new Vector3(0f, top, 0.5f), Quaternion.Euler(-12f, 0f, 0f));
+            // windscreen: a frame of round bar with soft corners, leaning back a little, and mirrors on stalks
+            k.Push(new Vector3(0f, top, 0.5f), Quaternion.Euler(-14f, 0f, 0f));
+            k.Sweep(Kit.Bend(new[] { new Vector3(-0.6f, 0.04f, 0f), new Vector3(-0.6f, 0.56f, 0f), new Vector3(0.6f, 0.56f, 0f), new Vector3(0.6f, 0.04f, 0f) }, 0.1f, true), Vector3.forward, Kit.Circle(0.036f, 10), Paint, true);
+            k.Round(new Vector3(0f, 0.30f, 0f), new Vector3(1.17f, 0.50f, 0.018f), 0.008f, Glass, 1);
             for (int s = -1; s <= 1; s += 2)
             {
-                k.Box(new Vector3(s * 0.6f, 0.25f, 0f), new Vector3(0.045f, 0.5f, 0.045f), Paint);
-                k.Box(new Vector3(s * 0.45f, 0.0f, 0.02f), new Vector3(0.06f, 0.04f, 0.05f), DarkSteel);   // hinges
+                k.Tube(new Vector3(s * 0.62f, 0.22f, 0.02f), new Vector3(s * 0.77f, 0.27f, 0.03f), 0.016f, 8, Tube);
+                k.Ball(new Vector3(s * 0.80f, 0.29f, 0.03f), new Vector3(0.04f, 0.075f, 0.1f), Tube);
             }
-            k.Box(new Vector3(-0.70f, 0.08f, 0.03f), new Vector3(0.14f, 0.02f, 0.02f), DarkSteel);   // a mirror on the driver's side
-            k.Box(new Vector3(-0.79f, 0.12f, 0.03f), new Vector3(0.05f, 0.12f, 0.1f), Tube);
-            k.Box(new Vector3(0f, 0.025f, 0f), new Vector3(1.24f, 0.05f, 0.05f), Paint);
-            k.Box(new Vector3(0f, 0.48f, 0f), new Vector3(1.24f, 0.045f, 0.05f), Paint);
-            k.Box(new Vector3(0f, 0.25f, 0f), new Vector3(1.15f, 0.42f, 0.012f), Glass);
             k.Pop();
 
             // dash and steering wheel (driver on the left)
-            k.Box(new Vector3(0f, 0.31f, 0.4f), new Vector3(1.14f, 0.16f, 0.12f), Seat);
-            Vector3 col0 = new Vector3(-0.3f, 0.26f, 0.42f), col1 = new Vector3(-0.3f, 0.42f, 0.2f);
-            k.Tube(col0, col1, 0.022f, 6, Tube);
+            k.Round(new Vector3(0f, 0.34f, 0.39f), new Vector3(1.12f, 0.17f, 0.15f), 0.06f, Tube);
+            Vector3 col0 = new Vector3(-0.3f, 0.28f, 0.42f), col1 = new Vector3(-0.3f, 0.45f, 0.2f);
+            k.Tube(col0, col1, 0.024f, 8, Tube);
             k.Push(col1, Quaternion.LookRotation(col1 - col0));
-            for (int i = 0; i < 14; i++)
-            {
-                float a0 = i * Mathf.PI * 2f / 14f, a1 = (i + 1) * Mathf.PI * 2f / 14f;
-                k.Tube(new Vector3(Mathf.Cos(a0), Mathf.Sin(a0), 0f) * 0.15f, new Vector3(Mathf.Cos(a1), Mathf.Sin(a1), 0f) * 0.15f, 0.018f, 6, Tube);
-            }
-            k.Tube(new Vector3(-0.15f, 0f, 0f), new Vector3(0.15f, 0f, 0f), 0.015f, 6, Tube);
+            var rim = new List<Vector3>();
+            for (int i = 0; i < 20; i++) { float a = i * Mathf.PI * 2f / 20f; rim.Add(new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0f) * 0.155f); }
+            k.Sweep(rim, Vector3.forward, Kit.Circle(0.022f, 8), Tube, true);
+            k.Tube(new Vector3(-0.15f, 0f, 0f), new Vector3(0.15f, 0f, 0f), 0.016f, 8, Tube);
+            k.Ball(Vector3.zero, new Vector3(0.05f, 0.05f, 0.03f), Paint);
             k.Pop();
 
             // seats: two buckets in front, a bench behind
             for (int s = -1; s <= 1; s += 2)
-                Chair(k, new Vector3(s * 0.3f, -0.06f, -0.16f), 0.42f);
-            Chair(k, new Vector3(0f, -0.06f, -1.12f), 1.05f);
+                Chair(k, new Vector3(s * 0.3f, -0.06f, -0.16f), 0.44f, true);
+            Chair(k, new Vector3(0f, -0.06f, -1.08f), 1.04f, false);
 
-            // roll bar: a hoop behind the front seats, stays back to the tail, bars forward to the windscreen
-            const float r = 0.034f;
-            float hz = -0.5f, hy = 1.12f, hx = 0.55f;
-            Vector3 wsTop = new Vector3(0f, top + 0.48f * Mathf.Cos(12f * Mathf.Deg2Rad), 0.5f - 0.48f * Mathf.Sin(12f * Mathf.Deg2Rad));
+            // roll bar: a hoop with soft corners behind the front seats, stays back to the tail, bars forward to the windscreen
+            const float r = 0.04f;
+            float hz = -0.5f, hy = 1.14f, hx = 0.55f;
+            Vector3 wsTop = new Vector3(0f, top + 0.56f * Mathf.Cos(14f * Mathf.Deg2Rad), 0.5f - 0.56f * Mathf.Sin(14f * Mathf.Deg2Rad));
+            Kit.P[] bar = Kit.Circle(r, 12);
+            k.Sweep(Kit.Bend(new[] { new Vector3(-hx, top - 0.05f, hz), new Vector3(-hx, hy, hz), new Vector3(hx, hy, hz), new Vector3(hx, top - 0.05f, hz) }, 0.16f, false), Vector3.forward, bar, Tube, false);
             for (int s = -1; s <= 1; s += 2)
             {
-                Vector3 foot = new Vector3(s * hx, top, hz), knee = new Vector3(s * hx, hy - 0.09f, hz),
-                        corner = new Vector3(s * (hx - 0.09f), hy, hz);
-                k.Tube(foot, knee, r, 10, Tube);
-                k.Tube(knee, corner, r, 10, Tube);
-                k.Tube(new Vector3(s * hx, hy - 0.06f, hz), new Vector3(s * hx, top, -1.42f), r, 10, Tube);
-                k.Tube(new Vector3(s * hx, hy - 0.05f, hz), new Vector3(s * 0.58f, wsTop.y, wsTop.z), r * 0.9f, 10, Tube);
-                k.Box(new Vector3(s * hx, top + 0.01f, hz), new Vector3(0.1f, 0.02f, 0.1f), DarkSteel);      // base plates
-                k.Box(new Vector3(s * hx, top + 0.01f, -1.42f), new Vector3(0.1f, 0.02f, 0.1f), DarkSteel);
+                k.Sweep(Kit.Bend(new[] { new Vector3(s * hx, top - 0.05f, -1.42f), new Vector3(s * hx, 0.62f, -1.36f), new Vector3(s * hx, hy - 0.1f, hz) }, 0.12f, false), Vector3.right, bar, Tube, false);
+                k.Tube(new Vector3(s * hx, hy - 0.035f, hz), new Vector3(s * 0.585f, wsTop.y - 0.01f, wsTop.z), r * 0.85f, 10, Tube);
             }
-            k.Tube(new Vector3(-(hx - 0.09f), hy, hz), new Vector3(hx - 0.09f, hy, hz), r, 10, Tube);
-            k.Tube(new Vector3(-hx, 0.78f, hz), new Vector3(hx, 0.78f, hz), r * 0.8f, 10, Tube);
+            k.Tube(new Vector3(-hx, 0.80f, hz), new Vector3(hx, 0.80f, hz), r * 0.8f, 10, Tube);
 
             // snorkel: out of the right side of the bonnet, up the windscreen pillar, a forward-facing head on top
-            Vector3 sn0 = new Vector3(0.56f, 0.26f, 0.74f), sn1 = new Vector3(0.68f, 0.26f, 0.62f), sn2 = new Vector3(0.68f, 1.0f, 0.36f);
-            k.Tube(sn0, sn1, 0.045f, 10, Tube);
-            k.Tube(sn1, sn2, 0.045f, 10, Tube);
-            k.Push(sn2, Quaternion.Euler(-12f, 0f, 0f));
-            k.Box(new Vector3(0f, 0.03f, 0.04f), new Vector3(0.11f, 0.1f, 0.2f), Tube);
-            k.Box(new Vector3(0f, 0.03f, 0.145f), new Vector3(0.09f, 0.07f, 0.01f), Grille);
+            k.Sweep(Kit.Bend(new[] { new Vector3(0.55f, 0.27f, 0.80f), new Vector3(0.70f, 0.27f, 0.64f), new Vector3(0.70f, 1.0f, 0.455f) }, 0.07f, false), new Vector3(0.7071f, 0f, 0.7071f), Kit.Circle(0.05f, 10), Tube, false);
+            k.Push(new Vector3(0.70f, 1.0f, 0.455f), Quaternion.Euler(-14f, 0f, 0f));
+            k.Round(new Vector3(0f, 0.04f, 0.05f), new Vector3(0.13f, 0.13f, 0.24f), 0.05f, Tube, 2);
+            k.Round(new Vector3(0f, 0.04f, 0.165f), new Vector3(0.085f, 0.085f, 0.02f), 0.01f, Grille, 1);
             k.Pop();
 
             return k.Finish("Jeep body");
         }
 
-        /// <summary>An arch over a wheel, from front to back, x from x0 to x1 on side s.</summary>
-        static void Arch(Kit k, int s, float z, float radius, float x0, float x1, float thick, int col)
+        static void Chair(Kit k, Vector3 at, float width, bool headrest)
         {
-            const int n = 9;
-            float a0 = 12f * Mathf.Deg2Rad, a1 = 168f * Mathf.Deg2Rad;
-            float xc = s * (x0 + x1) * 0.5f, w = x1 - x0;
-            for (int i = 0; i < n; i++)
-            {
-                float a = Mathf.Lerp(a0, a1, (i + 0.5f) / n);
-                float len = radius * (a1 - a0) / n + 0.01f;
-                Vector3 c = new Vector3(xc, AxleY + Mathf.Sin(a) * (radius + thick * 0.5f), z + Mathf.Cos(a) * (radius + thick * 0.5f));
-                k.Push(c, Quaternion.Euler(90f - a * Mathf.Rad2Deg, 0f, 0f));
-                k.Box(Vector3.zero, new Vector3(w, thick, len), col);
-                k.Pop();
-            }
-        }
-
-        static void Chair(Kit k, Vector3 at, float width)
-        {
-            k.Box(at + new Vector3(0f, 0.04f, 0f), new Vector3(width * 0.8f, 0.08f, 0.3f), DarkSteel);   // frame
-            k.Box(at + new Vector3(0f, 0.13f, 0.02f), new Vector3(width, 0.1f, 0.42f), Seat);            // cushion
-            k.Push(at + new Vector3(0f, 0.16f, -0.18f), Quaternion.Euler(-12f, 0f, 0f));
-            k.Box(new Vector3(0f, 0.25f, 0f), new Vector3(width, 0.5f, 0.1f), Seat);
+            k.Round(at + new Vector3(0f, 0.11f, 0.02f), new Vector3(width, 0.15f, 0.46f), 0.065f, Seat);
+            k.Push(at + new Vector3(0f, 0.15f, -0.19f), Quaternion.Euler(-12f, 0f, 0f));
+            k.Round(new Vector3(0f, 0.26f, 0f), new Vector3(width, 0.54f, 0.14f), 0.065f, Seat);
+            if (headrest) k.Round(new Vector3(0f, 0.60f, 0.0f), new Vector3(0.26f, 0.15f, 0.12f), 0.055f, Seat, 2);
             k.Pop();
         }
 
@@ -777,34 +856,40 @@ namespace MarsNeedsWater.Earth
         static Mesh WheelMesh()
         {
             var k = new Kit();
-            float hw = TyreW * 0.5f, core = TyreR - 0.055f;
-            k.Tube(new Vector3(hw, 0f, 0f), new Vector3(-hw, 0f, 0f), core, 28, Rubber);
-            k.Tube(new Vector3(hw + 0.01f, 0f, 0f), new Vector3(-hw - 0.01f, 0f, 0f), core - 0.06f, 28, Rubber);   // bulging sidewalls
+            float hw = TyreW * 0.5f;
 
-            // tread: two staggered rows of chunky blocks, the outer ends wrapping a little onto the sidewalls
-            const int lugs = 18;
+            // the tyre: a fat rounded ring
+            const float outer = 0.405f, inner = 0.23f;
+            float mid = (outer + inner) * 0.5f, half = (outer - inner) * 0.5f;
+            var section = new Vector2[25];
+            for (int i = 0; i <= 24; i++)
+            {
+                float a = Mathf.PI * 0.5f - i * Mathf.PI * 2f / 24f;       // from the top, towards +x, round and back
+                float c = Mathf.Cos(a), sn = Mathf.Sin(a);
+                section[i] = new Vector2(hw * Mathf.Sign(c) * Mathf.Pow(Mathf.Abs(c), 0.55f), mid + half * Mathf.Sign(sn) * Mathf.Pow(Mathf.Abs(sn), 0.55f));
+            }
+            k.Lathe(section, 32, Rubber, Vector3.zero, Vector3.right);
+
+            // tread: two staggered rows of chunky rounded blocks
+            const int lugs = 13;
             for (int i = 0; i < lugs; i++)
                 for (int row = 0; row < 2; row++)
                 {
                     float a = (i + row * 0.5f) * 360f / lugs;
                     float side = row == 0 ? -1f : 1f;
                     k.Push(Vector3.zero, Quaternion.Euler(a, 0f, 0f));
-                    k.Box(new Vector3(side * (hw * 0.5f + 0.008f), core + 0.03f, 0f), new Vector3(hw + 0.01f, 0.065f, 0.085f), Tread);
-                    k.Box(new Vector3(side * (hw + 0.012f), core - 0.01f, 0f), new Vector3(0.025f, 0.07f, 0.07f), Tread);
-                    k.Box(new Vector3(0f, core + 0.012f, 0.03f * side), new Vector3(0.05f, 0.03f, 0.05f), Tread);   // centre ribs
+                    k.Round(new Vector3(side * 0.082f, outer - 0.012f, 0f), new Vector3(0.15f, 0.075f, 0.105f), 0.026f, Tread, 2);
                     k.Pop();
                 }
 
-            // steel rim, set into the tyre, with a hub and five nuts
-            float face = -hw - 0.012f;
-            k.Tube(new Vector3(face + 0.03f, 0f, 0f), new Vector3(face, 0f, 0f), 0.24f, 24, Rim);
-            k.Tube(new Vector3(face, 0f, 0f), new Vector3(face - 0.006f, 0f, 0f), 0.2f, 24, Steel);
-            k.Tube(new Vector3(face - 0.006f, 0f, 0f), new Vector3(face - 0.05f, 0f, 0f), 0.075f, 12, DarkSteel);
+            // the rim: a soft dish with a painted cap
+            float f = -hw + 0.03f;
+            k.Lathe(new[] { new Vector2(f - 0.035f, 0f), new Vector2(f - 0.035f, 0.07f), new Vector2(f - 0.012f, 0.10f), new Vector2(f + 0.02f, 0.125f), new Vector2(f + 0.02f, 0.185f), new Vector2(f - 0.02f, 0.225f), new Vector2(f - 0.02f, 0.245f), new Vector2(f + 0.03f, 0.25f) }, 28, Rim, Vector3.zero, Vector3.right);
+            k.Ball(new Vector3(f - 0.035f, 0f, 0f), new Vector3(0.03f, 0.06f, 0.06f), Paint);
             for (int i = 0; i < 5; i++)
             {
                 float a = i * Mathf.PI * 2f / 5f;
-                Vector3 c = new Vector3(face - 0.006f, Mathf.Cos(a) * 0.12f, Mathf.Sin(a) * 0.12f);
-                k.Tube(c, c + new Vector3(-0.025f, 0f, 0f), 0.017f, 6, Steel);
+                k.Ball(new Vector3(f + 0.015f, Mathf.Cos(a) * 0.155f, Mathf.Sin(a) * 0.155f), new Vector3(0.018f, 0.022f, 0.022f), Steel);
             }
             return k.Finish("Jeep wheel");
         }
@@ -823,17 +908,215 @@ namespace MarsNeedsWater.Earth
             readonly List<int> t = new List<int>();
             readonly Stack<Matrix4x4> stack = new Stack<Matrix4x4>();
             Matrix4x4 m = Matrix4x4.identity;
-            const float Patch = 0.28f;
+            const float Patch = 100f;
 
             public void Push(Vector3 pos, Quaternion rot) { stack.Push(m); m = m * Matrix4x4.TRS(pos, rot, Vector3.one); }
             public void Pop() { m = stack.Pop(); }
 
-            static Vector2 Cell(int col, Vector3 p)
+            static Vector2 Cell(int col, Vector3 p) { return new Vector2((col + 0.5f) / Palette.Length, 0.5f); }
+
+            /// <summary>A point of a cross-section and the way its surface faces.</summary>
+            public struct P { public Vector2 At, Out; public P(Vector2 at, Vector2 o) { At = at; Out = o; } }
+
+            public static P[] Circle(float radius, int sides)
             {
-                int h = Mathf.FloorToInt(p.x * 73.1f) * 73856093 ^ Mathf.FloorToInt(p.y * 79.3f) * 19349663 ^ Mathf.FloorToInt(p.z * 83.7f) * 83492791;
-                h ^= h >> 13; h *= 0x5bd1e995; h ^= h >> 15;
-                int variant = (h & 0x7fffffff) % Variants;
-                return new Vector2((col + 0.5f) / Palette.Length, (variant + 0.5f) / Variants);
+                var p = new P[sides];
+                for (int i = 0; i < sides; i++) { float a = i * Mathf.PI * 2f / sides; var d = new Vector2(Mathf.Cos(a), Mathf.Sin(a)); p[i] = new P(d * radius, d); }
+                return p;
+            }
+
+            /// <summary>A rectangle w wide and h high with rounded corners.</summary>
+            public static P[] RoundRect(float w, float h, float r, int perCorner)
+            {
+                var p = new List<P>();
+                r = Mathf.Min(r, Mathf.Min(w, h) * 0.499f);
+                for (int c = 0; c < 4; c++)
+                {
+                    var centre = new Vector2((c == 0 || c == 3 ? 1f : -1f) * (w * 0.5f - r), (c < 2 ? 1f : -1f) * (h * 0.5f - r));
+                    for (int i = 0; i <= perCorner; i++)
+                    {
+                        float a = (c + (float)i / perCorner) * Mathf.PI * 0.5f;
+                        var d = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+                        p.Add(new P(centre + d * r, d));
+                    }
+                }
+                return p.ToArray();
+            }
+
+            /// <summary>A line through the points with its corners rounded off.</summary>
+            public static List<Vector3> Bend(Vector3[] pts, float radius, bool closed)
+            {
+                var o = new List<Vector3>();
+                int n = pts.Length;
+                for (int i = 0; i < n; i++)
+                {
+                    if (!closed && (i == 0 || i == n - 1)) { o.Add(pts[i]); continue; }
+                    Vector3 a = pts[(i + n - 1) % n], b = pts[i], c = pts[(i + 1) % n];
+                    float r = Mathf.Min(radius, Mathf.Min((a - b).magnitude, (c - b).magnitude) * 0.45f);
+                    Vector3 p0 = b + (a - b).normalized * r, p1 = b + (c - b).normalized * r;
+                    for (int j = 0; j <= 6; j++)
+                    {
+                        float t = j / 6f;
+                        o.Add(Vector3.Lerp(Vector3.Lerp(p0, b, t), Vector3.Lerp(b, p1, t), t));
+                    }
+                }
+                return o;
+            }
+
+            /// <summary>Rows of points joined into a smooth skin (each row the same length).</summary>
+            void Skin(Vector3[][] pos, Vector3[][] nrm, int col, bool wrap)
+            {
+                int rows = pos.Length, cols = pos[0].Length, k0 = v.Count;
+                Vector2 cell = Cell(col, Vector3.zero);
+                for (int i = 0; i < rows; i++)
+                    for (int j = 0; j < cols; j++) { v.Add(m.MultiplyPoint3x4(pos[i][j])); n.Add(m.MultiplyVector(nrm[i][j]).normalized); uv.Add(cell); }
+                int jn = wrap ? cols : cols - 1;
+                for (int i = 0; i + 1 < rows; i++)
+                    for (int j = 0; j < jn; j++)
+                    {
+                        int a = k0 + i * cols + j, b = k0 + i * cols + (j + 1) % cols, c = k0 + (i + 1) * cols + (j + 1) % cols, d = k0 + (i + 1) * cols + j;
+                        Vector3 face = Vector3.Cross(v[b] - v[a], v[c] - v[a]) + Vector3.Cross(v[c] - v[a], v[d] - v[a]);
+                        if (Vector3.Dot(face, n[a] + n[b] + n[c] + n[d]) >= 0f) { t.Add(a); t.Add(b); t.Add(c); t.Add(a); t.Add(c); t.Add(d); }
+                        else { t.Add(a); t.Add(c); t.Add(b); t.Add(a); t.Add(d); t.Add(c); }
+                    }
+            }
+
+            /// <summary>
+            /// A box with rounded edges and corners, smoothly shaded. taperX / taperY make it narrower / lower towards
+            /// its front (+z) end.
+            /// </summary>
+            public void Round(Vector3 c, Vector3 size, float r, int col, int steps = 3, float taperX = 0f, float taperY = 0f)
+            {
+                Vector3 h = size * 0.5f;
+                r = Mathf.Min(r, Mathf.Min(h.x, Mathf.Min(h.y, h.z)) * 0.999f);
+                Vector3 core = h - Vector3.one * r;
+                for (int axis = 0; axis < 3; axis++)
+                {
+                    int ua = (axis + 1) % 3, va = (axis + 2) % 3;
+                    float[] us = Steps(h[ua], r, steps), vs = Steps(h[va], r, steps);
+                    for (int sign = -1; sign <= 1; sign += 2)
+                    {
+                        var pos = new Vector3[us.Length][]; var nrm = new Vector3[us.Length][];
+                        for (int i = 0; i < us.Length; i++)
+                        {
+                            pos[i] = new Vector3[vs.Length]; nrm[i] = new Vector3[vs.Length];
+                            for (int j = 0; j < vs.Length; j++)
+                            {
+                                Vector3 q = Vector3.zero; q[axis] = sign * h[axis]; q[ua] = us[i]; q[va] = vs[j];
+                                Vector3 inside = new Vector3(Mathf.Clamp(q.x, -core.x, core.x), Mathf.Clamp(q.y, -core.y, core.y), Mathf.Clamp(q.z, -core.z, core.z));
+                                Vector3 d = (q - inside).normalized;
+                                Vector3 p = inside + d * r;
+                                float f = h.z > 1e-5f ? p.z / h.z * 0.5f + 0.5f : 0f;
+                                p.x *= 1f - taperX * f;
+                                p.y = -h.y + (p.y + h.y) * (1f - taperY * f);
+                                pos[i][j] = c + p; nrm[i][j] = d;
+                            }
+                        }
+                        Skin(pos, nrm, col, false);
+                    }
+                }
+            }
+
+            // where to cut a side of a rounded box: evenly round each rounded edge, once across the flat between
+            static float[] Steps(float h, float r, int k)
+            {
+                var a = new float[2 * (k + 1)];
+                for (int i = 0; i <= k; i++)
+                {
+                    float t = Mathf.Tan(Mathf.PI * 0.25f * (k - i) / k);
+                    a[i] = -(h - r) - r * t;
+                    a[2 * k + 1 - i] = (h - r) + r * t;
+                }
+                return a;
+            }
+
+            /// <summary>A cross-section carried along a path. 'side' is the way the section's x points (kept square to the path).</summary>
+            public void Sweep(List<Vector3> path, Vector3 side, P[] section, int col, bool closed)
+            {
+                int np = path.Count, rows = closed ? np + 1 : np;
+                var pos = new Vector3[rows][]; var nrm = new Vector3[rows][];
+                for (int i = 0; i < rows; i++)
+                {
+                    int at = i % np;
+                    Vector3 prev = path[closed ? (at + np - 1) % np : Mathf.Max(at - 1, 0)], next = path[closed ? (at + 1) % np : Mathf.Min(at + 1, np - 1)];
+                    Vector3 tan = (next - prev).normalized;
+                    Vector3 sx = (side - tan * Vector3.Dot(side, tan)).normalized, sy = Vector3.Cross(tan, sx);
+                    pos[i] = new Vector3[section.Length]; nrm[i] = new Vector3[section.Length];
+                    for (int j = 0; j < section.Length; j++)
+                    {
+                        pos[i][j] = path[at] + sx * section[j].At.x + sy * section[j].At.y;
+                        nrm[i][j] = (sx * section[j].Out.x + sy * section[j].Out.y).normalized;
+                    }
+                }
+                Skin(pos, nrm, col, true);
+                if (closed) return;
+                for (int end = 0; end < 2; end++)       // flat ends
+                {
+                    int i = end == 0 ? 0 : rows - 1;
+                    Vector3 centre = path[i], outward = (end == 0 ? path[0] - path[1] : path[np - 1] - path[np - 2]).normalized;
+                    Fan(centre, pos[i], outward, col);
+                }
+            }
+
+            void Fan(Vector3 centre, Vector3[] ring, Vector3 normal, int col)
+            {
+                Vector3 wc = m.MultiplyPoint3x4(centre), wn = m.MultiplyVector(normal).normalized;
+                Vector2 cell = Cell(col, wc);
+                int k0 = v.Count;
+                v.Add(wc); n.Add(wn); uv.Add(cell);
+                for (int i = 0; i < ring.Length; i++) { v.Add(m.MultiplyPoint3x4(ring[i])); n.Add(wn); uv.Add(cell); }
+                for (int i = 0; i < ring.Length; i++)
+                {
+                    int i0 = k0 + 1 + i, i1 = k0 + 1 + (i + 1) % ring.Length;
+                    if (Vector3.Dot(Vector3.Cross(v[i0] - wc, v[i1] - wc), wn) >= 0f) { t.Add(k0); t.Add(i0); t.Add(i1); }
+                    else { t.Add(k0); t.Add(i1); t.Add(i0); }
+                }
+            }
+
+            /// <summary>
+            /// An outline turned round an axis. Each point is (distance along the axis, radius); the surface faces to
+            /// the left of the way the outline is drawn, and is shaded smoothly along it.
+            /// </summary>
+            public void Lathe(Vector2[] outline, int sides, int col, Vector3 origin, Vector3 axis)
+            {
+                axis.Normalize();
+                Vector3 e1 = Vector3.Cross(axis, Mathf.Abs(axis.y) < 0.9f ? Vector3.up : Vector3.right).normalized, e2 = Vector3.Cross(axis, e1);
+                int np = outline.Length;
+                bool loop = (outline[0] - outline[np - 1]).sqrMagnitude < 1e-10f;
+                var pos = new Vector3[np][]; var nrm = new Vector3[np][];
+                for (int i = 0; i < np; i++)
+                {
+                    Vector2 prev = outline[loop ? (i + np - 2) % (np - 1) : Mathf.Max(i - 1, 0)], next = outline[loop ? (i + 1) % (np - 1) : Mathf.Min(i + 1, np - 1)];
+                    Vector2 tan = (next - prev).normalized, o = new Vector2(-tan.y, tan.x);
+                    pos[i] = new Vector3[sides]; nrm[i] = new Vector3[sides];
+                    for (int j = 0; j < sides; j++)
+                    {
+                        float a = j * Mathf.PI * 2f / sides;
+                        Vector3 radial = e1 * Mathf.Cos(a) + e2 * Mathf.Sin(a);
+                        pos[i][j] = origin + axis * outline[i].x + radial * outline[i].y;
+                        nrm[i][j] = (axis * o.x + radial * o.y).normalized;
+                    }
+                }
+                Skin(pos, nrm, col, true);
+            }
+
+            /// <summary>A ball, or an egg with different radii along x, y and z.</summary>
+            public void Ball(Vector3 c, Vector3 radii, int col, int rings = 8, int sides = 14)
+            {
+                var pos = new Vector3[rings + 1][]; var nrm = new Vector3[rings + 1][];
+                for (int i = 0; i <= rings; i++)
+                {
+                    float lat = Mathf.PI * i / rings;
+                    pos[i] = new Vector3[sides]; nrm[i] = new Vector3[sides];
+                    for (int j = 0; j < sides; j++)
+                    {
+                        float lon = j * Mathf.PI * 2f / sides;
+                        Vector3 d = new Vector3(Mathf.Sin(lat) * Mathf.Cos(lon), Mathf.Cos(lat), Mathf.Sin(lat) * Mathf.Sin(lon));
+                        pos[i][j] = c + Vector3.Scale(d, radii);
+                        nrm[i][j] = new Vector3(d.x / radii.x, d.y / radii.y, d.z / radii.z).normalized;
+                    }
+                }
+                Skin(pos, nrm, col, true);
             }
 
             /// <summary>A flat quad a-b-c-d facing out along normal, cut into patches when it is big.</summary>

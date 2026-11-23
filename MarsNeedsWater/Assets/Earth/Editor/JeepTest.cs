@@ -43,7 +43,7 @@ namespace MarsNeedsWater.Earth.Editor
             scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             try
             {
-                Settle(); TopSpeed(); Climb(20f); Climb(30f); Climb(40f); Climb(48f); Downhill(); Cliff(); Turn(); Slalom(); LaneChange(); Circle(); SideSlope(); Float();
+                Settle(); TopSpeed(); Climb(20f); Climb(30f); Climb(40f); Climb(48f); Downhill(); Cliff(); Turn(); Slalom(); LaneChange(); Circle(); SideSlope(); Float(); Drift(1f, 0f, "road"); Drift(0.72f, 0.8f, "sand"); Drift(0.52f, 0.9f, "snow"); Loose(0.72f, 0.8f, 0.85f, "sand"); Loose(0.62f, 0.85f, 1.1f, "mud"); Loose(0.52f, 0.9f, 0.6f, "snow");
             }
             catch (System.Exception e) { log.AppendLine("FAILED: " + e); }
             finally
@@ -242,6 +242,56 @@ namespace MarsNeedsWater.Earth.Editor
         }
 
         static void Hold(Jeep j, float speed) { j.Throttle = Mathf.Clamp((speed - Vector3.Dot(j.Body.linearVelocity, j.transform.forward)) * 0.5f, -1f, 1f); }
+
+        static void Ground(Jeep j, float grip, float loose, float drag)
+        {
+            for (int i = 0; i < 4; i++) { j.SurfGrip[i] = grip; j.SurfLoose[i] = loose; j.SurfDrag[i] = drag; }
+        }
+
+        /// <summary>A handbrake turn into a held drift, then letting go: it must slide wide, not spin round, and straighten after.</summary>
+        static void Drift(float grip, float loose, string name)
+        {
+            Slab(new Vector3(0f, -0.5f, 0f), new Vector3(1500f, 1f, 1500f));
+            Jeep j = Spawn(new Vector3(0f, 0.9f, -500f), 22f);
+            Ground(j, grip, loose, 0f);
+            j.Throttle = 1f; Step(j, 50);
+            j.Steer = 1f; j.Handbraking = true; Step(j, 35);
+            float afterBrake = Slide(j);
+            j.Handbraking = false;
+            float worst = afterBrake, sum = 0f, minSpeed = j.Speed; int n = 0;
+            float startYaw = j.transform.eulerAngles.y, turned = 0f, lastYaw = startYaw;
+            for (int i = 0; i < 150; i++)       // 3 s holding the drift: power on, steering into the turn
+            {
+                Step(j);
+                float s = Slide(j); worst = Mathf.Max(worst, s); sum += s; n++;
+                minSpeed = Mathf.Min(minSpeed, j.Speed);
+                float y = j.transform.eulerAngles.y; turned += Mathf.DeltaAngle(lastYaw, y); lastYaw = y;
+            }
+            float held = sum / n, driftNow = j.Drift, speedHeld = j.Speed;
+            j.Steer = 0f;
+            int settle = -1;
+            for (int i = 0; i < 200; i++) { Step(j); if (settle < 0 && Slide(j) < 4f) settle = i; }
+            bool ok = worst < 75f && held > 8f && settle >= 0 && !j.Upturned;
+            log.AppendLine($"Handbrake drift on {name} at 22 m/s: {afterBrake:F0}° sideways after the handbrake, held {held:F0}° on average for 3 s (worst {worst:F0}°, drift {driftNow:F1}), " +
+                           $"turned {turned:F0}°, speed {speedHeld:F1} m/s (lowest {minSpeed:F1}); straight again {(settle < 0 ? "never" : (settle * Dt).ToString("F2") + " s")} after letting go {(ok ? "PASS" : "FAIL")}");
+            Clear();
+        }
+
+        /// <summary>Loose ground: how fast it gets, how it turns under power, and whether it can still be driven tidily.</summary>
+        static void Loose(float grip, float loose, float drag, string name)
+        {
+            Slab(new Vector3(0f, -0.5f, 0f), new Vector3(2500f, 1f, 2500f));
+            Jeep j = Spawn(new Vector3(0f, 0.9f, -1000f), 0f);
+            Ground(j, grip, loose, drag);
+            j.Throttle = 1f; Step(j, 150); float v3 = j.Speed; Step(j, 500); float top = j.Speed;
+            j.Steer = 0.6f;
+            float worst = 0f;
+            for (int i = 0; i < 200; i++) { Step(j); worst = Mathf.Max(worst, Slide(j)); }
+            float power = worst; worst = 0f;
+            for (int i = 0; i < 400; i++) { float t = i * Dt; Hold(j, 15f); j.Steer = Mathf.Sin(t * Mathf.PI) * 0.6f; Step(j); if (t > 3f) worst = Mathf.Max(worst, Slide(j)); }
+            log.AppendLine($"On {name}: 3s {v3:F1} m/s, top {top:F1} m/s; full throttle with 0.6 steer slides up to {power:F0}°; gentle slalom at 15 m/s slides up to {worst:F0}° {(worst < 30f && !j.Upturned ? "PASS" : "FAIL")}");
+            Clear();
+        }
 
         static void Slalom()
         {

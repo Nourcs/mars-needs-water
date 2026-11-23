@@ -28,6 +28,9 @@ namespace MarsNeedsWater.Earth.Editor
             };
         }
 
+        /// <summary>From the command line: -executeMethod MarsNeedsWater.Earth.Editor.JeepPreview.Batch (quits when done).</summary>
+        public static void Batch() { Render(); EditorApplication.Exit(0); }
+
         [MenuItem("Tools/Mars Needs Water/Render Jeep Preview")]
         static void Render()
         {
