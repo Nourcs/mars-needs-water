@@ -176,10 +176,10 @@ namespace MarsNeedsWater.Earth
         static readonly Color Drop = new Color(0.86f, 0.93f, 0.97f, 0.85f);
 
         /// <summary>Water thrown up in a crown, plus a ring. power about 1 (a step) to 10 (a jump from high up).</summary>
-        public void Splash(Vector3 at, float power)
+        public void Splash(Vector3 at, float power, bool sound = true)
         {
             Ripple(at, Mathf.Clamp(power * 0.18f, 0.2f, 2f));
-            if (WaterSounds.I != null) WaterSounds.I.Splash(power);
+            if (sound && WaterSounds.I != null) WaterSounds.I.Splash(power);
             int n = Mathf.Clamp((int)(power * 7f), 4, 90);
             float up = 1.2f + power * 0.55f;
             for (int i = 0; i < n; i++)

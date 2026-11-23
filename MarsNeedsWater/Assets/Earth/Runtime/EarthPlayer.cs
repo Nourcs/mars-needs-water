@@ -360,14 +360,16 @@ namespace MarsNeedsWater.Earth
                 }
                 else if (swimming)
                 {
-                    w.Splash(at + fwd * 0.5f + right * Random.Range(-0.3f, 0.3f), 1.1f);   // arms over the water
-                    splashIn = !InputBlocked && Keyboard.current.leftShiftKey.isPressed ? 0.35f : 0.6f;
+                    bool fast = !InputBlocked && Keyboard.current.leftShiftKey.isPressed;
+                    w.Splash(at + fwd * 0.5f + right * Random.Range(-0.3f, 0.3f), 1.1f, false);   // arms over the water
+                    if (WaterSounds.I != null && !w.Under) WaterSounds.I.Stroke(fast);
+                    splashIn = fast ? 0.35f : 0.6f;
                 }
                 else
                 {
                     w.Spray(at + fwd * 0.2f, Vector3.up * 1.6f + hv.normalized * hs * 0.25f, Mathf.Clamp((int)(hs * 1.2f), 2, 10), 0.5f, 0.1f);   // wading
-                    splashIn = 0.28f;
-                    if (WaterSounds.I != null) WaterSounds.I.Splash(0.4f + hs * 0.05f);
+                    splashIn = Mathf.Lerp(0.5f, 0.3f, hs / 6f);      // about a footfall, quicker when running
+                    if (WaterSounds.I != null) WaterSounds.I.Step(hs);
                 }
             }
         }

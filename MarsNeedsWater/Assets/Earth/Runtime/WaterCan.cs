@@ -39,11 +39,11 @@ namespace MarsNeedsWater.Earth
                 scooping = true;
                 float got = Mathf.Min(Rate * dt, Size - Litres);
                 Litres += got; Taken += got;
+                if (WaterSounds.I != null) WaterSounds.I.Scoop();
                 if (fxIn <= 0f)
                 {
                     w.Ripple(spot, 0.35f);
                     w.Spray(spot, Vector3.up * 1.2f, 3, 0.6f, 0.08f);
-                    if (WaterSounds.I != null && Random.value < 0.3f) WaterSounds.I.Splash(0.5f);
                     fxIn = 0.15f;
                 }
             }
@@ -52,6 +52,7 @@ namespace MarsNeedsWater.Earth
                 pouring = true;
                 float out_ = Mathf.Min(Rate * dt, Litres);
                 Litres -= out_;
+                if (WaterSounds.I != null) WaterSounds.I.Pour(canReach);
                 Transform t = player.transform;
                 Vector3 hand = t.position + t.forward * 0.55f + Vector3.up * 0.2f;
                 if (fxIn <= 0f)
@@ -60,7 +61,7 @@ namespace MarsNeedsWater.Earth
                     fxIn = 0.05f;
                 }
                 // poured back into water: that water was not taken after all
-                if (canReach) { Taken -= out_; if (Random.value < dt * 6f) { w.Ripple(spot, 0.3f); if (WaterSounds.I != null) WaterSounds.I.Splash(0.35f); } }
+                if (canReach) { Taken -= out_; if (Random.value < dt * 6f) w.Ripple(spot, 0.3f); }
             }
         }
 

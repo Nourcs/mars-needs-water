@@ -1,23 +1,34 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MarsNeedsWater.Earth
 {
     /// <summary>
-    /// The sound of water, all made here from noise (no recordings): surf rolling in near the sea, gentle lapping by
-    /// lakes and rivers, splashes, the hiss of a boat's bow, and everything muffled with your head under.
+    /// The sound of water: surf rolling in near the sea, gentle lapping by lakes and rivers, splashes, wading steps,
+    /// swim strokes, filling and pouring the can, the wash of a boat's bow, and everything muffled with your head under.
+    /// Recordings are read from Resources/Earth/Audio/Water, grouped by name ("step_1", "step_2"... are one set, and
+    /// a set never plays the same clip twice in a row). Any set with no recording falls back to noise made here.
     /// </summary>
     public sealed class WaterSounds : MonoBehaviour
     {
         public static WaterSounds I;
+        /// <summary>How close and how much sea there is around the listener, 0 to 1 (for the other sounds of the shore).</summary>
+        public float NearSea { get { return nearSea; } }
 
         const int Rate = 44100;
+        const string Folder = "Earth/Audio/Water";
 
         EarthWorld world;
         EarthPlayer player;
-        AudioSource surf, lap, hiss, shots;
-        AudioClip[] splashes;
+        AudioSource surf, lap, hiss, pour, pourWater, fill;
+        AudioSource[] voices;
+        int nextVoice;
+        AudioClip[] synthSplashes;
+        readonly Dictionary<string, AudioClip[]> sets = new Dictionary<string, AudioClip[]>();
+        readonly Dictionary<string, int> last = new Dictionary<string, int>();
         AudioLowPassFilter muffle;
-        float nextShot, nearSea, nearLake;
+        float nextShot, nextStep, nextScoop, nearSea, nearLake, pourUntil, fillUntil;
+        bool pourInWater, recordedBow;
         int probe;
         readonly float[] seaHits = new float[16], lakeHits = new float[16];
         System.Random rnd = new System.Random(77);
@@ -26,33 +37,132 @@ namespace MarsNeedsWater.Earth
         {
             I = this;
             world = w;
-            surf = Loop("Surf", MakeSurf());
-            lap = Loop("Lapping", MakeLapping());
-            hiss = Loop("Spray hiss", MakeHiss());
-            shots = gameObject.AddComponent<AudioSource>();
-            shots.playOnAwake = false; shots.spatialBlend = 0f;
-            splashes = new AudioClip[4];
-            for (int i = 0; i < splashes.Length; i++) splashes[i] = MakeSplash(i);
+
+            // gather the recordings into sets by name, dropping a trailing _number
+            var found = new Dictionary<string, List<AudioClip>>();
+            foreach (AudioClip c in Resources.LoadAll<AudioClip>(Folder))
+            {
+                string key = c.name;
+                int u = key.LastIndexOf('_');
+                if (u > 0 && int.TryParse(key.Substring(u + 1), out _)) key = key.Substring(0, u);
+                if (!found.TryGetValue(key, out var list)) found[key] = list = new List<AudioClip>();
+                list.Add(c);
+            }
+            foreach (var kv in found) sets[kv.Key] = kv.Value.ToArray();
+
+            recordedBow = sets.ContainsKey("bow");
+            surf = Loop("Surf", One("surf") ?? MakeSurf());
+            lap = Loop("Lapping", One("lap") ?? MakeLapping());
+            hiss = Loop("Bow wash", One("bow") ?? MakeHiss());
+            AudioClip p = One("pour"), pw = One("pour_water");     // with only one of the two, it serves for both
+            if (p != null || pw != null) pour = Loop("Pour", p ?? pw);
+            if (p != null && pw != null) pourWater = Loop("Pour into water", pw);
+
+            if (One("fill") != null) fill = Loop("Can filling", One("fill"));
+
+            voices = new AudioSource[8];
+            for (int i = 0; i < voices.Length; i++)
+            {
+                voices[i] = gameObject.AddComponent<AudioSource>();
+                voices[i].playOnAwake = false; voices[i].spatialBlend = 0f;
+            }
+            if (!sets.ContainsKey("splash") && !sets.ContainsKey("splash_small"))
+            {
+                synthSplashes = new AudioClip[4];
+                for (int i = 0; i < synthSplashes.Length; i++) synthSplashes[i] = MakeSplash(i);
+            }
         }
 
         void OnDestroy() { if (I == this) I = null; }
+
+        AudioClip One(string key) { return sets.TryGetValue(key, out var a) && a.Length > 0 ? a[0] : null; }
 
         AudioSource Loop(string name, AudioClip clip)
         {
             var s = gameObject.AddComponent<AudioSource>();
             s.clip = clip; s.loop = true; s.volume = 0f; s.spatialBlend = 0f; s.playOnAwake = false;
+            s.time = (float)rnd.NextDouble() * clip.length * 0.9f;      // not the same opening every time
             s.Play();
             return s;
+        }
+
+        /// <summary>
+        /// Play one clip from the first of these sets that has recordings, never the one it played last.
+        /// Each shot has its own voice, so its pitch does not bend the ones still ringing. False if none exist.
+        /// </summary>
+        bool Shot(float volume, float pitchSpread, params string[] keys)
+        {
+            foreach (string key in keys)
+            {
+                if (!sets.TryGetValue(key, out var set) || set.Length == 0) continue;
+                int i = rnd.Next(set.Length);
+                if (set.Length > 1 && last.TryGetValue(key, out int was) && i == was) i = (i + 1 + rnd.Next(set.Length - 1)) % set.Length;
+                last[key] = i;
+                AudioSource v = voices[nextVoice]; nextVoice = (nextVoice + 1) % voices.Length;
+                v.Stop();
+                v.clip = set[i];
+                v.pitch = 1f + ((float)rnd.NextDouble() * 2f - 1f) * pitchSpread;
+                v.volume = Mathf.Clamp01(volume * (0.85f + (float)rnd.NextDouble() * 0.3f));
+                v.Play();
+                return true;
+            }
+            return false;
+        }
+
+        void SynthSplash(float power)
+        {
+            if (synthSplashes == null) return;
+            AudioSource v = voices[nextVoice]; nextVoice = (nextVoice + 1) % voices.Length;
+            v.Stop();
+            v.clip = synthSplashes[rnd.Next(synthSplashes.Length)];
+            v.pitch = Mathf.Clamp(1.35f - power * 0.06f, 0.7f, 1.4f) * (0.92f + (float)rnd.NextDouble() * 0.16f);
+            v.volume = Mathf.Clamp(0.12f + power * 0.09f, 0.1f, 1f);
+            v.Play();
         }
 
         /// <summary>A splash, louder for bigger ones. power about 1 (a hand) to 10 (a dive from high up).</summary>
         public void Splash(float power)
         {
             if (Time.time < nextShot) return;
-            nextShot = Time.time + 0.06f;
-            AudioClip c = splashes[rnd.Next(splashes.Length)];
-            shots.pitch = Mathf.Clamp(1.35f - power * 0.06f, 0.7f, 1.4f) * (0.92f + (float)rnd.NextDouble() * 0.16f);
-            shots.PlayOneShot(c, Mathf.Clamp(0.12f + power * 0.09f, 0.1f, 1f));
+            nextShot = Time.time + 0.08f;
+            bool ok = power >= 3.5f ? Shot(Mathf.Clamp(0.55f + power * 0.05f, 0.5f, 1f), 0.06f, "splash_big", "splash", "splash_small")
+                    : power >= 1.2f ? Shot(Mathf.Clamp(0.3f + power * 0.1f, 0.3f, 0.7f), 0.08f, "splash", "splash_small", "splash_big")
+                    : Shot(Mathf.Clamp(0.18f + power * 0.15f, 0.15f, 0.4f), 0.1f, "splash_small", "splash");
+            if (!ok) SynthSplash(power);
+        }
+
+        /// <summary>A step wading through shallow water. speed in metres a second.</summary>
+        public void Step(float speed)
+        {
+            if (Time.time < nextStep) return;
+            nextStep = Time.time + 0.2f;
+            if (!Shot(Mathf.Clamp(0.28f + speed * 0.04f, 0.25f, 0.6f), 0.08f, "step", "splash_small", "splash")) SynthSplash(0.4f + speed * 0.05f);
+        }
+
+        /// <summary>An arm coming over and pulling through the water, swimming.</summary>
+        public void Stroke(bool fast)
+        {
+            if (Time.time < nextStep) return;
+            nextStep = Time.time + 0.2f;
+            if (!Shot(fast ? 0.4f : 0.3f, 0.07f, "stroke", "splash_small", "splash")) SynthSplash(1.1f);
+        }
+
+        /// <summary>The can dipped in and filling. Call it every frame while filling; it paces itself.</summary>
+        public void Scoop()
+        {
+            bool starting = Time.time > fillUntil + 0.3f;
+            fillUntil = Time.time + 0.12f;
+            if (fill != null && !starting) return;             // with a filling sound, one dip at the start is enough
+            if (Time.time < nextScoop) return;
+            nextScoop = Time.time + 0.55f + (float)rnd.NextDouble() * 0.3f;
+            if (!Shot(0.45f, 0.06f, "scoop", "splash_small", "splash")) SynthSplash(0.5f);
+        }
+
+        /// <summary>Water running out of the can. Call it every frame while pouring; it stops by itself.</summary>
+        public void Pour(bool intoWater)
+        {
+            pourUntil = Time.time + 0.12f;
+            pourInWater = intoWater;
         }
 
         void Update()
@@ -88,8 +198,15 @@ namespace MarsNeedsWater.Earth
             if (player == null) player = FindAnyObjectByType<EarthPlayer>();
             EarthPlayer pl = player;
             float boatSpeed = pl != null && pl.Afloat ? pl.Speed : 0f;
-            hiss.volume = Mathf.Lerp(hiss.volume, Mathf.Clamp01(boatSpeed / 20f) * 0.5f, Time.deltaTime * 4f);
-            hiss.pitch = 0.8f + Mathf.Clamp01(boatSpeed / 25f) * 0.5f;
+            // a recorded wash keeps its own pitch, more or less; the noise one needs bending to sound like speed
+            hiss.volume = Mathf.Lerp(hiss.volume, Mathf.Clamp01(boatSpeed / 20f) * (recordedBow ? 0.6f : 0.5f), Time.deltaTime * 4f);
+            hiss.pitch = recordedBow ? 0.9f + Mathf.Clamp01(boatSpeed / 25f) * 0.2f : 0.8f + Mathf.Clamp01(boatSpeed / 25f) * 0.5f;
+
+            // the can pouring: quick in, quick out
+            bool pouring = Time.time < pourUntil;
+            if (fill != null) fill.volume = Mathf.MoveTowards(fill.volume, Time.time < fillUntil ? 0.4f : 0f, Time.deltaTime * 4f);
+            if (pour != null) pour.volume = Mathf.MoveTowards(pour.volume, pouring && !(pourInWater && pourWater != null) ? 0.5f : 0f, Time.deltaTime * 5f);
+            if (pourWater != null) pourWater.volume = Mathf.MoveTowards(pourWater.volume, pouring && pourInWater ? 0.5f : 0f, Time.deltaTime * 5f);
 
             if (muffle != null)
             {
