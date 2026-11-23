@@ -33,6 +33,16 @@ namespace MarsNeedsWater.Earth.Editor
             Run();
         }
 
+        /// <summary>From the command line: -executeMethod MarsNeedsWater.Earth.Editor.JeepTest.Batch (quits when done).</summary>
+        public static void Batch()
+        {
+            // the scratch scene is added beside a saved one: a fresh batch editor starts in an unsaved scene
+            string[] scenes = AssetDatabase.FindAssets("t:Scene", new[] { "Assets" });
+            if (scenes.Length > 0) EditorSceneManager.OpenScene(AssetDatabase.GUIDToAssetPath(scenes[0]));
+            Run();
+            EditorApplication.Exit(0);
+        }
+
         [MenuItem("Tools/Mars Needs Water/Test Jeep Physics")]
         static void Run()
         {
@@ -112,7 +122,7 @@ namespace MarsNeedsWater.Earth.Editor
             foreach (float drop in new[] { 0.4f, 1f })
             {
                 Slab(new Vector3(0f, -0.5f, 0f), new Vector3(200f, 1f, 200f));
-                Jeep j = Spawn(new Vector3(0f, 0.85f + drop, 0f));
+                Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + drop, 0f));
                 var h = new System.Collections.Generic.List<float>();
                 float lastMoving = 0f;
                 for (int i = 0; i < 250; i++)
@@ -122,13 +132,13 @@ namespace MarsNeedsWater.Earth.Editor
                     if (j.Body.linearVelocity.magnitude > 0.1f || j.Body.angularVelocity.magnitude > 0.1f) lastMoving = (i + 1) * Dt;
                 }
                 int o = Overshoots(h);
-                log.AppendLine($"Drop {drop} m on flat: {o} overshoot(s) {(o <= 1 ? "PASS" : "FAIL")}, still after {lastMoving:F2} s, ride height {j.transform.position.y - O.y:F3} m (0.85 = at rest)");
+                log.AppendLine($"Drop {drop} m on flat: {o} overshoot(s) {(o <= 1 ? "PASS" : "FAIL")}, still after {lastMoving:F2} s, ride height {j.transform.position.y - O.y:F3} m ({-Jeep.Ground:F3} = at rest)");
                 Clear();
             }
             // a kerb 15 cm high at 15 m/s
             Slab(new Vector3(0f, -0.5f, 100f), new Vector3(60f, 1f, 400f));
             Slab(new Vector3(0f, 0.075f - 0.5f, 140f), new Vector3(60f, 1f, 200f));
-            Jeep k = Spawn(new Vector3(0f, 0.9f, 0f), 15f);
+            Jeep k = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, 0f), 15f);
             k.Throttle = 0.4f;
             var hk = new System.Collections.Generic.List<float>();
             for (int i = 0; i < 400; i++)
@@ -145,7 +155,7 @@ namespace MarsNeedsWater.Earth.Editor
         static void TopSpeed()
         {
             Slab(new Vector3(0f, -0.5f, 1500f), new Vector3(60f, 1f, 3200f));
-            Jeep j = Spawn(new Vector3(0f, 0.9f, 0f));
+            Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, 0f));
             Step(j, 25);
             j.Throttle = 1f;
             string s = "Full throttle on flat:";
@@ -165,7 +175,7 @@ namespace MarsNeedsWater.Earth.Editor
             float a = deg * Mathf.Deg2Rad, len = 400f;
             Vector3 up = new Vector3(0f, Mathf.Cos(a), -Mathf.Sin(a)), dir = new Vector3(0f, Mathf.Sin(a), Mathf.Cos(a));
             Slab(-up * 0.5f + dir * len * 0.5f, new Vector3(200f, 1f, len), deg);
-            Jeep j = Spawn(dir * 20f + up * 0.9f, 8f, deg);
+            Jeep j = Spawn(dir * 20f + up * (-Jeep.Ground + 0.05f), 8f, deg);
             j.Throttle = 1f;
             string s = $"Climbing {deg:F0}° (starting on it at 8 m/s, full throttle):";
             for (int t = 1; t <= 8; t++)
@@ -184,7 +194,7 @@ namespace MarsNeedsWater.Earth.Editor
         {
             float deg = 20f, a = deg * Mathf.Deg2Rad, len = 400f;
             Slab(new Vector3(0f, -Mathf.Sin(a) * len * 0.5f - 0.5f, Mathf.Cos(a) * len * 0.5f), new Vector3(40f, 1f, len), -deg);
-            Jeep j = Spawn(new Vector3(0f, 0.9f, 3f), 15f, -deg);
+            Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, 3f), 15f, -deg);
             j.Throttle = 1f;
             int airborne = 0, partial = 0; float maxUp = 0f;
             Vector3 n = new Vector3(0f, Mathf.Cos(a), Mathf.Sin(a));
@@ -203,7 +213,7 @@ namespace MarsNeedsWater.Earth.Editor
         {
             Slab(new Vector3(0f, -0.5f, 0f), new Vector3(40f, 1f, 100f));          // platform, edge at z = 50
             Slab(new Vector3(0f, -25.5f, 200f), new Vector3(200f, 1f, 300f));      // ground 25 m below
-            Jeep j = Spawn(new Vector3(0f, 0.9f, 20f), 18f);
+            Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, 20f), 18f);
             j.Throttle = 0.5f;
             string s = "Off a 25 m cliff at 18 m/s:";
             bool off = false; float t0 = 0f, t = 0f; bool landed = false;
@@ -223,7 +233,7 @@ namespace MarsNeedsWater.Earth.Editor
         static void Turn()
         {
             Slab(new Vector3(0f, -0.5f, 0f), new Vector3(800f, 1f, 800f));
-            Jeep j = Spawn(new Vector3(0f, 0.9f, -300f), 25f);
+            Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, -300f), 25f);
             j.Throttle = 1f; Step(j, 50);
             j.Steer = 1f;
             float maxRoll = 0f, minUp = 1f;
@@ -252,7 +262,7 @@ namespace MarsNeedsWater.Earth.Editor
         static void Drift(float grip, float loose, string name)
         {
             Slab(new Vector3(0f, -0.5f, 0f), new Vector3(1500f, 1f, 1500f));
-            Jeep j = Spawn(new Vector3(0f, 0.9f, -500f), 22f);
+            Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, -500f), 22f);
             Ground(j, grip, loose, 0f);
             j.Throttle = 1f; Step(j, 50);
             j.Steer = 1f; j.Handbraking = true; Step(j, 35);
@@ -281,7 +291,7 @@ namespace MarsNeedsWater.Earth.Editor
         static void Loose(float grip, float loose, float drag, string name)
         {
             Slab(new Vector3(0f, -0.5f, 0f), new Vector3(2500f, 1f, 2500f));
-            Jeep j = Spawn(new Vector3(0f, 0.9f, -1000f), 0f);
+            Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, -1000f), 0f);
             Ground(j, grip, loose, drag);
             j.Throttle = 1f; Step(j, 150); float v3 = j.Speed; Step(j, 500); float top = j.Speed;
             j.Steer = 0.6f;
@@ -296,7 +306,7 @@ namespace MarsNeedsWater.Earth.Editor
         static void Slalom()
         {
             Slab(new Vector3(0f, -0.5f, 0f), new Vector3(1500f, 1f, 1500f));
-            Jeep j = Spawn(new Vector3(0f, 0.9f, -600f), 20f);
+            Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, -600f), 20f);
             float maxSlide = 0f;
             for (int i = 0; i < 600; i++)
             {
@@ -314,7 +324,7 @@ namespace MarsNeedsWater.Earth.Editor
         static void LaneChange()
         {
             Slab(new Vector3(0f, -0.5f, 0f), new Vector3(1500f, 1f, 1500f));
-            Jeep j = Spawn(new Vector3(0f, 0.9f, -600f), 30f);
+            Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, -600f), 30f);
             for (int i = 0; i < 50; i++) { Hold(j, 30f); Step(j); }
             for (int i = 0; i < 30; i++) { Hold(j, 30f); j.Steer = 0.7f; Step(j); }
             for (int i = 0; i < 30; i++) { Hold(j, 30f); j.Steer = -0.7f; Step(j); }
@@ -336,7 +346,7 @@ namespace MarsNeedsWater.Earth.Editor
         static void Circle()
         {
             Slab(new Vector3(0f, -0.5f, 0f), new Vector3(200f, 1f, 200f));
-            Jeep j = Spawn(new Vector3(0f, 0.9f, 0f), 0f);
+            Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, 0f), 0f);
             j.Steer = 1f;
             for (int i = 0; i < 300; i++) { Hold(j, 5f); Step(j); }
             float w = Mathf.Abs(j.Body.angularVelocity.y), r = w > 0.01f ? j.Speed / w : 999f;
@@ -349,7 +359,7 @@ namespace MarsNeedsWater.Earth.Editor
             float bank = 25f;
             Slab(new Vector3(0f, -0.5f, 0f), new Vector3(200f, 1f, 800f), 0f, bank);
             Vector3 up = Quaternion.Euler(0f, 0f, bank) * Vector3.up;
-            Jeep j = Spawn(up * 0.9f + new Vector3(0f, 0f, -300f), 15f, 0f, bank);
+            Jeep j = Spawn(up * (-Jeep.Ground + 0.05f) + new Vector3(0f, 0f, -300f), 15f, 0f, bank);
             float maxRoll = 0f;
             for (int i = 0; i < 400; i++) { Hold(j, 15f); Step(j); maxRoll = Mathf.Max(maxRoll, Mathf.Abs(Roll(j))); }
             bool ok = !j.Upturned && maxRoll < 45f;

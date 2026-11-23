@@ -51,6 +51,7 @@ namespace MarsNeedsWater.Earth
 
         static readonly Color SnowShade = new Color(0.50f, 0.62f, 0.84f), Earth = new Color(0.34f, 0.25f, 0.16f), Rubber = new Color(0.05f, 0.05f, 0.055f);
 
+        static readonly float Small = Mathf.Lerp(1f, Jeep.Size, 0.6f);     // dust and clods shrink with the jeep, though not all the way
         const int N = 448;                              // cross-sections kept per wheel
         const float RoadLift = 0.085f, GroundLift = 0.03f;
 
@@ -370,7 +371,7 @@ namespace MarsNeedsWater.Earth
             dir.Normalize();
             Vector3 side = Vector3.Cross(nrm, dir);
             float cos = Mathf.Abs(Vector3.Dot(dir, Vector3.ProjectOnPlane(fwd, nrm).normalized));
-            float half = 0.5f * (Jeep.TyreW * cos + 0.5f * Mathf.Sqrt(Mathf.Max(0f, 1f - cos * cos))) * g.Wide * (rut > 0.5f ? 1.15f : 1f);
+            float half = 0.5f * (Jeep.TyreW * cos + 0.5f * Jeep.Size * Mathf.Sqrt(Mathf.Max(0f, 1f - cos * cos))) * g.Wide * (rut > 0.5f ? 1.15f : 1f);
             Vector3 at = pos + nrm * (terrain && !(w.Known && w.Kind == GroundKind.Paved) ? GroundLift : RoadLift);
 
             if (!w.Live)
@@ -435,8 +436,8 @@ namespace MarsNeedsWater.Earth
             Vector3 local = at - anchor.position;
             var uv1 = new Vector4(rut, tread, seed, half);
             var c = new Vector4(col.r, col.g, col.b, strength);
-            verts[b] = new Vtx { Pos = local - side * half, Nrm = nrm, Uv0 = new Vector4(u, -1f, clock, life), Uv1 = uv1, Col = c };
-            verts[b + 1] = new Vtx { Pos = local + side * half, Nrm = nrm, Uv0 = new Vector4(u, 1f, clock, life), Uv1 = uv1, Col = c };
+            verts[b] = new Vtx { Pos = local - side * half, Nrm = nrm, Uv0 = new Vector4(u / Jeep.Size, -1f, clock, life), Uv1 = uv1, Col = c };
+            verts[b + 1] = new Vtx { Pos = local + side * half, Nrm = nrm, Uv0 = new Vector4(u / Jeep.Size, 1f, clock, life), Uv1 = uv1, Col = c };
         }
 
         void Fade(int wheel, int s)
@@ -530,7 +531,7 @@ namespace MarsNeedsWater.Earth
                 {
                     position = pos + nrm * 0.1f + fwd * sign * 0.25f + side * Random.Range(-0.15f, 0.15f),
                     velocity = v,
-                    startSize = Random.Range(0.05f, 0.17f) * (w.Kind == GroundKind.Mud ? 1.25f : 1f),
+                    startSize = Random.Range(0.05f, 0.17f) * (w.Kind == GroundKind.Mud ? 1.25f : 1f) * Small,
                     startLifetime = Random.Range(0.45f, 1.0f),
                     startColor = clod * Random.Range(0.8f, 1.1f),
                     rotation = Random.Range(0f, 360f),
@@ -545,7 +546,7 @@ namespace MarsNeedsWater.Earth
             c.a = alpha;
             var e = new ParticleSystem.EmitParams
             {
-                position = at, velocity = velocity, startSize = size, startLifetime = life, startColor = c, rotation = Random.Range(0f, 360f),
+                position = at, velocity = velocity, startSize = size * Small, startLifetime = life, startColor = c, rotation = Random.Range(0f, 360f),
             };
             puffs.Emit(e, 1);
         }

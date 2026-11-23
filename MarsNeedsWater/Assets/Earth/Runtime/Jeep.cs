@@ -8,13 +8,20 @@ namespace MarsNeedsWater.Earth
     /// a chunky tub and bonnet, wide curved mudguards, a round-bar roll hoop and windscreen frame, fat tyres with
     /// rounded tread blocks, a spare on the back and a snorkel up the right pillar. One clean colour per part, taken
     /// from a small palette texture.
-    /// Local space: +z forward, y up, the origin at the player's centre, the ground 0.85 below it.
+    /// Local space: +z forward, y up, the ground -Ground below the origin. Drawn at full size and shrunk by Size.
     /// </summary>
     public sealed class Jeep : MonoBehaviour
     {
-        public const float Ground = -0.85f;      // the bottom of the tyres, where the character controller stands
-        public const float TyreR = 0.43f, TyreW = 0.34f;
-        public const float Track = 0.80f, FrontZ = 1.08f, RearZ = -1.02f;
+        /// <summary>
+        /// How big the jeep is, against the size it was drawn at (about 1.9 m wide and 3.5 m long at 1). The streets of
+        /// the mini Earth are narrow, about 1 m a lane, so it is half that: it fits a lane and can turn in a side street.
+        /// </summary>
+        public const float Size = 0.5f;
+        // the model is drawn at these sizes and shrunk by Size
+        const float DGround = -0.85f, DTyreR = 0.43f, DTyreW = 0.34f, DTrack = 0.80f, DFrontZ = 1.08f, DRearZ = -1.02f, DAxleY = DGround + DTyreR;
+        public const float Ground = DGround * Size;      // the bottom of the tyres, this far below the jeep's origin
+        public const float TyreR = DTyreR * Size, TyreW = DTyreW * Size;
+        public const float Track = DTrack * Size, FrontZ = DFrontZ * Size, RearZ = DRearZ * Size;
         const float AxleY = Ground + TyreR;
 
         // palette rows
@@ -46,7 +53,7 @@ namespace MarsNeedsWater.Earth
 
         [Header("Body")]
         [Tooltip("Mass, kg.")] public float Mass = 1650f;
-        [Tooltip("Height of the centre of mass above the ground, m. Higher = tips over more easily.")] public float CentreHeight = 0.42f;
+        [Tooltip("Height of the centre of mass above the ground, m. Higher = tips over more easily.")] public float CentreHeight = 0.42f * Size;
         [Tooltip("Air drag. Higher = more slowing at speed.")] public float AirDrag = 0.6f;
 
         [Header("Engine and brakes")]
@@ -85,12 +92,12 @@ namespace MarsNeedsWater.Earth
         [Tooltip("Turning in the air with the steering keys, rad/s^2.")] public float AirSteer = 1.0f;
 
         [Header("Suspension")]
-        [Tooltip("Spring rate per wheel, N/m. Lower = softer and more body roll.")] public float SpringRate = 27000f;
-        [Tooltip("Damping while a wheel is pushed up, as a share of critical (1 = no overshoot).")] [Range(0.1f, 2f)] public float BumpDamping = 0.5f;
+        [Tooltip("Spring rate per wheel, N/m. Lower = softer and more body roll.")] public float SpringRate = 27000f / Size;
+        [Tooltip("Damping while a wheel is pushed up, as a share of critical (1 = no overshoot).")] [Range(0.1f, 2f)] public float BumpDamping = 0.7f;
         [Tooltip("Damping while a wheel extends again, as a share of critical. Higher than bump so it does not spring back up.")] [Range(0.1f, 2f)] public float ReboundDamping = 1.0f;
-        [Tooltip("Anti-roll bars, N/m of difference between left and right. Higher = flatter in corners.")] public float AntiRoll = 12000f;
-        [Tooltip("How far a wheel can push up into its arch, m.")] public float Bump = 0.3f;
-        [Tooltip("How far a wheel can hang down, m.")] public float Droop = 0.25f;
+        [Tooltip("Anti-roll bars, N/m of difference between left and right. Higher = flatter in corners.")] public float AntiRoll = 12000f / Size;
+        [Tooltip("How far a wheel can push up into its arch, m.")] public float Bump = 0.3f * Size;
+        [Tooltip("How far a wheel can hang down, m.")] public float Droop = 0.25f * Size;
 
         [Header("Driving aids")]
         [Tooltip("Keeps the jeep turning the way the wheels point instead of spinning out: 0 off, 1 strong. Off while the handbrake is on.")] [Range(0f, 1f)] public float StabilityAssist = 0.7f;
@@ -98,7 +105,7 @@ namespace MarsNeedsWater.Earth
         [Tooltip("Gently levels the roll (not the pitch) in the air.")] public float AirLevel = 2f;
         [Tooltip("Extra grip on the ground that grows with speed, newtons per (m/s)^2. Keeps it down over small crests at speed.")] public float DownForce = 3f;
         [Tooltip("Most upward acceleration a bump may give the body while the wheels are down, m/s^2. Stops it pogoing off terrain edges.")] public float BumpKick = 40f;
-        [Tooltip("Radius of the ball each wheel feels the ground with, m. Bigger rolls more smoothly over edges in the ground.")] public float ContactRadius = 0.3f;
+        [Tooltip("Radius of the ball each wheel feels the ground with, m. Bigger rolls more smoothly over edges in the ground.")] public float ContactRadius = 0.3f * Size;
         [Tooltip("On the terrain the wheels feel its height averaged over this radius (m), plus more with speed, so they roll over the creases between its flat facets (about 6 m apart) instead of being kicked by every one.")] public float TerrainSmoothing = 2.5f;
         [Tooltip("Extra terrain smoothing radius per m/s of speed.")] public float SmoothingPerSpeed = 0.08f;
 
@@ -128,7 +135,7 @@ namespace MarsNeedsWater.Earth
         public bool Upturned { get { return transform.up.y < 0.5f && Body.linearVelocity.magnitude < 3f; } }
         public float Speed { get { Vector3 v = Body.linearVelocity; v.y = 0f; return v.magnitude; } }
 
-        const float StaticLen = 0.4f;                    // at rest each axle hangs this far below its spring's mount
+        const float StaticLen = 0.4f * Size;                    // at rest each axle hangs this far below its spring's mount
         const float AttachY = AxleY + StaticLen;
         Transform[] spin, steer, pivot;
         float steerNow;
@@ -187,11 +194,10 @@ namespace MarsNeedsWater.Earth
 
         [System.NonSerialized] public readonly float[] LastLoad = new float[4], LastPush = new float[4], LastSide = new float[4];   // for tests
         static readonly float[] WX = { -Track, Track, -Track, Track }, WZ = { FrontZ, FrontZ, RearZ, RearZ };
-        static readonly Vector3[] Hull =
-        {
+        static readonly Vector3[] Hull = Sized(
             new Vector3(-0.6f, -0.2f, 1.45f), new Vector3(0.6f, -0.2f, 1.45f), new Vector3(-0.6f, -0.2f, -1.45f), new Vector3(0.6f, -0.2f, -1.45f),
-            new Vector3(-0.6f, -0.2f, 0f), new Vector3(0.6f, -0.2f, 0f), new Vector3(0f, -0.2f, 0.75f), new Vector3(0f, -0.2f, -0.75f),
-        };
+            new Vector3(-0.6f, -0.2f, 0f), new Vector3(0.6f, -0.2f, 0f), new Vector3(0f, -0.2f, 0.75f), new Vector3(0f, -0.2f, -0.75f));
+        static Vector3[] Sized(params Vector3[] p) { for (int i = 0; i < p.Length; i++) p[i] *= Size; return p; }
         readonly RaycastHit[] hits = new RaycastHit[8];
 
         float RestLength { get { return StaticLen + Mass * 9.81f / 4f / Mathf.Max(SpringRate, 1f); } }
@@ -206,7 +212,7 @@ namespace MarsNeedsWater.Earth
             Mesh bodyMesh = BodyMesh(), wheel = WheelMesh();
             Transform body = Part(root.transform, "Body", bodyMesh, mat, Vector3.zero, Quaternion.identity).transform;
             j.bodyT = body;
-            Part(body, "Spare", wheel, mat, new Vector3(0f, 0.16f, -1.71f), Quaternion.Euler(0f, -90f, 0f));
+            Part(body, "Spare", wheel, mat, new Vector3(0f, 0.16f, -1.71f) * Size, Quaternion.Euler(0f, -90f, 0f));
 
             j.spin = new Transform[4];
             j.steer = new Transform[2];
@@ -230,9 +236,9 @@ namespace MarsNeedsWater.Earth
             // The wheels have none: they find the ground with rays. On the Ignore Raycast layer so those rays,
             // and the camera's, pass through the jeep itself.
             var pm = new PhysicsMaterial("Jeep") { dynamicFriction = 0.5f, staticFriction = 0.6f, bounciness = 0f, bounceCombine = PhysicsMaterialCombine.Minimum };
-            Box(root.transform, new Vector3(0f, 0.12f, 0.02f), new Vector3(1.3f, 0.6f, 3.3f), pm);
-            Box(root.transform, new Vector3(0f, 0.78f, -0.5f), new Vector3(1.2f, 0.7f, 0.2f), pm);
-            Box(root.transform, new Vector3(0f, 0.66f, 0.45f), new Vector3(1.3f, 0.5f, 0.1f), pm);
+            Box(root.transform, new Vector3(0f, 0.12f, 0.02f) * Size, new Vector3(1.3f, 0.6f, 3.3f) * Size, pm);
+            Box(root.transform, new Vector3(0f, 0.78f, -0.5f) * Size, new Vector3(1.2f, 0.7f, 0.2f) * Size, pm);
+            Box(root.transform, new Vector3(0f, 0.66f, 0.45f) * Size, new Vector3(1.3f, 0.5f, 0.1f) * Size, pm);
 
             Rigidbody rb = root.AddComponent<Rigidbody>();
             rb.interpolation = RigidbodyInterpolation.Interpolate;
@@ -271,8 +277,8 @@ namespace MarsNeedsWater.Earth
         {
             Rigidbody rb = Body;
             rb.mass = Mathf.Max(Mass, 100f);
-            rb.centerOfMass = new Vector3(0f, Ground + CentreHeight, 0.05f);
-            float m = rb.mass / 12f;
+            rb.centerOfMass = new Vector3(0f, Ground + CentreHeight, 0.05f * Size);
+            float m = rb.mass / 12f * Size;      // a little more than its size alone would give: a small light body turns too nervously
             rb.inertiaTensor = new Vector3(m * (1.3f * 1.3f + 3.4f * 3.4f), m * (1.9f * 1.9f + 3.4f * 3.4f), m * (1.9f * 1.9f + 1.3f * 1.3f));
             rb.inertiaTensorRotation = Quaternion.identity;
         }
@@ -303,7 +309,7 @@ namespace MarsNeedsWater.Earth
         public void Flip()
         {
             float heading = Heading(transform.eulerAngles.y);
-            Vector3 pos = Body.position + Vector3.up * 1.2f;
+            Vector3 pos = Body.position + Vector3.up * (0.4f + 0.8f * Size);
             Quaternion r = Quaternion.Euler(0f, heading, 0f);
             Body.linearVelocity = Vector3.zero; Body.angularVelocity = Vector3.zero;
             Body.position = pos; Body.rotation = r;
@@ -621,7 +627,7 @@ namespace MarsNeedsWater.Earth
                 Vector3 p = transform.TransformPoint(Hull[i]);
                 float s;
                 if (!WaterFn(p, out s) || s <= p.y) continue;
-                float depth = Mathf.Clamp01((s - p.y) / 0.6f);
+                float depth = Mathf.Clamp01((s - p.y) / (0.6f * Size));
                 wet++;
                 rb.AddForceAtPosition(Vector3.up * each * depth, p);
                 Vector3 drag = -rb.GetPointVelocity(p) * WaterDrag * depth;
@@ -632,7 +638,7 @@ namespace MarsNeedsWater.Earth
             if (!Afloat) return;
             Vector3 fwd = transform.forward; fwd.y = 0f; fwd.Normalize();
             Vector3 right = new Vector3(fwd.z, 0f, -fwd.x);
-            rb.AddForceAtPosition(fwd * Throttle * (Throttle < 0f ? 0.5f : 1f) * WaterThrust * rb.mass, transform.TransformPoint(new Vector3(0f, -0.2f, -1.4f)));
+            rb.AddForceAtPosition(fwd * Throttle * (Throttle < 0f ? 0.5f : 1f) * WaterThrust * rb.mass, transform.TransformPoint(new Vector3(0f, -0.2f, -1.4f) * Size));
             rb.AddTorque(Vector3.up * Steer * WaterTurn * Mathf.Clamp(fwdSpeed / 3f, -1f, 1f), ForceMode.Acceleration);
             rb.AddForce(-right * Vector3.Dot(rb.linearVelocity, right) * rb.mass * 0.6f);        // the hull resists going sideways
         }
@@ -643,7 +649,7 @@ namespace MarsNeedsWater.Earth
             float gy;
             if (GroundFn == null || !GroundFn(Body.position, out gy)) return;
             if (Physics.Raycast(Body.position + Vector3.up * 2f, Vector3.down, 6f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) return;
-            float low = gy - (Ground + 0.3f);       // centre no lower than this
+            float low = gy - (Ground + 0.3f * Size);       // centre no lower than this
             if (Body.position.y >= low) return;
             Body.position = new Vector3(Body.position.x, low, Body.position.z);
             Vector3 v = Body.linearVelocity;
@@ -680,7 +686,7 @@ namespace MarsNeedsWater.Earth
             {
                 want.x = Mathf.Clamp(-accel.z * BodyLean, -5f, 5f);                 // positive pitches the nose down
                 want.z = Mathf.Clamp(accel.x * BodyLean * 1.2f, -7f, 7f);           // positive leans to the left
-                want.y = Mathf.Clamp(-accel.y * 0.004f, -0.07f, 0.05f);
+                want.y = Mathf.Clamp(-accel.y * 0.004f, -0.07f, 0.05f) * Size;
             }
             float w = Mathf.Max(BodySpring, 1f);
             for (float left = Mathf.Min(dt, 0.1f); left > 1e-5f; left -= 0.01f)   // small steps keep the spring steady at any frame rate
@@ -718,7 +724,7 @@ namespace MarsNeedsWater.Earth
         // shapes turned on a lathe. One clean colour per part.
         static Mesh BodyMesh()
         {
-            var k = new Kit();
+            var k = new Kit { Scale = Size };
             const float top = 0.45f;   // the tub's top edge
 
             // chassis: frame rails, axles, differentials, dampers, side steps
@@ -727,12 +733,12 @@ namespace MarsNeedsWater.Earth
                 k.Round(new Vector3(s * 0.40f, -0.24f, 0.02f), new Vector3(0.12f, 0.14f, 3.0f), 0.04f, DarkSteel, 2);
                 k.Round(new Vector3(s * 0.74f, -0.21f, 0.03f), new Vector3(0.20f, 0.07f, 0.92f), 0.03f, DarkSteel, 2);
             }
-            foreach (float z in new[] { FrontZ, RearZ })
+            foreach (float z in new[] { DFrontZ, DRearZ })
             {
-                k.Tube(new Vector3(-Track + 0.12f, AxleY, z), new Vector3(Track - 0.12f, AxleY, z), 0.055f, 12, DarkSteel);
-                k.Ball(new Vector3(0.08f, AxleY, z), new Vector3(0.15f, 0.13f, 0.14f), DarkSteel);
+                k.Tube(new Vector3(-DTrack + 0.12f, DAxleY, z), new Vector3(DTrack - 0.12f, DAxleY, z), 0.055f, 12, DarkSteel);
+                k.Ball(new Vector3(0.08f, DAxleY, z), new Vector3(0.15f, 0.13f, 0.14f), DarkSteel);
                 for (int s = -1; s <= 1; s += 2)
-                    k.Tube(new Vector3(s * 0.45f, AxleY, z), new Vector3(s * 0.43f, -0.22f, z), 0.045f, 10, Steel);
+                    k.Tube(new Vector3(s * 0.45f, DAxleY, z), new Vector3(s * 0.43f, -0.22f, z), 0.045f, 10, Steel);
             }
 
             // the tub: an open cockpit with thick rounded walls, low at the doorways
@@ -781,12 +787,12 @@ namespace MarsNeedsWater.Earth
 
             // wide mudguards curving over each wheel
             Kit.P[] guard = Kit.RoundRect(0.40f, 0.06f, 0.028f, 3);
-            foreach (float z in new[] { FrontZ, RearZ })
+            foreach (float z in new[] { DFrontZ, DRearZ })
                 for (int s = -1; s <= 1; s += 2)
                 {
                     var path = new List<Vector3>();
                     for (float a = 14f; a <= 166.01f; a += 9.5f)
-                        path.Add(new Vector3(s * 0.79f, AxleY + Mathf.Sin(a * Mathf.Deg2Rad) * 0.55f, z + Mathf.Cos(a * Mathf.Deg2Rad) * 0.55f));
+                        path.Add(new Vector3(s * 0.79f, DAxleY + Mathf.Sin(a * Mathf.Deg2Rad) * 0.55f, z + Mathf.Cos(a * Mathf.Deg2Rad) * 0.55f));
                     k.Sweep(path, Vector3.right, guard, Flare, false);
                 }
 
@@ -855,8 +861,8 @@ namespace MarsNeedsWater.Earth
         /// <summary>One wheel round the origin, axle along x, the rim on the -x side (mirrored for the right-hand wheels).</summary>
         static Mesh WheelMesh()
         {
-            var k = new Kit();
-            float hw = TyreW * 0.5f;
+            var k = new Kit { Scale = Size };
+            float hw = DTyreW * 0.5f;
 
             // the tyre: a fat rounded ring
             const float outer = 0.405f, inner = 0.23f;
@@ -1203,8 +1209,12 @@ namespace MarsNeedsWater.Earth
                 }
             }
 
+            /// <summary>The finished mesh is this many times the size it was drawn at.</summary>
+            public float Scale = 1f;
+
             public Mesh Finish(string name)
             {
+                if (Scale != 1f) for (int i = 0; i < v.Count; i++) v[i] *= Scale;
                 var mesh = new Mesh { name = name };
                 if (v.Count > 65000) mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
                 mesh.SetVertices(v); mesh.SetNormals(n); mesh.SetUVs(0, uv); mesh.SetTriangles(t, 0);

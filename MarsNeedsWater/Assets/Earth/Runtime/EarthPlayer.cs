@@ -316,7 +316,7 @@ namespace MarsNeedsWater.Earth
             float vy = (p.y - before.y) / Mathf.Max(dt, 1e-4f);
             Vector3 hv = p - before; hv.y = 0f;
             float hs = hv.magnitude / Mathf.Max(dt, 1e-4f);
-            float bottom = p.y - (Current == Mode.Drive ? 0.65f : Current == Mode.Fly ? 0.5f : HalfHeight);
+            float bottom = p.y - (Current == Mode.Drive ? 0.65f * Jeep.Size : Current == Mode.Fly ? 0.5f : HalfHeight);
             bool inNow = wet && bottom < surface;
             Vector3 at = new Vector3(p.x, surface, p.z);
             Quaternion rot = Quaternion.Euler(0f, Current == Mode.Drive ? heading : yaw, 0f);
@@ -436,8 +436,11 @@ namespace MarsNeedsWater.Earth
             else camY = head.y;
             camSnap = false;
             if (!chase) { cam.transform.SetPositionAndRotation(head, look); return; }
-            float dist = Current == Mode.Fly ? 13f : Current == Mode.Drive ? 7.5f : 4f;
-            Vector3 target = head + Vector3.up * (Current == Mode.Walk ? 0.2f : 0.6f);
+            // the jeep is small: the camera sits closer and lower behind it, in proportion
+            float near = Mathf.Lerp(1f, Jeep.Size, 0.8f);
+            if (Current == Mode.Drive) head = transform.position + Vector3.up * (camY - transform.position.y) * near;
+            float dist = Current == Mode.Fly ? 13f : Current == Mode.Drive ? 7.5f * near : 4f;
+            Vector3 target = head + Vector3.up * (Current == Mode.Walk ? 0.2f : Current == Mode.Drive ? 0.6f * near : 0.6f);
             if (Current != Mode.Drive)
             {
                 Vector3 back = look * Vector3.back;
@@ -472,7 +475,7 @@ namespace MarsNeedsWater.Earth
             Quaternion view = camLift > 0.5f ? Quaternion.LookRotation(target - pos) : look;
             cam.transform.SetPositionAndRotation(pos, Quaternion.Slerp(look, view, Mathf.Clamp01(camLift / 10f)));
             // last resort: if it still ends up in the jeep, hide the jeep rather than show its insides
-            bool tooClose = (pos - (transform.position + Vector3.up * 0.2f)).magnitude < 1.6f;
+            bool tooClose = (pos - (transform.position + Vector3.up * 0.2f)).magnitude < 1.6f * Mathf.Lerp(1f, Jeep.Size, 0.8f);
             if (tooClose != jeepHidden) ShowJeep(!tooClose);
         }
 
