@@ -31,3 +31,7 @@ MarsNeedsWater-create.log
 *.unitypackage
 
 # claude-gaming-studio/ keeps its own .gitignore (applies within that folder).
+
+# === Generated previews / dev logs ===
+/jeep-preview.png
+/website/.dev.log

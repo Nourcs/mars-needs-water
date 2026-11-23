@@ -1,0 +1,54 @@
+/* One screen, nothing else: Earth and Mars at true relative size in space, both draggable, and a single
+   sea-level slider that moves Earth's oceans to Mars. Single dark look by design. */
+:root {
+  color-scheme: dark;
+  --space: #04060c; --edge: rgba(255,255,255,.13);
+  --ink: #f3eee4; --dim: #9aa3b2; --orange: #ff7a1a; --water: #4cc3ee; --mars: #d4532a;
+  --f-d: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-b: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-m: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --gl: max(22px, env(safe-area-inset-left, 0px)); --gr: max(22px, env(safe-area-inset-right, 0px));
+}
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { margin: 0; background: var(--space); color: var(--ink); font: 400 1rem/1.5 var(--f-b); overflow-x: clip }
+button, input { font: inherit; color: inherit }
+:focus-visible { outline: 2px solid var(--water); outline-offset: 3px }
+.hero { position: relative; height: 100vh; height: 100dvh; min-height: 540px; display: flex; flex-direction: column; overflow: hidden; isolation: isolate;
+  background: radial-gradient(90% 70% at 50% 45%, #0d1a33 0%, #070c18 50%, var(--space) 85%) }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab }
+#gl.drag { cursor: grabbing }
+.top, .dock { position: relative; z-index: 2; pointer-events: none }
+.top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: calc(18px + env(safe-area-inset-top, 0px)) var(--gr) 0 var(--gl) }
+.logo { margin: 0; font: 900 clamp(.9rem, 1.5vw, 1.15rem)/1 var(--f-d); letter-spacing: -.01em; white-space: nowrap }
+.logo i { display: inline-block; width: .62em; height: .62em; border-radius: 50%; background: var(--mars); margin-right: .5em }
+.logo em { font-style: normal; color: var(--water) }
+.hint { font: 700 .68rem/1 var(--f-m); letter-spacing: .14em; text-transform: uppercase; color: var(--dim) }
+.space { flex: 1 1 auto; min-height: 220px; pointer-events: none }
+.marslab { position: absolute; z-index: 2; font: 700 .68rem/1.3 var(--f-m); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); transform: translate(-50%, 0); text-align: center; white-space: nowrap; pointer-events: none }
+.marslab b { color: var(--ink); display: block }
+.marslab[data-side=left] { transform: translate(-100%, -50%); text-align: right }
+.stamp { position: absolute; z-index: 2; left: 0; top: 0; transform: translate(-50%, -50%) rotate(-9deg) scale(.5); opacity: 0; font: 900 clamp(1rem, 2.6vw, 2rem)/1 var(--f-d); color: var(--orange); border: 4px solid var(--orange); border-radius: 10px; padding: .5em .6em; white-space: nowrap; background: rgba(4,6,12,.55); transition: transform .45s cubic-bezier(.3,1.7,.5,1), opacity .3s; pointer-events: none }
+.stamp.on { opacity: 1; transform: translate(-50%, -50%) rotate(-9deg) scale(1) }
+.dock { width: 100%; max-width: 860px; margin: 0 auto; padding: 8px var(--gr) calc(14px + env(safe-area-inset-bottom, 0px)) var(--gl); display: grid; gap: 8px }
+.dock > * { pointer-events: auto }
+.radio { text-align: center; font-size: 1.02rem; min-height: 1.6em; color: #e9e4d9; text-shadow: 0 1px 8px #000; margin: 0 0 6px; text-wrap: balance }
+.gauge { display: grid; gap: 4px }
+.gauge label { display: flex; justify-content: space-between; align-items: baseline; font: 700 .7rem/1 var(--f-m); letter-spacing: .12em; text-transform: uppercase; color: var(--dim) }
+.gauge label b { color: var(--water); font-size: 1.35rem; letter-spacing: 0; font-variant-numeric: tabular-nums }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; cursor: pointer; background: none; margin: 0 }
+input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--water), #1b4f8a 35%, #8f7350 70%, #3a2e25) }
+input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--water), #1b4f8a 35%, #8f7350 70%, #3a2e25) }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); border: 6px solid var(--orange); margin-top: -10px; cursor: grab }
+input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--ink); border: 6px solid var(--orange) }
+.ticks { position: relative; height: 1em; font: 500 .64rem/1 var(--f-m); letter-spacing: .08em; text-transform: uppercase; color: var(--dim) }
+.ticks span { position: absolute; top: 0; white-space: nowrap }
+.tally { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 22px; margin-top: 6px; font: 500 .74rem/1.4 var(--f-m); color: var(--dim); font-variant-numeric: tabular-nums; text-align: center }
+.tally b { color: var(--ink); font-weight: 700 }
+.refill { background: none; border: 0; padding: 0; color: var(--water); text-decoration: underline; cursor: pointer; font: inherit }
+.credit { margin: 4px 0 0; text-align: center; font-size: .66rem; line-height: 1.4; color: #5f6878 }
+@media (max-width: 720px) {
+  .hint { display: none }
+  .ticks span:nth-child(2), .ticks span:nth-child(3) { display: none }
+  .radio { min-height: 3em; font-size: .95rem }
+}
