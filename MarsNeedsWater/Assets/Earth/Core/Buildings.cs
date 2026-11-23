@@ -16,6 +16,9 @@ namespace MarsNeedsWater.Earth
         /// <summary>Walls are spread over this many meshes so that no single collider is slow to make.</summary>
         public const int Chunks = 6;
 
+        /// <summary>For tests: when set, counts the things built that are not buildings, by kind (BK.St*).</summary>
+        public static int[] Counts;
+
         struct P3
         {
             public float X, Y, Z;
@@ -37,7 +40,87 @@ namespace MarsNeedsWater.Earth
             public float[] Len, NX, NZ;   // each edge (from corner i to i + 1): length, and the direction out of the building
         }
 
-        sealed class Info { public string Cls, Sub, FCol, FMat, RMat, RCol; public double Height = double.NaN, Floors = double.NaN, Area; }
+        sealed class Info { public string Cls, Sub, FCol, FMat, RMat, RCol; public double Height = double.NaN, Floors = double.NaN, Area; public int Kind; public bool Steel; }
+
+        /// <summary>A tower, tank or the like from the map's infrastructure layer; places in fractions of this square.</summary>
+        sealed class Thing { public int Kind; public bool IsArea, Steel, Used, Parts; public double[] Ring; public double U, V, Height = double.NaN, Area; }
+
+        static bool In(double[] ring, double x, double y)
+        {
+            bool c = false;
+            for (int k = 0, q = ring.Length - 2; k < ring.Length; q = k, k += 2)
+                if ((ring[k + 1] > y) != (ring[q + 1] > y) && x < (ring[q] - ring[k]) * (y - ring[k + 1]) / (ring[q + 1] - ring[k + 1]) + ring[k]) c = !c;
+            return c;
+        }
+
+        /// <summary>The value of one of the map's own tags ("key":"value" in a line of JSON), or null.</summary>
+        static string Tag(string json, string key)
+        {
+            if (json == null) return null;
+            int i = json.IndexOf("\"" + key + "\":\"", StringComparison.Ordinal);
+            if (i < 0) return null;
+            i += key.Length + 4;
+            int j = json.IndexOf('"', i);
+            return j < 0 ? null : json.Substring(i, j - i);
+        }
+
+        static int KindOf(string cls)
+        {
+            switch (cls)
+            {
+                case "communication_tower": case "mobile_phone_tower": case "radar": case "monitoring": case "lightning_protection": case "observation": return BK.StMast;
+                case "cooling": return BK.StCooling;
+                case "water_tower": return BK.StWaterTower;
+                case "storage_tank": case "slurry_tank": case "digester": return BK.StTank;
+                case "silo": return BK.StSilo;
+                case "reservoir_covered": case "transformer_tower": return BK.StCovered;
+                case "chimney": return BK.StChimney;
+                case "lighthouse": return BK.StLighthouse;
+            }
+            return BK.StNone;
+        }
+
+        /// <summary>The towers, masts, tanks and so on that the map lists apart from its buildings.</summary>
+        static List<Thing> Things(TileResult t, MvtLayer L, int z)
+        {
+            var list = new List<Thing>();
+            if (L == null) return list;
+            int kCls = L.Key("class"), kH = L.Key("height"), kTags = L.Key("source_tags");
+            double k = 1 << (14 - z), e = L.Extent;
+            int bx = t.X >> (14 - z), by = t.Y >> (14 - z);
+            foreach (MvtFeature f in L.Features)
+            {
+                if (f.Type == 2 || f.Parts.Count == 0) continue;
+                int kind = KindOf(L.Str(f, kCls));
+                if (kind == BK.StNone) continue;
+                int[] r = f.Parts[0];
+                if (r.Length < 2 || (f.Type == 3 && r.Length < 6)) continue;
+                var ring = new double[r.Length];
+                double su = 0, sv = 0;
+                for (int i = 0; i < r.Length; i += 2)
+                {
+                    ring[i] = (bx + r[i] / e) * k - t.X; ring[i + 1] = (by + r[i + 1] / e) * k - t.Y;
+                    su += ring[i]; sv += ring[i + 1];
+                }
+                var th = new Thing { Kind = kind, IsArea = f.Type == 3, Ring = ring, U = su / (r.Length / 2), V = sv / (r.Length / 2), Height = L.Num(f, kH, double.NaN) };
+                if (th.U < -0.2 || th.V < -0.2 || th.U > 1.2 || th.V > 1.2) continue;
+                if (th.Height <= 0) th.Height = double.NaN;
+                if (th.IsArea)
+                {
+                    double a = 0;
+                    for (int i = 0, j = ring.Length - 2; i < ring.Length; j = i, i += 2) a += ring[j] * ring[i + 1] - ring[i] * ring[j + 1];
+                    double side = t.Size * Geo.Scale;
+                    th.Area = Math.Abs(a) * 0.5 * side * side;
+                }
+                if (kind == BK.StMast)
+                {
+                    string tags = L.Str(f, kTags), how = Tag(tags, "tower:construction"), of = Tag(tags, "material");
+                    th.Steel = how != null ? how.Contains("lattice") : of != null ? of == "steel" || of == "metal" : !th.IsArea || th.Area < 420;
+                }
+                list.Add(th);
+            }
+            return list;
+        }
 
         /// <summary>Where vertices go, and what each says to the shader.</summary>
         sealed class Pen
@@ -99,7 +182,7 @@ namespace MarsNeedsWater.Earth
 
         static MeshData NewMesh() { return new MeshData { X = new List<float>(), Y = new List<float>() }; }
 
-        public static void Build(TileResult t, TileSources src)
+        public static void Build(TileResult t, TileSources src, MvtLayer infra = null, int infraZ = 13)
         {
             t.Walls = new MeshData[Chunks];
             for (int i = 0; i < Chunks; i++) t.Walls[i] = NewMesh();
@@ -117,6 +200,7 @@ namespace MarsNeedsWater.Earth
                 if (u < -r - 0.1 || v < -r - 0.1 || u > 1 + r + 0.1 || v > 1 + r + 0.1) continue;
                 clear.Add(u); clear.Add(v); clear.Add(r * r);
             }
+            List<Thing> things = Things(t, infra, infraZ);
             MvtLayer parts;
             layers.TryGetValue("building_part", out parts);
             bool haveParts = parts != null && parts.Features.Count > 0;
@@ -143,6 +227,36 @@ namespace MarsNeedsWater.Earth
                     if (me.Height <= 0) me.Height = double.NaN;
                     if (me.Floors <= 0) me.Floors = double.NaN;
                     string id = L.Str(f, kId);
+                    int[] first = f.Parts[0];
+                    double sx = 0, sy = 0;
+                    for (int i = 0; i < first.Length; i += 2) { sx += first[i]; sy += first[i + 1]; }
+                    double cu = sx / (first.Length / 2) / e, cv = sy / (first.Length / 2) / e;
+                    if (!isPart)
+                    {
+                        // is it really a building? The map may know it as a mast, a cooling tower, a tank...
+                        me.Kind = KindOf(me.Cls);
+                        double[] own = null;
+                        foreach (Thing th in things)
+                        {
+                            if (Math.Abs(th.U - cu) > 0.08 || Math.Abs(th.V - cv) > 0.08) continue;
+                            if (own == null) { own = new double[first.Length]; for (int i = 0; i < first.Length; i++) own[i] = first[i] / e; }
+                            bool hit;
+                            if (th.IsArea) hit = In(th.Ring, cu, cv) && In(own, th.U, th.V) && me.Area > th.Area * 0.4 && me.Area < th.Area * 2.5;
+                            else
+                            {
+                                bool on = In(own, th.U, th.V);
+                                if (on) th.Used = true;         // a mast on a roof is not drawn as one standing on the ground
+                                hit = on && me.Cls == null && me.Area < 400 && (th.Kind == BK.StMast || th.Kind == BK.StWaterTower);
+                            }
+                            if (!hit) continue;
+                            th.Used = true; th.Parts = haveParts && L.Flag(f, kParts);
+                            me.Kind = th.Kind; me.Steel = th.Steel;
+                            if (double.IsNaN(me.Height)) me.Height = th.Height;
+                            if (th.IsArea) break;
+                        }
+                        // a tall thin round thing nobody has named is a chimney
+                        if (me.Kind == BK.StNone && me.Cls == null && me.Sub == null && first.Length >= 20 && me.Area < 350 && me.Height >= 40 && me.Height > 8 * Math.Sqrt(me.Area) && !L.Flag(f, kParts)) me.Kind = BK.StChimney;
+                    }
                     if (!isPart && haveParts && L.Flag(f, kParts)) { if (id != null) parents[id] = me; continue; }
 
                     // a part looks like the building it belongs to, except where it says otherwise itself
@@ -152,13 +266,16 @@ namespace MarsNeedsWater.Earth
                     {
                         string pid = L.Str(f, kOf);
                         if (pid != null) { styleId = pid; Info p; if (parents.TryGetValue(pid, out p)) of = p; }
+                        if (of.Kind == BK.StNone)
+                        {
+                            // the map sometimes files a tower's parts under the building next door
+                            foreach (Thing th in things)
+                                if (th.Parts && me.Area <= th.Area && In(th.Ring, cu, cv)) { of = new Info { Kind = th.Kind, Steel = th.Steel, Height = of.Height, FCol = of.Kind == BK.StNone ? null : of.FCol }; break; }
+                        }
                     }
                     uint hash = Hash(styleId);
-                    int[] first = f.Parts[0];
-                    double sx = 0, sy = 0;
-                    for (int i = 0; i < first.Length; i += 2) { sx += first[i]; sy += first[i + 1]; }
-                    double lat = Geo.TileLat(t.Y + sy / (first.Length / 2) / e, 14), lon = Geo.TileLon(t.X + sx / (first.Length / 2) / e, 14);
-                    Look look = BuildingStyle.Pick(lat, lon, hash, of.Cls, of.Sub, double.IsNaN(of.Height) ? me.Height : of.Height, double.IsNaN(of.Floors) ? me.Floors : of.Floors,
+                    double lat = Geo.TileLat(t.Y + cv, 14), lon = Geo.TileLon(t.X + cu, 14);
+                    Look look = of.Kind != BK.StNone ? BuildingStyle.Structure(of.Kind, hash, me.FCol ?? of.FCol, me.FMat ?? of.FMat, me.RCol ?? of.RCol) : BuildingStyle.Pick(lat, lon, hash, of.Cls, of.Sub, double.IsNaN(of.Height) ? me.Height : of.Height, double.IsNaN(of.Floors) ? me.Floors : of.Floors,
                         Math.Max(of.Area, me.Area), me.FCol ?? of.FCol, me.FMat ?? of.FMat, L.Str(f, kRShape), me.RMat ?? of.RMat, me.RCol ?? of.RCol);
                     if (isPart && L.Str(f, kRShape) == null) look.RoofShape = BK.ShFlat;       // something may well stand on it
 
@@ -167,6 +284,7 @@ namespace MarsNeedsWater.Earth
                     {
                         if (!double.IsNaN(floors)) real = Math.Max(3.0, floors * look.FloorReal + (look.RoofShape != BK.ShFlat ? 1.5 : 0.5));
                         else if (isPart && !double.IsNaN(of.Height)) real = of.Height;
+                        else if (look.Struct != BK.StNone) real = StructHeight(look.Struct, me.Area);
                         else if (look.Cat == BK.CatShed) real = Style.DefaultHeight(of.Cls, of.Sub, hash);
                         else { floors = look.DefFloors; real = floors * look.FloorReal + (look.RoofShape != BK.ShFlat ? 1.5 : 0.5); }
                     }
@@ -185,18 +303,68 @@ namespace MarsNeedsWater.Earth
                         if (sign == 0) sign = Math.Sign(a);
                         if (Math.Sign(a) == sign)
                         {
-                            if (poly.Count > 0) Add(t, poly, e, real, realMin, floors, hash, clear, models, look, isPart);
+                            if (poly.Count > 0) Add(t, poly, e, real, realMin, floors, hash, clear, models, look, isPart, of.Steel);
                             poly = new List<int[]>();
                         }
                         else if (poly.Count == 0) continue;
                         poly.Add(ring);
                     }
-                    if (poly.Count > 0) Add(t, poly, e, real, realMin, floors, hash, clear, models, look, isPart);
+                    if (poly.Count > 0) Add(t, poly, e, real, realMin, floors, hash, clear, models, look, isPart, of.Steel);
                 }
+            }
+
+            // masts, tanks and towers the map lists without a building: they stand all the same
+            foreach (Thing th in things)
+            {
+                if (th.Used || th.U < 0 || th.V < 0 || th.U >= 1 || th.V >= 1) continue;
+                if (th.Kind == BK.StCovered || th.Kind == BK.StCooling && !th.IsArea) continue;
+                const double E = 4096;
+                int[] ring;
+                double area = th.Area;
+                if (th.IsArea)
+                {
+                    if (area < 4) continue;
+                    ring = new int[th.Ring.Length];
+                    for (int i = 0; i < ring.Length; i++) ring[i] = (int)Math.Round(th.Ring[i] * E);
+                }
+                else
+                {
+                    // a spot on the map: only masts, and only those worth seeing from afar
+                    if (th.Kind != BK.StMast || double.IsNaN(th.Height) || th.Height < 25) continue;
+                    bool twice = false;         // the same mast is often on the map as an outline too
+                    foreach (Thing o in things) if (o.IsArea && o.Kind == th.Kind && In(o.Ring, th.U, th.V)) { twice = true; break; }
+                    if (twice) continue;
+                    double side = Math.Max(3.0, th.Height * 0.13), half = side * 0.5 / (t.Size * Geo.Scale) * E;
+                    area = side * side;
+                    int x0 = (int)Math.Round(th.U * E - half), x1 = (int)Math.Round(th.U * E + half), y0 = (int)Math.Round(th.V * E - half), y1 = (int)Math.Round(th.V * E + half);
+                    if (x1 - x0 < 2 || y1 - y0 < 2) continue;
+                    ring = new[] { x0, y0, x1, y0, x1, y1, x0, y1 };
+                }
+                uint hash = Hash("thing" + th.Kind + ":" + (int)(th.U * 100000) + ":" + (int)(th.V * 100000) + ":" + t.X + ":" + t.Y);
+                Look look = BuildingStyle.Structure(th.Kind, hash, null, null, null);
+                double real = double.IsNaN(th.Height) ? StructHeight(th.Kind, area) : th.Height;
+                Add(t, new List<int[]> { ring }, E, real, 0, 1, hash, clear, models, look, false, th.Steel);
             }
         }
 
-        static void Add(TileResult t, List<int[]> raw, double extent, double real, double realMin, double floors, uint hash, List<double> clear, List<Landmark> models, Look k, bool isPart)
+        /// <summary>How tall (real metres) a thing that is not a building stands when the map does not say.</summary>
+        static double StructHeight(int kind, double area)
+        {
+            double across = Math.Sqrt(Math.Max(1.0, area));
+            switch (kind)
+            {
+                case BK.StMast: return 45;
+                case BK.StCooling: return Math.Min(130, Math.Max(40, across * 1.4));
+                case BK.StWaterTower: return Math.Min(40, Math.Max(18, across * 2.2));
+                case BK.StTank: return Math.Min(18, Math.Max(5, across * 0.6));
+                case BK.StSilo: return Math.Min(32, Math.Max(10, across * 2.2));
+                case BK.StChimney: return 60;
+                case BK.StLighthouse: return 25;
+            }
+            return 3;
+        }
+
+        static void Add(TileResult t, List<int[]> raw, double extent, double real, double realMin, double floors, uint hash, List<double> clear, List<Landmark> models, Look k, bool isPart, bool steel = false)
         {
             int[] outer = raw[0];
             int minX = int.MaxValue, minY = int.MaxValue, maxX = int.MinValue, maxY = int.MinValue, total = 0;
@@ -284,6 +452,15 @@ namespace MarsNeedsWater.Earth
             if (s == 0) s = 1;
             Rnd(ref s);
             var wall = new Pen { M = t.Walls[(int)((hash >> 8) % Chunks)] };
+            if (k.Struct != BK.StNone && !isPart && k.Struct != BK.StCovered)
+            {
+                // not a building: a shape of its own, raised from the outline
+                Shape(wall, rings[0], gAvg, gMin, top - gAvg, areaGame, k, steel, real, ref s);
+                if (Counts != null) Counts[k.Struct]++;
+                t.BuildingCount++;
+                return;
+            }
+            int wallSurf = k.Struct != BK.StNone ? BK.Plain : BK.Wall;
             var roof = new Pen { M = t.Roofs };
             float accent = k.Accent, wallCol = k.Wall, trim = k.Trim, roofCol = k.RoofCol, bitsB = k.BitsB;
             float bay0 = Math.Max(0.5f, k.BayReal / (float)Geo.Scale);
@@ -336,7 +513,7 @@ namespace MarsNeedsWater.Earth
             float floorH = H / nF;
             int lo = (int)(-extent / 64) + 2, hi = (int)(extent + extent / 64) - 2;
             wall.A1 = floorH; wall.A2 = H; wall.A3 = accent;
-            wall.B0 = wallCol; wall.B1 = trim; wall.B2 = k.BitsA(BK.Wall, k.Mat); wall.B3 = bitsB;
+            wall.B0 = wallCol; wall.B1 = trim; wall.B2 = k.BitsA(wallSurf, k.Mat); wall.B3 = bitsB;
             float vB = bottom - gAvg, vT = wallTop - gAvg;
             foreach (Ring r in rings)
             {
@@ -395,7 +572,7 @@ namespace MarsNeedsWater.Earth
                 float y = parapet ? top - (0.1f + 0.22f * Rnd(ref s)) - (k.Cat == BK.CatTower ? 0.15f : 0f) : top;
                 List<int> tris;
                 double[] flat = Lid(rings, null, null, y, roof, verts, out tris);
-                if (!isPart && tris != null) Clutter(wall, flat, tris, rings, null, null, y, k, ref s, areaGame, body);
+                if (!isPart && tris != null && k.Struct == BK.StNone) Clutter(wall, flat, tris, rings, null, null, y, k, ref s, areaGame, body);
             }
             else if (inX != null)
             {
@@ -472,6 +649,179 @@ namespace MarsNeedsWater.Earth
                 }
             }
             t.BuildingCount++;
+        }
+
+        // ------------------------------------------------------------ things that are not buildings
+
+        /// <summary>
+        /// Rings of n corners stacked up: ring j stands at height ys[j] and is the base ring (bx, bz, about cx, cz)
+        /// scaled by sc[j]. Each band between two rings takes its colour from cols (if given). Closed on top.
+        /// </summary>
+        static void Loft(Pen pen, float cx, float cz, float[] bx, float[] bz, float[] ys, float[] sc, uint[] cols, uint lid)
+        {
+            int n = bx.Length;
+            for (int j = 0; j + 1 < ys.Length; j++)
+            {
+                if (cols != null) pen.B0 = cols[Math.Min(j, cols.Length - 1)];
+                float s0 = sc[j], s1 = sc[j + 1], y0 = ys[j], y1 = ys[j + 1];
+                float tilt = s1 < s0 - 1e-4f ? 0.6f : s1 > s0 + 1e-4f ? -0.6f : 0f;
+                for (int i = 0; i < n; i++)
+                {
+                    int i1 = (i + 1) % n;
+                    var a = new P3(cx + bx[i] * s0, y0, cz + bz[i] * s0); var b = new P3(cx + bx[i1] * s0, y0, cz + bz[i1] * s0);
+                    var c = new P3(cx + bx[i1] * s1, y1, cz + bz[i1] * s1); var d = new P3(cx + bx[i] * s1, y1, cz + bz[i] * s1);
+                    var hint = new P3(bx[i] + bx[i1], 0, bz[i] + bz[i1]);
+                    float hl = hint.Len;
+                    if (hl < 1e-6f) continue;
+                    hint = hint * (1f / hl); hint.Y = tilt;
+                    pen.Face(a, b, c, d, hint);
+                }
+            }
+            int top = ys.Length - 1;
+            if (sc[top] < 0.02f) return;
+            pen.B0 = lid;
+            var mid = new P3(cx, ys[top], cz);
+            for (int i = 0; i < n; i++)
+            {
+                int i1 = (i + 1) % n;
+                pen.Face(new P3(cx + bx[i] * sc[top], ys[top], cz + bz[i] * sc[top]), new P3(cx + bx[i1] * sc[top], ys[top], cz + bz[i1] * sc[top]), mid, new P3(0, 1, 0));
+            }
+        }
+
+        static void Round(int n, float r, out float[] x, out float[] z)
+        {
+            x = new float[n]; z = new float[n];
+            for (int i = 0; i < n; i++) { double a = i * 2 * Math.PI / n; x[i] = (float)Math.Cos(a) * r; z[i] = (float)Math.Sin(a) * r; }
+        }
+
+        static uint Dim(uint c, float f)
+        {
+            return ((uint)(((c >> 16) & 255) * f) << 16) | ((uint)(((c >> 8) & 255) * f) << 8) | (uint)((c & 255) * f);
+        }
+
+        /// <summary>
+        /// A mast, cooling tower, water tower, tank, silo, chimney or lighthouse standing on outline o. g is the ground
+        /// under it, H its height above that, both in game metres.
+        /// </summary>
+        static void Shape(Pen pen, Ring o, float g, float gMin, float H, float area, Look k, bool steel, double real, ref uint s)
+        {
+            float cx = 0, cz = 0;
+            for (int i = 0; i < o.N; i++) { cx += o.X[i]; cz += o.Z[i]; }
+            cx /= o.N; cz /= o.N;
+            float r = (float)Math.Sqrt(area / Math.PI), foot = gMin - 0.4f;
+            var ox = new float[o.N]; var oz = new float[o.N];
+            for (int i = 0; i < o.N; i++) { ox[i] = o.X[i] - cx; oz[i] = o.Z[i] - cz; }
+            pen.A0 = 0; pen.A1 = 1; pen.A2 = 1; pen.A3 = k.Accent;
+            pen.B0 = k.Wall; pen.B1 = k.Trim; pen.B2 = k.BitsA(BK.Plain, k.Mat); pen.B3 = 0;
+            uint wall = k.Wall, dark = Dim(wall, 0.45f);
+            const uint Red = 0xd9482b, White = 0xf0efe9;
+            float[] bx, bz;
+            switch (k.Struct)
+            {
+                case BK.StCooling:
+                {
+                    // a concrete shell, narrowest three quarters of the way up; open at the top
+                    float[] f = { 0f, 0.14f, 0.28f, 0.42f, 0.56f, 0.7f, 0.82f, 0.92f, 1f }, w = { 1f, 0.9f, 0.81f, 0.74f, 0.685f, 0.655f, 0.65f, 0.665f, 0.69f };
+                    var ys = new float[f.Length + 1]; var sc = new float[f.Length + 1];
+                    ys[0] = foot; sc[0] = 1f;
+                    for (int i = 0; i < f.Length; i++) { ys[i + 1] = g + H * f[i]; sc[i + 1] = w[i]; }
+                    if (o.N < 10) { Round(20, r, out bx, out bz); } else { bx = ox; bz = oz; }
+                    Loft(pen, cx, cz, bx, bz, ys, sc, null, dark);
+                    // the lid sits below the rim, dark like the inside of the shell
+                    pen.B0 = dark;
+                    Loft(pen, cx, cz, bx, bz, new[] { g + H * 0.9f, g + H * 0.9f }, new[] { 0.66f, 0.66f }, null, dark);
+                    return;
+                }
+                case BK.StWaterTower:
+                    if (real > Math.Sqrt(area) * Geo.Scale * 1.3)
+                    {
+                        // a tank up on a stem
+                        Round(14, r, out bx, out bz);
+                        float neck = Math.Max(0.22f, Math.Min(0.5f, 0.9f / Math.Max(0.5f, r)));
+                        Loft(pen, cx, cz, bx, bz, new[] { foot, g + H * 0.56f, g + H * 0.7f, g + H * 0.92f, g + H },
+                             new[] { neck, neck * 0.9f, 1f, 1f, 0.3f }, null, wall);
+                        return;
+                    }
+                    goto case BK.StTank;
+                case BK.StTank:
+                {
+                    // a drum with a shallow cone for a roof, a rim painted darker
+                    float rim = Math.Min(0.25f, H * 0.12f), cone = Math.Min(H * 0.25f, r * 0.14f);
+                    Loft(pen, cx, cz, ox, oz, new[] { foot, g + H - cone - rim, g + H - cone, g + H }, new[] { 1f, 1f, 1f, 0.03f }, new[] { wall, Dim(wall, 0.86f), Dim(wall, 0.93f) }, wall);
+                    return;
+                }
+                case BK.StSilo:
+                    Loft(pen, cx, cz, ox, oz, new[] { foot, g + H * 0.86f, g + H }, new[] { 1f, 1f, 0.2f }, new[] { wall, Dim(wall, 0.9f) }, Dim(wall, 0.9f));
+                    return;
+                case BK.StChimney:
+                {
+                    Round(12, Math.Min(r, Math.Max(0.4f, H * 0.06f)), out bx, out bz);
+                    bool tall = real >= 60;
+                    Loft(pen, cx, cz, bx, bz, new[] { foot, g + H * 0.76f, g + H * 0.84f, g + H * 0.92f, g + H }, new[] { 1f, 0.7f, 0.67f, 0.64f, 0.6f },
+                         tall ? new[] { wall, Red, White, Red } : new[] { wall }, dark);
+                    return;
+                }
+                case BK.StLighthouse:
+                {
+                    Round(12, Math.Min(r, Math.Max(0.5f, H * 0.14f)), out bx, out bz);
+                    Loft(pen, cx, cz, bx, bz, new[] { foot, g + H * 0.27f, g + H * 0.54f, g + H * 0.8f, g + H * 0.8f, g + H * 0.84f, g + H * 0.84f, g + H * 0.95f, g + H },
+                         new[] { 1f, 0.87f, 0.74f, 0.62f, 0.8f, 0.8f, 0.5f, 0.5f, 0.05f }, new[] { wall, Red, wall, dark, dark, dark, 0xf3e7a0u, Red }, Red);
+                    return;
+                }
+            }
+
+            // ---- a mast
+            float half = Math.Min((float)Math.Sqrt(area) * 0.5f, H * 0.075f);
+            bool bands = real >= 45 && k.Flags == 0;       // tall masts are painted red and white, unless the map gives a colour
+            if (!steel)
+            {
+                // a concrete shaft with a pod near the top and an aerial above
+                Round(12, Math.Max(0.3f, Math.Min(r, H * 0.05f)), out bx, out bz);
+                Loft(pen, cx, cz, bx, bz, new[] { foot, g + H * 0.3f, g + H * 0.6f, g + H * 0.62f, g + H * 0.69f, g + H * 0.71f, g + H * 0.78f, g + H * 0.78f, g + H * 0.89f, g + H * 0.89f, g + H },
+                     new[] { 1f, 0.72f, 0.52f, 1.25f, 1.3f, 0.5f, 0.46f, 0.2f, 0.17f, 0.08f, 0.05f },
+                     new[] { wall, wall, Dim(wall, 0.8f), Dim(wall, 0.62f), Dim(wall, 0.8f), wall, wall, bands ? Red : wall, bands ? Red : wall, White, White }, White);
+                return;
+            }
+            // steel lattice, narrowing upward: each face is drawn as legs, rails and braces by the shader
+            half = Math.Max(0.22f, half);
+            int longest = 0;
+            for (int i = 1; i < o.N; i++) if (o.Len[i] > o.Len[longest]) longest = i;
+            float dx = -o.NZ[longest], dz = o.NX[longest];
+            float topAt = H * 0.9f, y = 0;
+            uint steelCol = k.Wall;
+            pen.B2 = k.BitsA(BK.Plain, BK.Lattice);
+            for (int guard = 0; guard < 60 && y < topAt - 0.01f; guard++)
+            {
+                float h0 = half * (1f - 0.78f * y / topAt);
+                float step = Math.Max(h0 * 2f, H / 26f);
+                float y1 = Math.Min(topAt, y + step);
+                if (topAt - y1 < step * 0.4f) y1 = topAt;
+                float h1 = half * (1f - 0.78f * y1 / topAt);
+                pen.B0 = bands ? ((int)(y / H * 7f) % 2 == 0 ? Red : White) : steelCol;
+                float yb = y == 0 ? foot : g + y, yt = g + y1;
+                for (int q = 0; q < 4; q++)
+                {
+                    // corners going round: (-1,-1) (1,-1) (1,1) (-1,1)
+                    int q1 = (q + 1) % 4;
+                    float ax = q == 0 || q == 3 ? -1 : 1, az = q < 2 ? -1 : 1, bxs = q1 == 0 || q1 == 3 ? -1 : 1, bzs = q1 < 2 ? -1 : 1;
+                    float nxl = (ax + bxs) * 0.5f, nzl = (az + bzs) * 0.5f;
+                    float nx = dx * nxl - dz * nzl, nz = dz * nxl + dx * nzl;
+                    Func<float, float, float, P3> at = (lx, lz, hh) => new P3(cx + (dx * lx - dz * lz) * hh, 0, cz + (dz * lx + dx * lz) * hh);
+                    P3 p0 = at(ax, az, h0).Up(yb), p1 = at(bxs, bzs, h0).Up(yb), p2 = at(bxs, bzs, h1).Up(yt), p3 = at(ax, az, h1).Up(yt);
+                    pen.A1 = y1 - y; pen.A2 = h0 + h1;
+                    float v0 = y == 0 ? (foot - g) / (y1 - y) : 0f;
+                    int i0 = pen.V(p0.X, p0.Y, p0.Z, nx, 0.15f, nz, 0, v0), i1 = pen.V(p1.X, p1.Y, p1.Z, nx, 0.15f, nz, 1, v0);
+                    int i2 = pen.V(p2.X, p2.Y, p2.Z, nx, 0.15f, nz, 1, 1), i3 = pen.V(p3.X, p3.Y, p3.Z, nx, 0.15f, nz, 0, 1);
+                    pen.M.Tri(i0, i1, i2, nx, 0, nz);
+                    pen.M.Tri(i0, i2, i3, nx, 0, nz);
+                }
+                y = y1;
+            }
+            // the aerial on top
+            pen.A1 = 1; pen.A2 = 1;
+            pen.B0 = bands ? White : steelCol; pen.B2 = k.BitsA(BK.Plain, BK.Metal);
+            float thin = Math.Max(0.05f, half * 0.1f);
+            Box(pen, cx, cz, g + topAt, thin, thin, H - topAt, dx, dz, true);
         }
 
         // ------------------------------------------------------------ shapes

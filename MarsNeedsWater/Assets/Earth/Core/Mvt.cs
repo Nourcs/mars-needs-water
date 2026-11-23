@@ -22,6 +22,8 @@ namespace MarsNeedsWater.Earth
         object[] cache;
         byte[] buf;
 
+        public IList<string> Keys { get { return keys; } }
+
         public int Key(string name) { int i; return keyIndex.TryGetValue(name, out i) ? i : -1; }
 
         public object Get(MvtFeature f, int key)

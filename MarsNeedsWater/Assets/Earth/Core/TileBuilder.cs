@@ -376,7 +376,9 @@ namespace MarsNeedsWater.Earth
             // ---- things that stand on the ground: only on the closest level ----
             if (Z == 14)
             {
-                Buildings.Build(t, src);
+                MvtLayer infra;
+                baseLayers.TryGetValue("infrastructure", out infra);
+                Buildings.Build(t, src, infra, zb);
                 RoadNet.Build(t, roads, seg);
                 if (seg != null) Bridges.Build(t, src, roads, seg.Extent, (u, v) => { byte mk = ras.MaskAt(Math.Min(0.9995, Math.Max(0.0005, u)), Math.Min(0.9995, Math.Max(0.0005, v))); return mk == Raster.Ocean || mk == Raster.Water; });
                 BuildTrees(t, ras, baseLayers, zb);

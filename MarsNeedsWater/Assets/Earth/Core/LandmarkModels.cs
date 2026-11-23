@@ -299,6 +299,58 @@ namespace MarsNeedsWater.Earth
             s.Box(0, 0, 0, 50, 18, 50, 0xd9d4cc);             // FootTown, the building under the tower
         }
 
+        public static void Sutro(Sculpt s)
+        {
+            // 298 m of red and white steel on three legs: 62 m apart at the foot, drawn in to a waist at 168 m, spread
+            // again to the top deck at 232 m, with an aerial mast standing on each leg. One leg points west.
+            uint red = 0xbf4e3b, white = 0xe9e9df, grey = 0xb9b5ab;
+            double[] lv = { 0, 26, 52, 78, 104, 130, 156, 168, 182, 208, 232 };
+            Func<double, double> reach = y => y <= 168 ? 31 - (31 - 11.5) * y / 168 : 11.5 + (19.5 - 11.5) * (y - 168) / (232 - 168);
+            Func<double, uint> paint = y => y < 52 ? white : ((int)((y - 52) / 26) % 2 == 0 ? red : white);
+            double[] ang = { 180, 60, -60 };
+            Func<int, double, double[]> at = (leg, y) => new[] { reach(y) * Math.Cos(Rad(ang[leg])), y, reach(y) * Math.Sin(Rad(ang[leg])) };
+            for (int k = 0; k + 1 < lv.Length; k++)
+            {
+                uint col = paint((lv[k] + lv[k + 1]) / 2);
+                double t = 5.2 - 2.0 * lv[k] / 232;
+                for (int leg = 0; leg < 3; leg++)
+                {
+                    double[] a = at(leg, lv[k]), b = at(leg, lv[k + 1]);
+                    s.Beam(a[0], a[1], a[2], b[0], b[1], b[2], t, col);
+                }
+            }
+            // cross beams from leg to leg, and the braces that cross between them
+            double[] decks = { 55, 114.5, 167.75, 198.25, 230.25 };
+            double from = 0;
+            foreach (double y in decks)
+            {
+                uint col = paint(y);
+                for (int leg = 0; leg < 3; leg++)
+                {
+                    int next = (leg + 1) % 3;
+                    double[] a = at(leg, y), b = at(next, y), a0 = at(leg, from), b0 = at(next, from);
+                    s.Beam(a[0], a[1], a[2], b[0], b[1], b[2], y > 200 ? 4.5 : 3.6, col);
+                    uint bc = paint((from + y) / 2);
+                    s.Beam(a0[0], a0[1], a0[2], b[0], b[1], b[2], 1.5, bc);
+                    s.Beam(b0[0], b0[1], b0[2], a[0], a[1], a[2], 1.5, bc);
+                }
+                from = y;
+            }
+            // the top deck, and the three aerials
+            var deck = new double[6];
+            for (int leg = 0; leg < 3; leg++) { double[] p = at(leg, 232); deck[leg * 2] = p[0] * 1.08; deck[leg * 2 + 1] = p[2] * 1.08; }
+            s.Poly(deck, 230, 2.5, red);
+            for (int leg = 0; leg < 3; leg++)
+            {
+                double[] p = at(leg, 232);
+                for (int k = 0; k < 6; k++)
+                    s.Beam(p[0], 232 + k * 11, p[2], p[0], 232 + (k + 1) * 11, p[2], 2.6 - k * 0.3, k % 2 == 0 ? white : red);
+            }
+            // the transmitter building between the feet
+            s.Box(4, 0, 0, 34, 13, 40, grey);
+            s.Box(4, 13, 0, 22, 4, 26, Sculpt.Shade(grey, 0.9));
+        }
+
         public static void WashingtonMonument(Sculpt s)
         {
             s.Taper(0, 0, 0, 16.8, 16.8, 10.5, 10.5, 152.4, 0xe6e2d8);

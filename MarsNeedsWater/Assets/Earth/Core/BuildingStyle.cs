@@ -9,7 +9,7 @@ namespace MarsNeedsWater.Earth
         // surface
         public const int Wall = 0, Roof = 1, Plain = 2;
         // wall materials
-        public const int Stucco = 0, Brick = 1, Stone = 2, Siding = 3, Concrete = 4, Glass = 5, Metal = 6, Adobe = 7, Timber = 8, Tile = 9, Boards = 10, Lime = 11, Azulejo = 12;
+        public const int Stucco = 0, Brick = 1, Stone = 2, Siding = 3, Concrete = 4, Glass = 5, Metal = 6, Adobe = 7, Timber = 8, Tile = 9, Boards = 10, Lime = 11, Azulejo = 12, Lattice = 13;
         // windows
         public const int WNone = 0, WPlain = 1, WFrench = 2, WSash = 3, WArch = 4, WRibbon = 5, WCurtain = 6, WSmall = 7, WMoorish = 8, WBay = 9, WGrid = 10, WSliding = 11;
         // ground floors
@@ -30,6 +30,8 @@ namespace MarsNeedsWater.Earth
         public const int ClBox = 1, ClNyTank = 2, ClTank = 4, ClSolar = 8, ClChimney = 16;
         // what a building is used as
         public const int CatHouse = 0, CatMid = 1, CatTower = 2, CatShed = 3, CatIndustrial = 4;
+        // things on the map's building layer that are not buildings (Look.Struct): no windows, and a shape of their own
+        public const int StNone = 0, StMast = 1, StShaft = 2, StCooling = 3, StWaterTower = 4, StTank = 5, StSilo = 6, StCovered = 7, StChimney = 8, StLighthouse = 9;
     }
 
     /// <summary>One way of building: a Paris apartment block, a London terrace, a Tunis medina house...</summary>
@@ -58,7 +60,7 @@ namespace MarsNeedsWater.Earth
     /// <summary>Everything decided about one building's look.</summary>
     public struct Look
     {
-        public int Cat, Mat, Win, WwI, WhI, Shut, Bal, BalMode, Ground, Cornice, Flags, Glass, RoofShape, RoofMat, Clutter, DefFloors;
+        public int Struct, Cat, Mat, Win, WwI, WhI, Shut, Bal, BalMode, Ground, Cornice, Flags, Glass, RoofShape, RoofMat, Clutter, DefFloors;
         public uint Wall, Trim, Accent, RoofCol;
         public float BayReal, FloorReal, Pitch;
         public string Name, Place;
@@ -755,6 +757,56 @@ namespace MarsNeedsWater.Earth
         /// Decide how a building looks. height and floors are what the map says (NaN when it says nothing; then
         /// DefFloors times FloorReal is a fair height); area is the footprint in real square metres.
         /// </summary>
+        static readonly uint[] TankC = { 0xeceae4, 0xe2e4e3, 0xc9ccce, 0xd9d2b8, 0xbccab8, 0xe9e6dc, 0xb9c4cc };
+
+        /// <summary>
+        /// The look of a thing that is not a building: a mast, a cooling tower, a tank... Bare walls of steel or
+        /// concrete, in the map's own colours where it gives them.
+        /// </summary>
+        public static Look Structure(int kind, uint hash, string fCol, string fMat, string rCol)
+        {
+            uint s = hash * 2654435761u + 0x51ed270bu;
+            if (s == 0) s = 1;
+            Rnd(ref s); Rnd(ref s);
+            var k = new Look { Struct = kind, Name = "STRUCT", Place = "", Cat = BK.CatShed, Win = BK.WNone, Ground = BK.GBlank, FloorReal = 3f, BayReal = 3f, Pitch = 0.5f, RoofShape = BK.ShFlat, DefFloors = 1 };
+            uint wall;
+            switch (kind)
+            {
+                case BK.StMast: k.Mat = BK.Metal; wall = 0xb4b8ba; break;
+                case BK.StTank: k.Mat = BK.Metal; wall = TankC[(int)(Rnd(ref s) * TankC.Length) % TankC.Length]; break;
+                case BK.StSilo: k.Mat = Rnd(ref s) < 0.5f ? BK.Metal : BK.Concrete; wall = k.Mat == BK.Metal ? 0xc4c8cau : 0xc9c4b8u; break;
+                case BK.StWaterTower: k.Mat = Rnd(ref s) < 0.5f ? BK.Metal : BK.Concrete; wall = k.Mat == BK.Metal ? TankC[(int)(Rnd(ref s) * 3f) % 3] : 0xcfcac0u; break;
+                case BK.StChimney: k.Mat = Rnd(ref s) < 0.4f ? BK.Brick : BK.Concrete; wall = k.Mat == BK.Brick ? 0x9a5a48u : 0xbdb8adu; break;
+                case BK.StLighthouse: k.Mat = BK.Lime; wall = 0xeeece6; break;
+                default: k.Mat = BK.Concrete; wall = ConcreteC[(int)(Rnd(ref s) * ConcreteC.Length) % ConcreteC.Length]; wall = Pack(((wall >> 16) & 255) / 255f * 1.08f, ((wall >> 8) & 255) / 255f * 1.08f, (wall & 255) / 255f * 1.08f); break;
+            }
+            switch (fMat)
+            {
+                case "metal": case "steel": k.Mat = BK.Metal; break;
+                case "concrete": case "cement_block": k.Mat = BK.Concrete; break;
+                case "brick": k.Mat = BK.Brick; if (fCol == null) wall = 0x9a5a48; break;
+                case "stone": k.Mat = BK.Stone; break;
+                case "glass": k.Mat = BK.Glass; if (fCol == null) wall = 0x8fa3b0; break;
+            }
+            k.Wall = Tone(wall, 0.03f, ref s);
+            uint c;
+            if (Hex(fCol, out c))
+            {
+                float r = ((c >> 16) & 255) / 255f, g = ((c >> 8) & 255) / 255f, b = (c & 255) / 255f;
+                k.Wall = Pack(0.08f + r * 0.88f, 0.08f + g * 0.88f, 0.08f + b * 0.88f);
+                k.Flags = 1;        // painted in a colour of its own
+            }
+            k.Trim = k.Wall; k.Accent = 0x4a4d50;
+            k.RoofMat = k.Mat == BK.Metal ? BK.RSeam : BK.RConcrete;
+            k.RoofCol = k.Wall;
+            if (Hex(rCol, out c))
+            {
+                float r = ((c >> 16) & 255) / 255f, g = ((c >> 8) & 255) / 255f, b = (c & 255) / 255f;
+                k.RoofCol = Pack(0.08f + r * 0.88f, 0.08f + g * 0.88f, 0.08f + b * 0.88f);
+            }
+            return k;
+        }
+
         public static Look Pick(double lat, double lon, uint hash, string cls, string sub, double height, double floors, double area,
                                 string fCol, string fMat, string rShape, string rMat, string rCol)
         {

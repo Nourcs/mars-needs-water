@@ -42,6 +42,7 @@ Shader "MarsNeedsWater/EarthBuilding"
         #define M_BOARDS 10
         #define M_LIME 11
         #define M_AZULEJO 12
+        #define M_LATTICE 13
 
         #define W_NONE 0
         #define W_PLAIN 1
@@ -247,6 +248,10 @@ Shader "MarsNeedsWater/EarthBuilding"
                 c *= 1.0 + (BRand(float2(floor(uv.x / 0.42), 3.0), seed) - 0.5) * 0.05;
                 smoothness = 0.3;
             }
+            else if (mat == M_LATTICE)
+            {
+                smoothness = 0.35;      // painted steel
+            }
             else if (mat == M_ADOBE)
             {
                 c *= 1.0 + (BFbm(uv * 3.0 + seed * 7.0, 8.0) - 0.5) * 0.2 + (BNoise(uv * 19.0, 6.0) - 0.5) * 0.1 * saturate(0.06 / px);
@@ -282,6 +287,24 @@ Shader "MarsNeedsWater/EarthBuilding"
                 c *= 1.0 + (BFbm(uv * 2.6 + seed * 3.0, 8.0) - 0.5) * 0.06 + grain * 0.5;
             }
             return c;
+        }
+
+        // ---------------------------------------------------------------- steel lattice
+        // A mast's face (surface S_PLAIN, material M_LATTICE): only the steel members are there, the rest is a hole.
+        // uv.x runs 0..1 across the face, uv.y counts the panels up it; d1.y is a panel's height and d1.z the face's
+        // width, both in metres. Less than 0 in the holes. From far off the members thicken until the mast is a pole.
+        float BLattice(float2 uv, float4 d1, float4 d2)
+        {
+            int A = int(d2.z + 0.5);
+            bool lattice = (A & 7) == S_PLAIN && ((A >> 3) & 15) == M_LATTICE;
+            float w = max(d1.z, 0.01), h = max(d1.y, 0.01);
+            float fx = saturate(uv.x), fy = frac(uv.y);
+            float px = max(fwidth(uv.x) * w, fwidth(uv.y) * h);
+            float t = max(0.03 * w + 0.012, px * 0.8);
+            float leg = min(fx, 1.0 - fx) * w - t * 1.5;
+            float rail = min(fy, 1.0 - fy) * h - t * 0.8;
+            float diag = min(abs(fx - fy), abs(fx - (1.0 - fy))) * w * h / sqrt(w * w + h * h) - t * 0.7;
+            return lattice ? -min(leg, min(rail, diag)) : 1.0;
         }
 
         // ---------------------------------------------------------------- roofs
@@ -409,7 +432,7 @@ Shader "MarsNeedsWater/EarthBuilding"
             if (surf == S_PLAIN || !front)
             {
                 // chimneys, tanks, gable ends; and the backs of walls where they stand above a flat roof
-                float3 c = BWallStuff(front ? mat : M_STUCCO, wallC, uv, px, seed, smoothness);
+                float3 c = BWallStuff(front || mat == M_LATTICE ? mat : M_STUCCO, wallC, uv, px, seed, smoothness);
                 if (!front) c *= 0.88;
                 albedo = BLin(saturate(c));
                 return;
@@ -953,6 +976,7 @@ Shader "MarsNeedsWater/EarthBuilding"
 
             half4 frag(Varyings i, bool front : SV_IsFrontFace) : SV_Target
             {
+                clip(BLattice(i.uv0, i.uv1, i.uv2));
                 float3 n = normalize(i.normalWS);
                 if (!front) n = -n;
                 float3 albedo; float smoothness; float glass; float3 glassCol;
@@ -1007,10 +1031,11 @@ Shader "MarsNeedsWater/EarthBuilding"
             #pragma fragment frag
             #pragma target 4.5
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
-            struct Vo { float4 positionCS : SV_POSITION; };
+            struct Vo { float4 positionCS : SV_POSITION; float2 uv0 : TEXCOORD0; nointerpolation float4 uv1 : TEXCOORD1; nointerpolation float4 uv2 : TEXCOORD2; };
             Vo vert(BAttributes v)
             {
                 Vo o;
+                o.uv0 = v.uv0; o.uv1 = v.uv1; o.uv2 = v.uv2;
                 float3 pw = TransformObjectToWorld(v.positionOS.xyz);
                 float3 nw = TransformObjectToWorldNormal(v.normalOS);
                 float4 cs = TransformWorldToHClip(ApplyShadowBias(pw, nw, _MainLightPosition.xyz));
@@ -1022,7 +1047,7 @@ Shader "MarsNeedsWater/EarthBuilding"
                 o.positionCS = cs;
                 return o;
             }
-            half frag(Vo i) : SV_Target { return 0; }
+            half frag(Vo i) : SV_Target { clip(BLattice(i.uv0, i.uv1, i.uv2)); return 0; }
             ENDHLSL
         }
 
@@ -1038,9 +1063,9 @@ Shader "MarsNeedsWater/EarthBuilding"
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5
-            struct Vo { float4 positionCS : SV_POSITION; };
-            Vo vert(BAttributes v) { Vo o; o.positionCS = TransformObjectToHClip(v.positionOS.xyz); return o; }
-            half frag(Vo i) : SV_Target { return 0; }
+            struct Vo { float4 positionCS : SV_POSITION; float2 uv0 : TEXCOORD0; nointerpolation float4 uv1 : TEXCOORD1; nointerpolation float4 uv2 : TEXCOORD2; };
+            Vo vert(BAttributes v) { Vo o; o.positionCS = TransformObjectToHClip(v.positionOS.xyz); o.uv0 = v.uv0; o.uv1 = v.uv1; o.uv2 = v.uv2; return o; }
+            half frag(Vo i) : SV_Target { clip(BLattice(i.uv0, i.uv1, i.uv2)); return 0; }
             ENDHLSL
         }
 
@@ -1055,10 +1080,11 @@ Shader "MarsNeedsWater/EarthBuilding"
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5
-            struct Vo { float4 positionCS : SV_POSITION; float3 normalWS : TEXCOORD0; };
-            Vo vert(BAttributes v) { Vo o; o.positionCS = TransformObjectToHClip(v.positionOS.xyz); o.normalWS = TransformObjectToWorldNormal(v.normalOS); return o; }
+            struct Vo { float4 positionCS : SV_POSITION; float3 normalWS : TEXCOORD0; float2 uv0 : TEXCOORD1; nointerpolation float4 uv1 : TEXCOORD2; nointerpolation float4 uv2 : TEXCOORD3; };
+            Vo vert(BAttributes v) { Vo o; o.positionCS = TransformObjectToHClip(v.positionOS.xyz); o.normalWS = TransformObjectToWorldNormal(v.normalOS); o.uv0 = v.uv0; o.uv1 = v.uv1; o.uv2 = v.uv2; return o; }
             half4 frag(Vo i, bool front : SV_IsFrontFace) : SV_Target
             {
+                clip(BLattice(i.uv0, i.uv1, i.uv2));
                 float3 n = NormalizeNormalPerPixel(i.normalWS);
                 return half4(front ? n : -n, 0);
             }

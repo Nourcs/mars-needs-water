@@ -44,6 +44,7 @@ namespace MarsNeedsWater.Earth
             L(LandmarkModels.OperaHouse, "Sydney Opera House", "Sydney, Australia", -33.85678, 151.21530, 15f, 100, 60f),
             L(LandmarkModels.Redeemer, "Christ the Redeemer", "Rio de Janeiro, Brazil", -22.95192, -43.21049, 105f, 15, 22f),
             L(LandmarkModels.GoldenGate, "Golden Gate Bridge", "San Francisco, USA", 37.81989, -122.47857, -5.15f, 0, 0f, sea: true, deckLength: 2000, deckWidth: 27, deckTop: 69),
+            L(LandmarkModels.Sutro, "Sutro Tower", "San Francisco, USA", 37.75524, -122.45286, 0f, 62, 80f),
             L(LandmarkModels.Burj, "Burj Khalifa", "Dubai, UAE", 25.19720, 55.27438, 0f, 100, 90f),
             L(LandmarkModels.Pisa, "Leaning Tower of Pisa", "Pisa, Italy", 43.72295, 10.39660, 0f, 12, 25f),
             L(LandmarkModels.Stonehenge, "Stonehenge", "Wiltshire, UK", 51.17888, -1.82621, 0f, 0, 18f),

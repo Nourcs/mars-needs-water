@@ -124,6 +124,153 @@ static class Program
             Console.WriteLine($"joins across tile borders {joins / 2}, worst step {worst:F2} m, steps over 0.15 m: {bad / 2}; bridge ends inside tiles {inner}, of which left in the air: {hanging}");
             return;
         }
+        if (a[0] == "bdump")
+        {
+            // bdump lat lon radius : every map building within radius real metres, with all it says about itself
+            var srcD = new TileSources("/tmp/earthcache");
+            double dla = double.Parse(a[1]), dlo = double.Parse(a[2]), rad = double.Parse(a[3]);
+            int dx = (int)Geo.LonToX(dlo, 14), dy = (int)Geo.LatToY(dla, 14);
+            var ls = Mvt.Decode(srcD.Buildings.GetTile(14, dx, dy), "building", "building_part");
+            foreach (var kv in ls)
+            {
+                var L = kv.Value;
+                foreach (var f in L.Features)
+                {
+                    if (f.Type != 3 || f.Parts.Count == 0) continue;
+                    double sx = 0, sy = 0; int[] r = f.Parts[0];
+                    for (int i = 0; i < r.Length; i += 2) { sx += r[i]; sy += r[i + 1]; }
+                    double la = Geo.TileLat(dy + sy / (r.Length / 2) / L.Extent, 14), lo = Geo.TileLon(dx + sx / (r.Length / 2) / L.Extent, 14);
+                    double d = Math.Sqrt(Math.Pow((la - dla) * 111195, 2) + Math.Pow((lo - dlo) * 111195 * Math.Cos(dla * Geo.Deg), 2));
+                    if (d > rad) continue;
+                    var sb = new System.Text.StringBuilder();
+                    for (int k = 0; k < L.Keys.Count; k++) { object o = L.Get(f, k); if (o != null) sb.Append(L.Keys[k] + "=" + o + " "); }
+                    Console.WriteLine($"{kv.Key} {d:F0}m e {(lo - dlo) * 111195 * Math.Cos(dla * Geo.Deg):F0} n {(la - dla) * 111195:F0} pts {r.Length / 2} rings {f.Parts.Count}: {sb}");
+                }
+            }
+            return;
+        }
+        if (a[0] == "bclass")
+        {
+            // bclass lat lon n : tally of class / subtype over n x n squares
+            var srcD = new TileSources("/tmp/earthcache");
+            int n = int.Parse(a[3]);
+            int dx = (int)Geo.LonToX(double.Parse(a[2]), 14) - n / 2, dy = (int)Geo.LatToY(double.Parse(a[1]), 14) - n / 2;
+            var seen = new System.Collections.Generic.SortedDictionary<string, int>();
+            for (int i = 0; i < n; i++) for (int j = 0; j < n; j++)
+            {
+                var ls = Mvt.Decode(srcD.Buildings.GetTile(14, dx + i, dy + j), "building", "building_part");
+                foreach (var kv in ls) foreach (var f in kv.Value.Features)
+                {
+                    var L = kv.Value;
+                    string v = kv.Key + " " + (L.Str(f, L.Key("subtype")) ?? "-") + " / " + (L.Str(f, L.Key("class")) ?? "-");
+                    int c; seen.TryGetValue(v, out c); seen[v] = c + 1;
+                }
+            }
+            foreach (var kv in seen) Console.WriteLine(kv.Value + "  " + kv.Key);
+            return;
+        }
+        if (a[0] == "infra")
+        {
+            // infra lat lon [radius] : tally of the infrastructure layer of the base square there; with a radius, what lies near
+            var srcD = new TileSources("/tmp/earthcache");
+            double dla = double.Parse(a[1]), dlo = double.Parse(a[2]), rad = a.Length > 3 ? double.Parse(a[3]) : 0;
+            int dx = (int)Geo.LonToX(dlo, 13), dy = (int)Geo.LatToY(dla, 13);
+            var ls = Mvt.Decode(srcD.Base.GetTile(13, dx, dy), "infrastructure");
+            MvtLayer L; if (!ls.TryGetValue("infrastructure", out L)) { Console.WriteLine("no layer"); return; }
+            var seen = new System.Collections.Generic.SortedDictionary<string, int>();
+            foreach (var f in L.Features)
+            {
+                string v = "type" + f.Type + " " + (L.Str(f, L.Key("subtype")) ?? "-") + " / " + (L.Str(f, L.Key("class")) ?? "-");
+                int c; seen.TryGetValue(v, out c); seen[v] = c + 1;
+                if (rad > 0)
+                {
+                    int[] r = f.Parts[0];
+                    double la = Geo.TileLat(dy + (double)r[1] / L.Extent, 13), lo = Geo.TileLon(dx + (double)r[0] / L.Extent, 13);
+                    double d = Math.Sqrt(Math.Pow((la - dla) * 111195, 2) + Math.Pow((lo - dlo) * 111195 * Math.Cos(dla * Geo.Deg), 2));
+                    if (d > rad) continue;
+                    var sb = new System.Text.StringBuilder();
+                    for (int k = 0; k < L.Keys.Count; k++) { object o = L.Get(f, k); if (o != null && L.Keys[k] != "sources") sb.Append(L.Keys[k] + "=" + o + " "); }
+                    Console.WriteLine($"  near {d:F0}m type {f.Type} pts {r.Length / 2}: {sb}");
+                }
+            }
+            foreach (var kv in seen) Console.WriteLine(kv.Value + "  " + kv.Key);
+            return;
+        }
+        if (a[0] == "structs")
+        {
+            // structs lat lon : towers, tanks and the like in the base square there, and the map buildings that stand on them
+            var srcD = new TileSources("/tmp/earthcache");
+            double dla = double.Parse(a[1]), dlo = double.Parse(a[2]);
+            int dx = (int)Geo.LonToX(dlo, 13), dy = (int)Geo.LatToY(dla, 13);
+            var ls = Mvt.Decode(srcD.Base.GetTile(13, dx, dy), "infrastructure");
+            MvtLayer L; if (!ls.TryGetValue("infrastructure", out L)) { Console.WriteLine("no layer"); return; }
+            var blds = new System.Collections.Generic.List<(double la, double lo, string d, double[] ring)>();
+            for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++)
+            {
+                var bl = Mvt.Decode(srcD.Buildings.GetTile(14, dx * 2 + i, dy * 2 + j), "building");
+                MvtLayer B; if (!bl.TryGetValue("building", out B)) continue;
+                foreach (var f in B.Features)
+                {
+                    if (f.Type != 3) continue;
+                    int[] r = f.Parts[0]; var ring = new double[r.Length]; double sx = 0, sy = 0;
+                    for (int k = 0; k < r.Length; k += 2) { ring[k] = Geo.TileLon(dx * 2 + i + (double)r[k] / B.Extent, 14); ring[k + 1] = Geo.TileLat(dy * 2 + j + (double)r[k + 1] / B.Extent, 14); sx += ring[k]; sy += ring[k + 1]; }
+                    double ar = 0; for (int k = 0, q = r.Length - 2; k < r.Length; q = k, k += 2) ar += ring[q] * ring[k + 1] - ring[k] * ring[q + 1];
+                    ar = Math.Abs(ar) / 2 * 111195.0 * 111195.0 * Math.Cos(dla * Geo.Deg);
+                    blds.Add((sy / (r.Length / 2), sx / (r.Length / 2), $"cls {B.Str(f, B.Key("class")) ?? "-"} sub {B.Str(f, B.Key("subtype")) ?? "-"} h {B.Num(f, B.Key("height"), -1):F0} area {ar:F0} parts {B.Flag(f, B.Key("has_parts"))} mat {B.Str(f, B.Key("facade_material")) ?? "-"}", ring));
+                }
+            }
+            Func<double[], double, double, bool> inside = (ring, lo, la) => { bool c = false; for (int k = 0, q = ring.Length - 2; k < ring.Length; q = k, k += 2) if ((ring[k + 1] > la) != (ring[q + 1] > la) && lo < (ring[q] - ring[k]) * (la - ring[k + 1]) / (ring[q + 1] - ring[k + 1]) + ring[k]) c = !c; return c; };
+            var tally = new System.Collections.Generic.SortedDictionary<string, int>();
+            foreach (var f in L.Features)
+            {
+                string sub = L.Str(f, L.Key("subtype")), cls = L.Str(f, L.Key("class"));
+                if (sub != "communication" && sub != "tower" && sub != "utility" && !(sub == "power" && (cls == "power_tower" || cls == "generator"))) continue;
+                if (cls == "lighting" || cls == "utility_pole" || cls == "pipeline" || f.Type == 2) continue;
+                int[] r = f.Parts[0]; var ring = new double[r.Length]; double sx = 0, sy = 0;
+                for (int k = 0; k < r.Length; k += 2) { ring[k] = Geo.TileLon(dx + (double)r[k] / L.Extent, 13); ring[k + 1] = Geo.TileLat(dy + (double)r[k + 1] / L.Extent, 13); sx += ring[k]; sy += ring[k + 1]; }
+                double clo = sx / (r.Length / 2), cla = sy / (r.Length / 2);
+                string hit = null; int hits = 0;
+                foreach (var b in blds)
+                    if (f.Type == 3 ? inside(ring, b.lo, b.la) || inside(b.ring, clo, cla) : inside(b.ring, clo, cla)) { hits++; hit = b.d; }
+                string key = (f.Type == 3 ? "area " : "point ") + sub + "/" + cls + (hits == 0 ? "  no building" : "  ON BUILDING");
+                int c; tally.TryGetValue(key, out c); tally[key] = c + 1;
+                if (hits > 0 && a.Length > 3) Console.WriteLine($"  {(f.Type == 3 ? "area" : "point")} {cls} h {L.Num(f, L.Key("height"), -1):F0} {L.Str(f, L.Key("@name"))} at {cla:F5},{clo:F5} -> {hits} bld: {hit}");
+            }
+            foreach (var kv in tally) Console.WriteLine(kv.Value + "  " + kv.Key);
+            return;
+        }
+        if (a[0] == "bview")
+        {
+            // bview lat lon radius out : the buildings within radius game metres of a spot, for bview.py
+            var srcD = new TileSources("/tmp/earthcache");
+            double dla = double.Parse(a[1]), dlo = double.Parse(a[2]); float rad = float.Parse(a[3]);
+            int dx = (int)Geo.LonToX(dlo, 14), dy = (int)Geo.LatToY(dla, 14);
+            Buildings.Counts = new int[16];
+            var swB = Stopwatch.StartNew();
+            var tb = TileBuilder.Build(srcD, 14, dx, dy, 256);
+            Console.WriteLine("built in " + swB.ElapsedMilliseconds + " ms; shapes by kind (mast shaft cooling water tank silo covered chimney lighthouse): " + string.Join(" ", new ArraySegment<int>(Buildings.Counts, 1, 9)));
+            float px = (float)((Geo.LonToX(dlo, 14) - dx - 0.5) * tb.Size), pz = (float)((0.5 - (Geo.LatToY(dla, 14) - dy)) * tb.Size);
+            float py = tb.HeightAt(px, pz);
+            var all = new System.Collections.Generic.List<MeshData>(tb.Walls) { tb.Roofs };
+            int n = 0;
+            using (var f = new BinaryWriter(File.Create(a[4])))
+            {
+                f.Write(0);
+                foreach (var m in all)
+                    for (int i = 0; i + 2 < m.I.Count; i += 3)
+                    {
+                        int v0 = m.I[i];
+                        if (Math.Abs(m.P[v0 * 3] - px) > rad || Math.Abs(m.P[v0 * 3 + 2] - pz) > rad) continue;
+                        for (int j = 0; j < 3; j++) { int v = m.I[i + j]; f.Write(m.P[v * 3] - px); f.Write(m.P[v * 3 + 1] - py); f.Write(m.P[v * 3 + 2] - pz); }
+                        for (int j = 0; j < 3; j++) { int v = m.I[i + j]; f.Write(m.U[v * 2]); f.Write(m.U[v * 2 + 1]); }
+                        f.Write(m.X[v0 * 4 + 1]); f.Write(m.X[v0 * 4 + 2]); f.Write(m.Y[v0 * 4]); f.Write(m.Y[v0 * 4 + 2]);
+                        n++;
+                    }
+                f.Seek(0, SeekOrigin.Begin); f.Write(n);
+            }
+            Console.WriteLine($"buildings {tb.BuildingCount}, triangles written {n}");
+            return;
+        }
         if (a[0] == "lm")
         {
             Directory.CreateDirectory(a[1]);
