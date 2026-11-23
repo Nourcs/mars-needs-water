@@ -12,6 +12,12 @@ Scale: 1 game metre = 5 real metres for all distances and for ground elevation. 
 taller than that (half height up to 12 m, a quarter above), and roads 1.5 times wider, so a person can walk among them.
 Change `Geo.Height` and `TileBuilder.RoadScale` to alter this.
 
+Roads, streets, paths and railways (`Core/RoadNet.cs`, `Core/RoadPaint.cs`, `EarthStreet.shader`) are flat shapes
+painted exactly on the ground of the closest squares: the map's lines are joined into a network, rounded at the bends,
+and laid down in layers (pavements, kerbs, road surfaces with their lines, rails), so streets run into each other
+cleanly at junctions. `tools/world/test` can draw a square's roads from above without starting Unity
+(`dotnet run -c Release -- roads LAT LON /tmp/r`, then `python3 roadview.py /tmp/r X Y SPAN 1400 out.png`).
+
 Downloaded squares are cached in the game's persistent data folder, so a place visited once loads from disk next time.
 
 Credits owed in the game: Map data (c) OpenStreetMap contributors, Overture Maps Foundation (ODbL).

@@ -96,6 +96,19 @@ namespace MarsNeedsWater.Earth
         /// <summary>Point on the ground mesh itself (the sea floor or lake bed under water).</summary>
         public void Bed(double u, double v, out float x, out float y, out float z) { Interp(Pos, u, v, out x, out y, out z); }
 
+        /// <summary>Which way the ground faces at each grid point (the ground mesh's own normals), three numbers each.</summary>
+        internal float[] Nrm;
+
+        /// <summary>Which way the ground faces at u, v, shaded as the ground mesh is.</summary>
+        public void Slope(double u, double v, out float nx, out float ny, out float nz)
+        {
+            if (Nrm == null) { nx = 0; ny = 1; nz = 0; return; }
+            Interp(Nrm, u, v, out nx, out ny, out nz);
+            float l = (float)Math.Sqrt(nx * nx + ny * ny + nz * nz);
+            if (l < 1e-6f) { nx = 0; ny = 1; nz = 0; return; }
+            nx /= l; ny /= l; nz /= l;
+        }
+
         /// <summary>Tile-local height of the water surface at u, v, if there is water there.</summary>
         public bool WaterAt(double u, double v, out float y)
         {
@@ -294,9 +307,12 @@ namespace MarsNeedsWater.Earth
                 float px = t.Size / texSize;
                 foreach (RoadItem r in roads)
                 {
-                    if (r.Look != null && r.Look.Crosswalk) continue;      // drawn on the street up close only
-                    float w = Math.Max(r.Style.MinPx, RoadLook.PaintWidth(r) * RoadScale / px);
-                    foreach (int[] part in r.Plain) { var pts = Line(part, map, texSize); if (pts != null) ras.Line(pts, w, r.Style.Paint, Raster.Paved); }
+                    if (r.Spec != null && r.Spec.Crosswalk) continue;      // drawn on the street up close only
+                    float w = Math.Max(r.Style.MinPx, RoadNet.PaintWidth(r) * RoadScale / px);
+                    // close up the road itself is drawn crisply on top (RoadNet): the picture only marks the ground
+                    // as paved there, and keeps its colour well inside the road so no blurred edge shows beside it
+                    float inset = Z == 14 ? 1.6f : 0f;
+                    foreach (int[] part in r.Plain) { var pts = Line(part, map, texSize); if (pts != null) ras.Line(pts, w + (Z == 14 ? 1f : 0f), r.Style.Paint, Raster.Paved, GroundKind.FromMask, inset); }
                     // a bridge is not ground. Close up it is a deck of its own; from afar it is drawn on,
                     // without changing what the ground under it is (so the sea below stays level)
                     if (Z < 14) foreach (int[] part in r.Bridge) { var pts = Line(part, map, texSize); if (pts != null) ras.Line(pts, w, r.Style.Paint, Raster.Keep); }
@@ -361,7 +377,7 @@ namespace MarsNeedsWater.Earth
             if (Z == 14)
             {
                 Buildings.Build(t, src);
-                RoadLook.Build(t, roads, seg);
+                RoadNet.Build(t, roads, seg);
                 if (seg != null) Bridges.Build(t, src, roads, seg.Extent, (u, v) => { byte mk = ras.MaskAt(Math.Min(0.9995, Math.Max(0.0005, u)), Math.Min(0.9995, Math.Max(0.0005, v))); return mk == Raster.Ocean || mk == Raster.Water; });
                 BuildTrees(t, ras, baseLayers, zb);
             }
@@ -550,6 +566,7 @@ namespace MarsNeedsWater.Earth
                     int o = (j * (G + 1) + i) * 3;
                     nrm[o] = nx / len; nrm[o + 1] = ny / len; nrm[o + 2] = nz / len;
                 }
+            t.Nrm = nrm;
             for (int pj = 0; pj < P; pj++)
                 for (int pi = 0; pi < P; pi++)
                 {
@@ -594,7 +611,7 @@ namespace MarsNeedsWater.Earth
 
         // ------------------------------------------------------------ roads and rail
 
-        internal sealed class RoadItem { public MvtFeature F; public Style.Road Style; public RoadLook.Look Look; public List<int[]> Plain = new List<int[]>(), Bridge = new List<int[]>(); }
+        internal sealed class RoadItem { public MvtFeature F; public Style.Road Style; public RoadNet.Spec Spec; public List<int[]> Plain = new List<int[]>(), Bridge = new List<int[]>(); }
 
         /// <summary>
         /// Cut lines (tile whole-number coordinates) where they enter and leave a zone on the globe.
@@ -657,50 +674,9 @@ namespace MarsNeedsWater.Earth
                 if (nearDeck && sub == "road" && st.RealWidth >= 5f) item.Plain = CutBy(item.Plain, L.Extent, tz, tx, ty, (la, lo) => Landmarks.Landing(la, lo, 220), item.Bridge);
                 list.Add(item);
             }
-            RoadLook.Prepare(list, L, tz, tx, ty);     // widths, lanes, surfaces; pavements and crossings
+            RoadNet.Prepare(list, L, tz, tx, ty);     // what each road is made of, its width and its lines
             list.Sort((a, b) => a.Style.Layer.CompareTo(b.Style.Layer));
             return list;
-        }
-
-        static void BuildRoads(TileResult t, List<RoadItem> roads, MvtLayer L)
-        {
-            t.Roads = new MeshData();
-            if (L == null) return;
-            double e = L.Extent;
-            var piece = new List<double>();
-            foreach (RoadItem r in roads)
-            {
-                float width = r.Style.RealWidth * RoadScale;
-                float lift = 0.05f + r.Style.Layer * 0.012f;
-                foreach (int[] part in r.Plain)
-                {
-                    int n = part.Length / 2;
-                    piece.Clear();
-                    for (int i = 0; i + 1 < n; i++)
-                    {
-                        double ax = part[i * 2] / e, ay = part[i * 2 + 1] / e, bx = part[i * 2 + 2] / e, by = part[i * 2 + 3] / e;
-                        double t0 = 0, t1 = 1;
-                        if (!ClipT(-(bx - ax), ax, ref t0, ref t1) || !ClipT(bx - ax, 1 - ax, ref t0, ref t1) ||
-                            !ClipT(-(by - ay), ay, ref t0, ref t1) || !ClipT(by - ay, 1 - ay, ref t0, ref t1))
-                        {
-                            if (piece.Count >= 4) Ribbon(t, piece, width, lift, r.Style.Pal);
-                            piece.Clear();
-                            continue;
-                        }
-                        double sx = ax + (bx - ax) * t0, sy = ay + (by - ay) * t0, ex = ax + (bx - ax) * t1, ey = ay + (by - ay) * t1;
-                        if (piece.Count == 0 || t0 > 0)
-                        {
-                            if (piece.Count >= 4) Ribbon(t, piece, width, lift, r.Style.Pal);
-                            piece.Clear();
-                            piece.Add(sx); piece.Add(sy);
-                        }
-                        piece.Add(ex); piece.Add(ey);
-                        if (t1 < 1) { if (piece.Count >= 4) Ribbon(t, piece, width, lift, r.Style.Pal); piece.Clear(); }
-                    }
-                    if (piece.Count >= 4) Ribbon(t, piece, width, lift, r.Style.Pal);
-                }
-                t.RoadCount++;
-            }
         }
 
         internal static bool ClipT(double p, double q, ref double t0, ref double t1)
@@ -710,73 +686,6 @@ namespace MarsNeedsWater.Earth
             if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; }
             else { if (r < t0) return false; if (r < t1) t1 = r; }
             return true;
-        }
-
-        static void Ribbon(TileResult t, List<double> uv, float width, float lift, int pal)
-        {
-            double S = t.Size;
-            // to metres, dropping repeats and adding points so the strip follows the ground
-            var pts = new List<double>();
-            for (int i = 0; i < uv.Count; i += 2)
-            {
-                double x = uv[i] * S, y = uv[i + 1] * S;
-                if (pts.Count >= 2)
-                {
-                    double lx = pts[pts.Count - 2], ly = pts[pts.Count - 1];
-                    double d = Math.Sqrt((x - lx) * (x - lx) + (y - ly) * (y - ly));
-                    if (d < 0.01) continue;
-                    int steps = (int)Math.Ceiling(d / 6.0);
-                    for (int s = 1; s < steps; s++) { pts.Add(lx + (x - lx) * s / steps); pts.Add(ly + (y - ly) * s / steps); }
-                }
-                pts.Add(x); pts.Add(y);
-            }
-            int n = pts.Count / 2;
-            if (n < 2) return;
-            MeshData m = t.Roads;
-            float cu = (pal % 16 + 0.5f) / 16f, cv = (pal / 16 + 0.5f) / 16f;
-            double hw = width * 0.5;
-            int prevL = -1, prevR = -1;
-            for (int i = 0; i < n; i++)
-            {
-                double x = pts[i * 2], y = pts[i * 2 + 1];
-                double d0x = 0, d0y = 0, d1x = 0, d1y = 0;
-                if (i > 0) { d0x = x - pts[i * 2 - 2]; d0y = y - pts[i * 2 - 1]; double l = Math.Sqrt(d0x * d0x + d0y * d0y); d0x /= l; d0y /= l; }
-                if (i < n - 1) { d1x = pts[i * 2 + 2] - x; d1y = pts[i * 2 + 3] - y; double l = Math.Sqrt(d1x * d1x + d1y * d1y); d1x /= l; d1y /= l; }
-                if (i == 0) { d0x = d1x; d0y = d1y; }
-                if (i == n - 1) { d1x = d0x; d1y = d0y; }
-                double dx = d0x + d1x, dy = d0y + d1y, dl = Math.Sqrt(dx * dx + dy * dy);
-                if (dl < 1e-6) { dx = d1x; dy = d1y; dl = 1; }
-                dx /= dl; dy /= dl;
-                double cos = Math.Max(0.5, dx * d0x + dy * d0y);
-                double ox = -dy * hw / cos, oy = dx * hw / cos;
-                float ax, ay, az, bx, by, bz;
-                t.Surface((x + ox) / S, (y + oy) / S, out ax, out ay, out az);
-                t.Surface((x - ox) / S, (y - oy) / S, out bx, out by, out bz);
-                int l0 = m.Add(ax, ay + lift, az, 0, 1, 0, cu, cv);
-                int r0 = m.Add(bx, by + lift, bz, 0, 1, 0, cu, cv);
-                if (prevL >= 0) { m.Tri(prevL, prevR, l0, 0, 1, 0); m.Tri(prevR, r0, l0, 0, 1, 0); }
-                prevL = l0; prevR = r0;
-            }
-            // round ends, so that roads meeting at a junction close up
-            for (int end = 0; end < 2; end++)
-            {
-                double x = end == 0 ? pts[0] : pts[n * 2 - 2], y = end == 0 ? pts[1] : pts[n * 2 - 1];
-                float cx, cy, cz;
-                t.Surface(x / S, y / S, out cx, out cy, out cz);
-                int c = m.Add(cx, cy + lift, cz, 0, 1, 0, cu, cv);
-                int first = -1, prev = -1;
-                for (int s = 0; s < 8; s++)
-                {
-                    double a = s * Math.PI / 4;
-                    float qx, qy, qz;
-                    t.Surface((x + Math.Cos(a) * hw) / S, (y + Math.Sin(a) * hw) / S, out qx, out qy, out qz);
-                    int q = m.Add(qx, qy + lift, qz, 0, 1, 0, cu, cv);
-                    if (prev >= 0) m.Tri(c, prev, q, 0, 1, 0);
-                    else first = q;
-                    prev = q;
-                }
-                m.Tri(c, prev, first, 0, 1, 0);
-            }
         }
 
         // ------------------------------------------------------------ trees

@@ -146,7 +146,7 @@ namespace MarsNeedsWater.Earth
             for (int i = 0; i < 256; i++) px[i] = Col(Style.Palette[i]);
             pal.SetPixels32(px); pal.Apply();
             flatMat = Mat(pal, 0.08f);
-            roadMat = EarthRoads.MakeMaterial();       // the realistic road surface (EarthRoad.shader); flat colours if missing
+            roadMat = EarthStreets.MakeMaterial();     // roads painted on the ground (EarthStreet.shader); plain colours if missing
 
             // every building, walls and roofs alike, is drawn by one material (EarthBuilding.shader)
             Material building = EarthBuildings.MakeMaterial();

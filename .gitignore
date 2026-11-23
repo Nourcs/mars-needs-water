@@ -35,3 +35,7 @@ MarsNeedsWater-create.log
 # === Generated previews / dev logs ===
 /jeep-preview.png
 /website/.dev.log
+
+# === Offline test tool build output ===
+/tools/world/test/bin/
+/tools/world/test/obj/

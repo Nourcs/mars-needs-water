@@ -847,7 +847,7 @@ namespace MarsNeedsWater.Earth
             float full = width * 0.5f + 0.15f;
             var run = new BridgeRun { HalfWidth = full, P = new float[n * 3], MinX = float.MaxValue, MinZ = float.MaxValue, MaxX = float.MinValue, MaxZ = float.MinValue };
             int pl = -1, pr = -1, plb = -1, prb = -1, pls = -1, prs = -1, plsb = -1, prsb = -1;
-            var topL = new List<float>(n * 3); var topR = new List<float>(n * 3);     // the road surface laid on top (RoadLook)
+            var topL = new List<float>(n * 3); var topR = new List<float>(n * 3);     // the road surface laid on top (RoadNet)
             float sincePier = 6f;
             for (int i = 0; i < n; i++)
             {
@@ -897,7 +897,7 @@ namespace MarsNeedsWater.Earth
                 }
             }
             t.BridgeRuns.Add(run);
-            if (item != null) RoadLook.DeckTop(t, item, topL, topR);
+            if (item != null) RoadNet.DeckTop(t, item, topL, topR);
         }
 
         /// <summary>How far down the side of the deck goes: to the ground while it is low, a plain slab once it is up.</summary>

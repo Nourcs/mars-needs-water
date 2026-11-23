@@ -22,6 +22,32 @@ static class Program
             for (int k = 0; k < GroundKind.Count; k++) Console.WriteLine(GroundKind.Names[k] + " " + (100.0 * counts[k] / (tg.Texture.Length / 4)).ToString("F1") + "%");
             return;
         }
+        if (a[0] == "roads")
+        {
+            // roads lat lon out : build one zoom-14 square and save its ground picture and road mesh for roadview.py
+            var srcR = new TileSources("/tmp/earthcache");
+            double rla = double.Parse(a[1]), rlo = double.Parse(a[2]);
+            int rx = (int)Geo.LonToX(rlo, 14), ry = (int)Geo.LatToY(rla, 14);
+            var swR = Stopwatch.StartNew();
+            RoadPaint.Counts = new int[16];
+            var tr = TileBuilder.Build(srcR, 14, rx, ry, 1024);
+            Console.WriteLine("vertices per layer: " + string.Join(" ", RoadPaint.Counts));
+            var m = tr.Roads;
+            Console.WriteLine($"tile 14/{rx}/{ry} size {tr.Size:F1} m built in {swR.ElapsedMilliseconds} ms; roads {tr.RoadCount}, verts {m.Count}, tris {m.I.Count / 3}; bridge runs {tr.BridgeRuns.Count}");
+            Console.WriteLine(FormattableString.Invariant($"at {(Geo.LonToX(rlo, 14) - rx) * tr.Size:F1} {(Geo.LatToY(rla, 14) - ry) * tr.Size:F1}"));
+            File.WriteAllBytes(a[3] + ".tex", tr.Texture);
+            using (var f = new BinaryWriter(File.Create(a[3] + ".road")))
+            {
+                f.Write(tr.Size); f.Write(m.Count);
+                foreach (float v in m.P) f.Write(v);
+                foreach (float v in m.U) f.Write(v);
+                foreach (float v in m.X) f.Write(v);
+                foreach (float v in m.Y) f.Write(v);
+                f.Write(m.I.Count);
+                foreach (int v in m.I) f.Write(v);
+            }
+            return;
+        }
         if (a[0] == "flags")
         {
             var src0 = new TileSources("/tmp/earthcache");

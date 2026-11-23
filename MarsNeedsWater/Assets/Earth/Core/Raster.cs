@@ -83,11 +83,16 @@ namespace MarsNeedsWater.Earth
         }
 
         /// <summary>A line with round ends and joints, width in pixels.</summary>
-        public void Line(float[] pts, float width, uint colour, byte mask, byte kind = GroundKind.FromMask)
+        /// <summary>
+        /// With inset, only the middle of the line is coloured (that many pixels in from each edge); the whole
+        /// width still counts as the given kind of ground.
+        /// </summary>
+        public void Line(float[] pts, float width, uint colour, byte mask, byte kind = GroundKind.FromMask, float inset = 0f)
         {
             kind = KindFor(mask, kind);
             byte r = (byte)(colour >> 16), g = (byte)(colour >> 8), b = (byte)colour;
             float h = Math.Max(width * 0.5f, 0.5f), h2 = h * h;
+            float hc = inset > 0 ? h - inset : h, hc2 = hc > 0 ? hc * hc : -1f;
             int n = pts.Length / 2;
             for (int i = 0; i + 1 < n; i++)
             {
@@ -109,7 +114,7 @@ namespace MarsNeedsWater.Earth
                         if (ex * ex + ey * ey <= h2)
                         {
                             int o = (y * N + x) * 4;
-                            Rgba[o] = r; Rgba[o + 1] = g; Rgba[o + 2] = b;
+                            if (ex * ex + ey * ey <= hc2) { Rgba[o] = r; Rgba[o + 1] = g; Rgba[o + 2] = b; }
                             if (mask != Keep) { Mask[y * N + x] = mask; Kind[y * N + x] = kind; }
                         }
                     }
