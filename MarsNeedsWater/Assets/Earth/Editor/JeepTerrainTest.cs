@@ -15,7 +15,7 @@ namespace MarsNeedsWater.Earth.Editor
     {
         const string Request = "Temp/jeep-terrain.request";
         const double Lat = 37.8390, Lon = -122.4950;
-        static readonly float[] Speeds = { 15f, 30f, 60f };
+        static readonly float[] Speeds = { 12f, 22f, 45f };      // gentle, top speed, boost
         static readonly float[] Headings = { 270f, 200f };
 
         enum Phase { Idle, Starting, Teleport, Waiting, Accelerating, Measuring, Done }
@@ -27,6 +27,9 @@ namespace MarsNeedsWater.Earth.Editor
 
         [InitializeOnLoadMethod]
         static void Hook() { EditorApplication.update += Update; }
+
+        /// <summary>From the command line: -executeMethod MarsNeedsWater.Earth.Editor.JeepTerrainTest.Batch (quits when done).</summary>
+        public static void Batch() { SessionState.SetBool("JeepTerrainQuit", true); Start(); }
 
         [MenuItem("Tools/Mars Needs Water/Test Jeep On Real Terrain")]
         static void Start()
@@ -56,7 +59,11 @@ namespace MarsNeedsWater.Earth.Editor
             }
             if (!EditorApplication.isPlaying)
             {
-                if (phase == Phase.Done || phase == Phase.Starting) { if (phase == Phase.Done) phase = Phase.Idle; return; }
+                if (phase == Phase.Done || phase == Phase.Starting)
+                {
+                    if (phase == Phase.Done) { phase = Phase.Idle; if (SessionState.GetBool("JeepTerrainQuit", false)) EditorApplication.Exit(0); }
+                    return;
+                }
                 Finish("Play mode ended early");
                 return;
             }
@@ -99,7 +106,7 @@ namespace MarsNeedsWater.Earth.Editor
                         world.Ground(p, out g0, true, true); world.Ground(p + f * 3f, out gf, true, true); world.Ground(p - f * 3f, out gb, true, true);
                         world.Ground(p + r * 3f, out gr, true, true); world.Ground(p - r * 3f, out gl, true, true);
                         float roll = Mathf.Asin(Mathf.Clamp(j.transform.right.y, -1f, 1f)) * Mathf.Rad2Deg, pitch = Mathf.Asin(Mathf.Clamp(j.transform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
-                        log.AppendLine($"    t {until - Now:F2} speed {j.Speed:F1} wheels {j.Grounded} up.y {j.transform.up.y:F2} roll {roll:F0} pitch {pitch:F0} height {p.y - g0 - 0.85f:F2} slope along {Mathf.Atan2(gf - gb, 6f) * Mathf.Rad2Deg:F0} side {Mathf.Atan2(gr - gl, 6f) * Mathf.Rad2Deg:F0} steer {player.AutoSteer:F2} throttle {player.AutoThrottle:F2}");
+                        log.AppendLine($"    t {until - Now:F2} speed {j.Speed:F1} wheels {j.Grounded} up.y {j.transform.up.y:F2} roll {roll:F0} pitch {pitch:F0} height {p.y - g0 + Jeep.Ground:F2} slope along {Mathf.Atan2(gf - gb, 6f) * Mathf.Rad2Deg:F0} side {Mathf.Atan2(gr - gl, 6f) * Mathf.Rad2Deg:F0} steer {player.AutoSteer:F2} throttle {player.AutoThrottle:F2}");
                     }
                     if (Now > until || j.Upturned)
                     {

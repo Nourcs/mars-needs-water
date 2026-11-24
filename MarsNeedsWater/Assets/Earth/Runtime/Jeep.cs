@@ -58,14 +58,16 @@ namespace MarsNeedsWater.Earth
 
         [Header("Engine and brakes")]
         [Tooltip("Engine pull at low speed, as m/s^2 of acceleration on the flat (it fades to nothing at top speed).")] public float Accel = 6.5f;
-        [Tooltip("Top speed, m/s.")] public float TopSpeed = 30f;
-        [Tooltip("Top speed holding Shift, m/s.")] public float BoostSpeed = 70f;
+        [Tooltip("Top speed, m/s.")] public float TopSpeed = 22f;
+        [Tooltip("Top speed holding Shift, m/s.")] public float BoostSpeed = 45f;
         [Tooltip("Engine pull holding Shift, times the normal pull.")] public float BoostPower = 1.8f;
-        [Tooltip("Top speed backwards, m/s.")] public float ReverseSpeed = 10f;
-        [Tooltip("Brakes (S while moving forward), m/s^2 if the tyres can take it.")] public float Brake = 11f;
+        [Tooltip("Top speed backwards, m/s.")] public float ReverseSpeed = 7f;
+        [Tooltip("Brakes (S while moving forward), m/s^2 if the tyres can take it.")] public float Brake = 22f;
         [Tooltip("Handbrake (Space): locks the rear wheels, m/s^2.")] public float Handbrake = 7f;
-        [Tooltip("Engine braking and holding with no pedal pressed, m/s^2.")] public float EngineBrake = 1.2f;
+        [Tooltip("Engine braking and holding with no pedal pressed, m/s^2.")] public float EngineBrake = 3.5f;
         [Tooltip("Rolling resistance per wheel, newtons per m/s.")] public float RollingResistance = 12f;
+
+        [Tooltip("Extra bite the tyres have under the brakes, times their normal grip. Higher = shorter stops.")] public float BrakeGrip = 1.8f;
 
         [Header("Tyres and steering")]
         [Tooltip("Tyre friction: 1 is good rubber on dry ground. Lower = slidier everywhere.")] public float Grip = 1.2f;
@@ -92,22 +94,25 @@ namespace MarsNeedsWater.Earth
         [Tooltip("Turning in the air with the steering keys, rad/s^2.")] public float AirSteer = 1.0f;
 
         [Header("Suspension")]
-        [Tooltip("Spring rate per wheel, N/m. Lower = softer and more body roll.")] public float SpringRate = 27000f / Size;
-        [Tooltip("Damping while a wheel is pushed up, as a share of critical (1 = no overshoot).")] [Range(0.1f, 2f)] public float BumpDamping = 0.7f;
+        [Tooltip("Spring rate per wheel, N/m. Lower = softer and more body roll.")] public float SpringRate = 27000f;
+        [Tooltip("Damping while a wheel is pushed up, as a share of critical (1 = no overshoot).")] [Range(0.1f, 2f)] public float BumpDamping = 0.85f;
         [Tooltip("Damping while a wheel extends again, as a share of critical. Higher than bump so it does not spring back up.")] [Range(0.1f, 2f)] public float ReboundDamping = 1.0f;
-        [Tooltip("Anti-roll bars, N/m of difference between left and right. Higher = flatter in corners.")] public float AntiRoll = 12000f / Size;
-        [Tooltip("How far a wheel can push up into its arch, m.")] public float Bump = 0.3f * Size;
-        [Tooltip("How far a wheel can hang down, m.")] public float Droop = 0.25f * Size;
+        [Tooltip("Anti-roll bars, N/m of difference between left and right. Higher = flatter in corners.")] public float AntiRoll = 30000f;
+        [Tooltip("How far a wheel can push up into its arch, m.")] public float Bump = 0.5f * Size;
+        [Tooltip("How far a wheel can hang down, m.")] public float Droop = 0.4f * Size;
 
         [Header("Driving aids")]
         [Tooltip("Keeps the jeep turning the way the wheels point instead of spinning out: 0 off, 1 strong. Off while the handbrake is on.")] [Range(0f, 1f)] public float StabilityAssist = 0.7f;
         [Tooltip("Pushes back against body roll beyond a few degrees while the wheels are down, so normal driving never tips it over.")] public float RollAssist = 6f;
+        [Tooltip("Calms pitching and rolling while the wheels are down, 1/s. Higher = steadier over rough ground, lower = livelier.")] public float Steadiness = 3f;
         [Tooltip("Gently levels the roll (not the pitch) in the air.")] public float AirLevel = 2f;
-        [Tooltip("Extra grip on the ground that grows with speed, newtons per (m/s)^2. Keeps it down over small crests at speed.")] public float DownForce = 3f;
-        [Tooltip("Most upward acceleration a bump may give the body while the wheels are down, m/s^2. Stops it pogoing off terrain edges.")] public float BumpKick = 40f;
-        [Tooltip("Radius of the ball each wheel feels the ground with, m. Bigger rolls more smoothly over edges in the ground.")] public float ContactRadius = 0.3f * Size;
+        [Tooltip("Extra grip on the ground that grows with speed, newtons per (m/s)^2. Keeps it down over small crests at speed.")] public float DownForce = 6f;
+        [Tooltip("Most upward acceleration a bump may give the body while the wheels are down, m/s^2. Stops it pogoing off terrain edges.")] public float BumpKick = 22f;
+        [Tooltip("Radius of the ball each wheel feels the ground with, m. Bigger rolls more smoothly over edges in the ground.")] public float ContactRadius = 0.4f * Size;
         [Tooltip("On the terrain the wheels feel its height averaged over this radius (m), plus more with speed, so they roll over the creases between its flat facets (about 6 m apart) instead of being kicked by every one.")] public float TerrainSmoothing = 2.5f;
         [Tooltip("Extra terrain smoothing radius per m/s of speed.")] public float SmoothingPerSpeed = 0.08f;
+
+        [Tooltip("Extra pull down while all four wheels are in the air, in g. Higher = shorter, lower hops.")] public float AirGravity = 1.0f;
 
         [Header("Water")]
         [Tooltip("Buoyancy with the hull fully under water, times its weight.")] public float Buoyancy = 1.5f;
@@ -236,7 +241,9 @@ namespace MarsNeedsWater.Earth
             // The wheels have none: they find the ground with rays. On the Ignore Raycast layer so those rays,
             // and the camera's, pass through the jeep itself.
             var pm = new PhysicsMaterial("Jeep") { dynamicFriction = 0.5f, staticFriction = 0.6f, bounciness = 0f, bounceCombine = PhysicsMaterialCombine.Minimum };
-            Box(root.transform, new Vector3(0f, 0.12f, 0.02f) * Size, new Vector3(1.3f, 0.6f, 3.3f) * Size, pm);
+            // (its underside is kept well clear of the ground: the wheels feel the terrain smoothed, and a low belly would
+            // catch on every sharp crease the wheels have just rolled over)
+            Box(root.transform, new Vector3(0f, 0.34f, 0.02f) * Size, new Vector3(1.3f, 0.36f, 3.3f) * Size, pm);
             Box(root.transform, new Vector3(0f, 0.78f, -0.5f) * Size, new Vector3(1.2f, 0.7f, 0.2f) * Size, pm);
             Box(root.transform, new Vector3(0f, 0.66f, 0.45f) * Size, new Vector3(1.3f, 0.5f, 0.1f) * Size, pm);
 
@@ -245,7 +252,7 @@ namespace MarsNeedsWater.Earth
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
             rb.linearDamping = 0f;
             rb.angularDamping = 0.3f;
-            rb.maxAngularVelocity = 12f;
+            rb.maxAngularVelocity = 7f;
             if (Time.fixedDeltaTime > 0.01f) Time.fixedDeltaTime = 0.01f;      // 100 steps a second: at 60 m/s the wheels feel the ground every 0.6 m
             j.Body = rb;
             j.Tune();
@@ -433,6 +440,9 @@ namespace MarsNeedsWater.Earth
                 bool rear = i >= 2, locked = Handbraking && rear;
                 float looseHere = Mathf.Clamp01(SurfLoose[i]);
                 float mu = Mathf.Max(Grip * SurfGrip[i], 0f), maxF = mu * fz;
+                // under the brakes the tyres bite harder than they corner, and count on at least most of the wheel's share of
+                // the weight even while the suspension is still moving: stopping is strong and the same every time
+                float brakeF = braking ? Mathf.Max(maxF, mu * share * g * 0.8f) * Mathf.Max(BrakeGrip, 1f) : maxF;
                 float slideGrip = SlideGrip * Mathf.Lerp(1f, 0.85f, looseHere);
                 // the rear tyres let go a little in a drift, and under power with the wheel turned on loose ground
                 float rearShare = 1f;
@@ -472,12 +482,15 @@ namespace MarsNeedsWater.Earth
                 else
                 {
                     if (Mathf.Abs(f2.y) > maxF) f2.y = Mathf.Sign(f2.y) * maxF * slideGrip;
-                    float room = Mathf.Sqrt(Mathf.Max(maxF * maxF - f2.y * f2.y, 0.06f * maxF * maxF));
+                    float room = braking ? brakeF : Mathf.Sqrt(Mathf.Max(maxF * maxF - f2.y * f2.y, 0.06f * maxF * maxF));
                     if (Throttle != 0f && !braking && Mathf.Abs(f2.x) > room) spinning = Mathf.Clamp01((Mathf.Abs(f2.x) - room) / Mathf.Max(share * 2f, 1f));
                     f2.x = Mathf.Clamp(f2.x, -room, room);
                 }
                 WheelSlide[i] = vs; WheelRoll[i] = vl; WheelSpin[i] = Mathf.Lerp(WheelSpin[i], spinning, 0.2f);
-                rb.AddForceAtPosition(along * f2.x + side * f2.y, point);
+                // the brakes act part of the way up to the centre of mass, so a hard stop does not stand it on its nose
+                Vector3 push = braking ? point + up * (CentreHeight * 0.6f) : point;
+                rb.AddForceAtPosition(along * f2.x, push);
+                rb.AddForceAtPosition(side * f2.y, point);
                 LastLoad[i] = fz; LastPush[i] = f2.x; LastSide[i] = f2.y;
                 if (len < minLen) Ride.BottomOuts++;
                 spinRate[i] = locked ? 0f : (vl + Mathf.Sign(Throttle) * WheelSpin[i] * 6f) / TyreR;     // a wheel that has broken loose turns faster than the ground passes
@@ -526,6 +539,7 @@ namespace MarsNeedsWater.Earth
                 float roll = Vector3.Dot(transform.right, Vector3.up);          // right side up is positive
                 rb.AddTorque(-fwd * (roll * AirLevel + Vector3.Dot(w, fwd) * 0.5f), ForceMode.Acceleration);
                 if (!Afloat) rb.AddTorque(Vector3.up * Mathf.Clamp(Steer, -1f, 1f) * AirSteer, ForceMode.Acceleration);
+                if (!Afloat) rb.AddForce(Physics.gravity * AirGravity, ForceMode.Acceleration);     // comes down sooner
                 return;
             }
             float v = rb.linearVelocity.magnitude;
@@ -551,6 +565,10 @@ namespace MarsNeedsWater.Earth
                 float yaw = Mathf.Clamp((beta - wanted) * DriftHold + betaRate * DriftHold * 0.35f, -8f, 8f);
                 rb.AddTorque(up * yaw * Drift, ForceMode.Acceleration);
             }
+
+            // with wheels down the body does not pitch or roll faster than the ground under it asks: no bucking over creases
+            if (on >= 2)
+                rb.AddTorque(-(transform.right * Vector3.Dot(w, transform.right) + fwd * Vector3.Dot(w, fwd)) * Steadiness, ForceMode.Acceleration);
 
             // roll assist: past a few degrees of lean against the ground, push it back
             if (on >= 2)
@@ -663,7 +681,8 @@ namespace MarsNeedsWater.Earth
             float dt = Time.deltaTime, maxLen = StaticLen + Droop, minLen = StaticLen - Bump;
             for (int i = 0; i < 4; i++)
             {
-                float want = Mathf.Clamp(contact[i] ? length[i] : maxLen, minLen, maxLen);
+                // the wheel is drawn no further up than its mudguard allows, though the spring can go further
+                float want = Mathf.Clamp(contact[i] ? length[i] : maxLen, Mathf.Max(minLen, StaticLen - 0.3f * Size), maxLen);
                 shown[i] = contact[i] ? want : Mathf.MoveTowards(shown[i], want, 1.5f * dt);
                 pivot[i].localPosition = new Vector3(WX[i], AttachY - shown[i], WZ[i]);
                 pivot[i].localRotation = Quaternion.Euler(0f, angle[i], 0f);

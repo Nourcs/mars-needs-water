@@ -53,7 +53,7 @@ namespace MarsNeedsWater.Earth.Editor
             scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             try
             {
-                Settle(); TopSpeed(); Climb(20f); Climb(30f); Climb(40f); Climb(48f); Downhill(); Cliff(); Turn(); Slalom(); LaneChange(); Circle(); SideSlope(); Float(); Drift(1f, 0f, "road"); Drift(0.72f, 0.8f, "sand"); Drift(0.52f, 0.9f, "snow"); Loose(0.72f, 0.8f, 0.85f, "sand"); Loose(0.62f, 0.85f, 1.1f, "mud"); Loose(0.52f, 0.9f, 0.6f, "snow");
+                Settle(); TopSpeed(); Stop(); Bumps(); Climb(20f); Climb(30f); Climb(40f); Climb(48f); Downhill(); Cliff(); Turn(); Slalom(); LaneChange(); Circle(); SideSlope(); Float(); Drift(1f, 0f, "road"); Drift(0.72f, 0.8f, "sand"); Drift(0.52f, 0.9f, "snow"); Loose(0.72f, 0.8f, 0.85f, "sand"); Loose(0.62f, 0.85f, 1.1f, "mud"); Loose(0.52f, 0.9f, 0.6f, "snow");
             }
             catch (System.Exception e) { log.AppendLine("FAILED: " + e); }
             finally
@@ -149,6 +149,47 @@ namespace MarsNeedsWater.Earth.Editor
             }
             int ok = Overshoots(hk);
             log.AppendLine($"Up a 15 cm kerb at 15 m/s: {ok} overshoot(s) {(ok <= 1 ? "PASS" : "FAIL")}, wheels down after {k.Grounded}");
+            Clear();
+        }
+
+        /// <summary>Stopping from top speed: with the brakes, and just letting go of the keys.</summary>
+        static void Stop()
+        {
+            Slab(new Vector3(0f, -0.5f, 1500f), new Vector3(60f, 1f, 3200f));
+            Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, 0f));
+            j.Throttle = 1f; Step(j, 600);
+            float top = j.Speed, z0 = j.transform.position.z, maxPitch = 0f;
+            j.Throttle = -1f;
+            int k = 0; while (Vector3.Dot(j.Body.linearVelocity, j.transform.forward) > 0.5f && k < 1000) { Step(j); k++; maxPitch = Mathf.Max(maxPitch, -Pitch(j)); }
+            float dist = j.transform.position.z - z0, wander = Mathf.Abs(j.transform.position.x - O.x);
+            j.Throttle = 1f; Step(j, 600);
+            float z1 = j.transform.position.z;
+            j.Throttle = 0f;
+            int c = 0; while (j.Speed > 0.5f && c < 3000) { Step(j); c++; }
+            bool ok = k * Dt < 1.6f && wander < 0.5f && maxPitch < 12f && c * Dt < 8f;
+            log.AppendLine($"Stopping from {top:F1} m/s: brakes {k * Dt:F2} s over {dist:F1} m (nose down {maxPitch:F0}°, wandered {wander:F2} m); letting go of the keys {c * Dt:F1} s over {j.transform.position.z - z1:F1} m {(ok ? "PASS" : "FAIL")}");
+            Clear();
+        }
+
+        /// <summary>Rough going at speed: a row of sharp bumps, then a crest. How much of it is spent in the air?</summary>
+        static void Bumps()
+        {
+            Slab(new Vector3(0f, -0.5f, 300f), new Vector3(60f, 1f, 800f));
+            for (int i = 0; i < 12; i++) Slab(new Vector3(0f, -0.44f + (i % 3) * 0.02f, 60f + i * 4.3f), new Vector3(60f, 1f, 0.5f), i % 2 == 0 ? 6f : -6f);
+            Slab(new Vector3(0f, -0.5f, 160f), new Vector3(60f, 1f, 30f), 9f);       // a ramp up to a sharp crest about 2.3 m high
+            Jeep j = Spawn(new Vector3(0f, -Jeep.Ground + 0.05f, 0f));
+            int air = 0, airRow = 0, n = 0, longest = 0, run = 0; float high = 0f, maxPitch = 0f;
+            for (int i = 0; i < 750; i++)
+            {
+                Hold(j, j.TopSpeed);
+                Step(j); n++;
+                float z = j.transform.position.z - O.z;
+                if (j.Grounded == 0) { air++; run++; longest = Mathf.Max(longest, run); if (z < 130f) airRow++; } else run = 0;
+                if (z < 130f) high = Mathf.Max(high, j.transform.position.y - O.y + Jeep.Ground);
+                maxPitch = Mathf.Max(maxPitch, Mathf.Abs(Pitch(j)));
+            }
+            bool ok = airRow * Dt < 0.3f && longest * Dt < 1.3f && !j.Upturned;
+            log.AppendLine($"Bumps and a crest at {j.TopSpeed:F0} m/s: in the air {airRow * Dt:F2} s over the bumps (wheels up to {high:F2} m off the flat), longest flight {longest * Dt:F2} s off the crest, worst pitch {maxPitch:F0}°, upturned {j.Upturned} {(ok ? "PASS" : "FAIL")}");
             Clear();
         }
 
