@@ -22,6 +22,66 @@ static class Program
             for (int k = 0; k < GroundKind.Count; k++) Console.WriteLine(GroundKind.Names[k] + " " + (100.0 * counts[k] / (tg.Texture.Length / 4)).ToString("F1") + "%");
             return;
         }
+        if (a[0] == "cliff")
+        {
+            // cliff lat lon [r] : heights of the zoom-14 squares round a spot: steepest step inside each, and how
+            // well shared edges agree with the neighbours and with the coarser level
+            var srcC = new TileSources("/tmp/earthcache");
+            double cla = double.Parse(a[1]), clo = double.Parse(a[2]);
+            int R = a.Length > 3 ? int.Parse(a[3]) : 1;
+            int cx = (int)Geo.LonToX(clo, 14), cy = (int)Geo.LatToY(cla, 14);
+            const int Gc = TileResult.Grid, Vc = Gc + 1;
+            Func<TileResult, float[]> alt = tq =>
+            {
+                var fr = new Frame(tq.Lat, tq.Lon); var o = new float[Vc * Vc];
+                for (int k = 0; k < Vc * Vc; k++) { double la, lo, al; fr.ToGeo(tq.Pos[k * 3], tq.Pos[k * 3 + 1], tq.Pos[k * 3 + 2], out la, out lo, out al); o[k] = (float)al; }
+                return o;
+            };
+            var hsC = new System.Collections.Generic.Dictionary<long, float[]>();
+            float cell = 0;
+            for (int dy = -R; dy <= R; dy++) for (int dx = -R; dx <= R; dx++)
+            {
+                var tc = TileBuilder.Build(srcC, 14, cx + dx, cy + dy, 1024);
+                cell = tc.Size / Gc;
+                hsC[((long)(cx + dx) << 32) | (uint)(cy + dy)] = alt(tc);
+            }
+            Console.WriteLine(FormattableString.Invariant($"centre 14/{cx}/{cy}, cell {cell:F2} m, spot at cell {(Geo.LonToX(clo, 14) - cx) * Gc:F1},{(Geo.LatToY(cla, 14) - cy) * Gc:F1}"));
+            foreach (var kv in hsC)
+            {
+                int tx = (int)(kv.Key >> 32), ty = (int)(uint)kv.Key; float[] h = kv.Value;
+                float worst = 0; int wi = 0, wj = 0;
+                for (int j = 0; j <= Gc; j++) for (int i = 0; i <= Gc; i++)
+                {
+                    if (i < Gc) { float d = Math.Abs(h[j * Vc + i + 1] - h[j * Vc + i]); if (d > worst) { worst = d; wi = i; wj = j; } }
+                    if (j < Gc) { float d = Math.Abs(h[(j + 1) * Vc + i] - h[j * Vc + i]); if (d > worst) { worst = d; wi = i; wj = j; } }
+                }
+                float eE = 0, eS = 0; float[] n;
+                if (hsC.TryGetValue(((long)(tx + 1) << 32) | (uint)ty, out n)) for (int j = 0; j <= Gc; j++) eE = Math.Max(eE, Math.Abs(h[j * Vc + Gc] - n[j * Vc]));
+                if (hsC.TryGetValue(((long)tx << 32) | (uint)(ty + 1), out n)) for (int i = 0; i <= Gc; i++) eS = Math.Max(eS, Math.Abs(h[Gc * Vc + i] - n[i]));
+                if (a.Length > 4 && hsC.TryGetValue(((long)(tx + 1) << 32) | (uint)ty, out n)) for (int j = 0; j <= Gc; j++) if (Math.Abs(h[j * Vc + Gc] - n[j * Vc]) > 0.3f) Console.WriteLine(FormattableString.Invariant($"   E {tx}/{ty} j {j}: {h[j * Vc + Gc - 1]:F2} {h[j * Vc + Gc]:F2} | {n[j * Vc]:F2} {n[j * Vc + 1]:F2}"));
+                if (a.Length > 4 && hsC.TryGetValue(((long)tx << 32) | (uint)(ty + 1), out n)) for (int i = 0; i <= Gc; i++) if (Math.Abs(h[Gc * Vc + i] - n[i]) > 0.3f) Console.WriteLine(FormattableString.Invariant($"   S {tx}/{ty} i {i}: {h[(Gc - 1) * Vc + i]:F2} {h[Gc * Vc + i]:F2} | {n[i]:F2} {n[Vc + i]:F2}"));
+                Console.WriteLine(FormattableString.Invariant($"14/{tx}/{ty}: steepest step {worst:F2} m at cell {wi},{wj} (slope {worst / cell:F2}); edge mismatch east {eE:F3} south {eS:F3}"));
+            }
+            // against the coarser level, along the outer edge of the zoom-14 block is where it shows; print the worst anywhere
+            var t12 = TileBuilder.Build(srcC, 12, cx >> 2, cy >> 2, 512);
+            float[] h12 = alt(t12);
+            float w12 = 0; string where = "";
+            foreach (var kv in hsC)
+            {
+                int tx = (int)(kv.Key >> 32), ty = (int)(uint)kv.Key;
+                if (tx >> 2 != cx >> 2 || ty >> 2 != cy >> 2) continue;
+                for (int j = 0; j <= Gc; j++) for (int i = 0; i <= Gc; i++)
+                {
+                    double u = ((tx & 3) + (double)i / Gc) / 4 * Gc, v = ((ty & 3) + (double)j / Gc) / 4 * Gc;
+                    int ui = Math.Min(Gc - 1, (int)u), vj = Math.Min(Gc - 1, (int)v); double fu = u - ui, fv = v - vj;
+                    double c = (h12[vj * Vc + ui] * (1 - fu) + h12[vj * Vc + ui + 1] * fu) * (1 - fv) + (h12[(vj + 1) * Vc + ui] * (1 - fu) + h12[(vj + 1) * Vc + ui + 1] * fu) * fv;
+                    float d = (float)(kv.Value[j * Vc + i] - c);
+                    if (Math.Abs(d) > Math.Abs(w12)) { w12 = d; where = $"14/{tx}/{ty} cell {i},{j}"; }
+                }
+            }
+            Console.WriteLine(FormattableString.Invariant($"fine minus coarse (zoom 12), worst {w12:F2} m at {where}"));
+            return;
+        }
         if (a[0] == "roads")
         {
             // roads lat lon out : build one zoom-14 square and save its ground picture and road mesh for roadview.py
