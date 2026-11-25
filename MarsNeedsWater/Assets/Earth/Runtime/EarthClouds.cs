@@ -46,7 +46,17 @@ namespace MarsNeedsWater.Earth
 
             var rng = new System.Random(20261115);
             meshes = new Mesh[Shapes]; balls = new List<Ball>[Shapes]; batches = new List<Matrix4x4>[Shapes];
-            for (int i = 0; i < Shapes; i++) { balls[i] = MakeShape(rng, i); meshes[i] = MakeMesh(balls[i], rng); batches[i] = new List<Matrix4x4>(); }
+            for (int i = 0; i < Shapes; i++)
+            {
+                balls[i] = MakeShape(rng, i); meshes[i] = MakeMesh(balls[i], rng); batches[i] = new List<Matrix4x4>();
+                if (Voxel.On)
+                {
+                    // the voxel look: the same shapes rebuilt out of big blocks
+                    Mesh smooth = meshes[i];
+                    meshes[i] = VoxelMesh.Blocks(smooth, uv => Color.white, 1f / 11f, i);
+                    Destroy(smooth);
+                }
+            }
 
             clouds = new Cloud[Count];
             for (int i = 0; i < Count; i++)
@@ -62,6 +72,8 @@ namespace MarsNeedsWater.Earth
                     Size = new Vector3(size * Mathf.Lerp(0.8f, 1.5f, (float)rng.NextDouble()), size * Mathf.Lerp(0.7f, 1.15f, (float)rng.NextDouble()), size * Mathf.Lerp(0.8f, 1.3f, (float)rng.NextDouble())),
                     Shape = rng.Next(Shapes),
                 };
+                // the voxel look: square to the world like everything else, and as wide as they are long so blocks stay square
+                if (Voxel.On) { clouds[i].Yaw = 90f * (i % 4); clouds[i].Size = new Vector3(clouds[i].Size.x, clouds[i].Size.x * 0.55f, clouds[i].Size.x); }
             }
             MakeMap();
         }

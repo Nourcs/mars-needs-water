@@ -91,7 +91,16 @@ namespace MarsNeedsWater.Earth.Editor
             Camera cam = Camera.main;
             bool jeep = s.Length > 6 && s[6] == "jeep";
             Vector3 oldPos = cam.transform.position; Quaternion oldRot = cam.transform.rotation;
-            if (!jeep)
+            if (s.Length > 6 && s[6] == "player")
+            {
+                // the player's own figure, seen from in front and a little above
+                Transform pl = world.PlayerTransform;
+                foreach (Transform c in pl) if (c.name == "Figure") c.gameObject.SetActive(true);
+                Quaternion face = Quaternion.Euler(0f, (float)F(s[4]), 0f);
+                Vector3 at = pl.position + face * new Vector3(0.9f, 0.5f, 2.6f);
+                cam.transform.SetPositionAndRotation(at, Quaternion.LookRotation(pl.position + Vector3.up * 0.1f - at));
+            }
+            else if (!jeep)
             {
                 float ground;
                 world.Ground(Vector3.zero, out ground);

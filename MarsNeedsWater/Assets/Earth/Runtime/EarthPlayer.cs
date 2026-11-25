@@ -63,7 +63,16 @@ namespace MarsNeedsWater.Earth
             cam.farClipPlane = 400000f;
             cam.fieldOfView = 65f;
 
-            body = Shape(PrimitiveType.Capsule, transform, Vector3.zero, new Vector3(0.6f, HalfHeight, 0.6f), new Color(0.90f, 0.45f, 0.20f));
+            if (Voxel.On)
+            {
+                // the voxel look: a figure of blocks, and legs that can step up a block
+                body = new GameObject("Figure");
+                body.transform.SetParent(transform, false);
+                body.AddComponent<MeshFilter>().sharedMesh = VoxelMesh.Figure(HalfHeight * 2f);
+                body.AddComponent<MeshRenderer>().sharedMaterial = EarthWorld.VoxelMaterial();
+                cc.stepOffset = 0.56f;
+            }
+            else body = Shape(PrimitiveType.Capsule, transform, Vector3.zero, new Vector3(0.6f, HalfHeight, 0.6f), new Color(0.90f, 0.45f, 0.20f));
             jeep = Jeep.Build();
             jeep.GroundFn = JeepGround;
             jeep.WaterFn = JeepWater;

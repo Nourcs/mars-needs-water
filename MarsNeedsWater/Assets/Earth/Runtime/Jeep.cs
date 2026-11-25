@@ -215,6 +215,14 @@ namespace MarsNeedsWater.Earth
             Material mat = EarthWorld.Mat(PaletteTexture(), 0.3f);
 
             Mesh bodyMesh = BodyMesh(), wheel = WheelMesh();
+            if (Voxel.On)
+            {
+                // the voxel look: the same jeep rebuilt out of small blocks, a sixteenth of a metre across
+                System.Func<Vector2, Color> col = uv => Palette[Mathf.Clamp((int)(uv.x * Palette.Length), 0, Palette.Length - 1)];
+                bodyMesh = VoxelMesh.Blocks(bodyMesh, col, 0.0625f, 3f);
+                wheel = VoxelMesh.Blocks(wheel, col, 0.0625f, 41f);
+                mat = EarthWorld.VoxelMaterial();
+            }
             Transform body = Part(root.transform, "Body", bodyMesh, mat, Vector3.zero, Quaternion.identity).transform;
             j.bodyT = body;
             Part(body, "Spare", wheel, mat, new Vector3(0f, 0.16f, -1.71f) * Size, Quaternion.Euler(0f, -90f, 0f));

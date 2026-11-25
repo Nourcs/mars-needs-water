@@ -393,6 +393,7 @@ namespace MarsNeedsWater.Earth
                 waterBlock.Clear();
                 waterBlock.SetTexture("_WaterMask", t.WaterMask);
                 waterBlock.SetFloat("_TileSize", d.Size);
+                waterBlock.SetFloat("_VoxN", d.VTop != null ? d.VN : 0);
             }
             if (p.Water != null)
                 for (int i = 0; i < p.Water.Length && i < t.Patches.Length; i++)

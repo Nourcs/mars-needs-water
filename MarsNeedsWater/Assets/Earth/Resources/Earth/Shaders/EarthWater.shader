@@ -8,6 +8,7 @@ Shader "MarsNeedsWater/EarthWater"
         _WaveTex ("Wave normals (rg) and foam (b)", 2D) = "gray" {}
         _WaterMask ("The map's water pixels for this square (set per square)", 2D) = "white" {}
         _TileSize ("Width of this square, game metres (set per square)", Float) = 1
+        _VoxN ("Voxel look: block columns along this square (0 = smooth water)", Float) = 0
         _DeepColour ("Deep sea", Color) = (0.02, 0.36, 0.72, 1)
         _LakeColour ("Deep lake", Color) = (0.04, 0.46, 0.56, 1)
         _FoamColour ("Foam", Color) = (0.93, 0.96, 1.0, 1)
@@ -47,6 +48,7 @@ Shader "MarsNeedsWater/EarthWater"
             TEXTURE2D(_WaterMask);
             SAMPLER(sampler_WaterMask);
             float _TileSize;
+            float _VoxN;
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _WaveTex_ST;
@@ -157,6 +159,18 @@ Shader "MarsNeedsWater/EarthWater"
             half4 frag(Varyings i, bool front : SV_IsFrontFace) : SV_Target
             {
                 float3 pos = i.positionWS;
+                float2 tileUV = i.tileUV;
+                // the voxel look: the surface is read at the middle of little squares, four across each block, so
+                // waves, foam and sparkles all come out as pixels
+                float vox = step(0.5, _VoxN);
+                if (vox > 0.5)
+                {
+                    float vn = _VoxN * 4.0;
+                    float2 q = (floor(tileUV * vn) + 0.5) / vn;
+                    float2 d = (q - tileUV) * max(_TileSize, 1.0);
+                    pos.x += d.x; pos.z -= d.y;
+                    tileUV = q;
+                }
                 float depthHere = i.data.x, lake = saturate(i.data.y), stream = saturate(i.data.y - 1);
                 float3 toCam = _WorldSpaceCameraPos - pos;
                 float dist = length(toCam);
@@ -169,7 +183,8 @@ Shader "MarsNeedsWater/EarthWater"
                 float msize = max(_TileSize, 1.0);
                 float2 wob = (float2(Noise(p / 6.0 + 4.1), Noise(p / 6.0 - 9.3)) - 0.5) * 2.4
                            + (float2(Noise(p / 1.7 + 1.3), Noise(p / 1.7 - 5.1)) - 0.5) * 0.7;
-                float2 shoreUV = i.tileUV + float2(wob.x, -wob.y) / msize;
+                wob *= 1.0 - vox;
+                float2 shoreUV = tileUV + float2(wob.x, -wob.y) / msize;
                 float edgeField = 0.5 * SAMPLE_TEXTURE2D_BIAS(_WaterMask, sampler_WaterMask, shoreUV, 0.6).r
                                 + 0.5 * SAMPLE_TEXTURE2D_BIAS(_WaterMask, sampler_WaterMask, shoreUV, 1.6).r;
                 float nearShore = SAMPLE_TEXTURE2D_BIAS(_WaterMask, sampler_WaterMask, shoreUV, 2.5).r;
@@ -177,6 +192,7 @@ Shader "MarsNeedsWater/EarthWater"
                 float swash = (sin(swashPhase) * 0.5 + 0.5) * (1 - 0.7 * lake) * (1 - stream) * saturate(1.5 - dist / 400.0);
                 float waterline = 0.5 + 0.2 * swash;                 // higher = the water has drawn back
                 float onMap = smoothstep(waterline - 0.05, waterline + 0.05, edgeField);
+                onMap = lerp(onMap, 1.0, vox);          // blocks of water are whole
                 // ---- the surface's slope: swell, finer ripples, rings
                 float2 swellSlope;
                 float calm = Calm(depthHere, i.data.y);
@@ -312,7 +328,7 @@ Shader "MarsNeedsWater/EarthWater"
                 // soft edge where the surface meets the bank (the bank is above water past this line)
                 // where the water stops: the map's own outline, or (on wide water) wherever the surface is above the ground
                 // where the water stops: the map's own outline (smooth, not the zigzag of the height grid)
-                half alpha = onMap * saturate(through / 0.03);
+                half alpha = onMap * lerp(saturate(through / 0.03), 1.0, vox);
                 if (!front) alpha = 1;
 
                 colour = MixFog(colour, i.fog);

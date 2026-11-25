@@ -86,9 +86,9 @@ Shader "MarsNeedsWater/EarthVoxel"
                         half3 pane = VUnpack(i.a.y);
                         float h = VHash(float3(cell, seed + 3.0));
                         // most panes dark, some catching the sky, a few lit from inside
-                        col = pane * (0.75 + 0.6 * h);
-                        if (h > 0.86) col = lerp(col, half3(0.55, 0.72, 0.9), 0.55);
-                        if (h < 0.05) col = half3(1.0, 0.78, 0.36);
+                        col = pane * (0.85 + 0.4 * h);
+                        if (h > 0.93) col = lerp(col, half3(0.55, 0.72, 0.9), 0.5);
+                        if (h < 0.018) col = half3(1.0, 0.78, 0.36);
                         amount = 0.03;
                         shine = 0.5;
                     }

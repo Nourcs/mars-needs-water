@@ -502,6 +502,9 @@ namespace MarsNeedsWater.Earth
         static uint Tinted(uint c, uint tint, float k)
         {
             float r = ((c >> 16) & 255) * ((tint >> 16) & 255) / 128f * k, g = ((c >> 8) & 255) * ((tint >> 8) & 255) / 128f * k, b = (c & 255) * (tint & 255) / 128f * k;
+            // calmer than the paint box: leaves a little greyer and darker, or the bright look turns them neon
+            float grey = (r + g + b) / 3f;
+            r = (r + (grey - r) * 0.3f) * 0.8f; g = (g + (grey - g) * 0.3f) * 0.8f; b = (b + (grey - b) * 0.3f) * 0.8f;
             return ((uint)Math.Min(255f, r) << 16) | ((uint)Math.Min(255f, g) << 8) | (uint)Math.Min(255f, b);
         }
 
