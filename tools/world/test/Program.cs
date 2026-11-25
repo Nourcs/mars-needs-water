@@ -7,6 +7,20 @@ static class Program
 {
     static void Main(string[] a)
     {
+        if (a[0] == "vox")
+        {
+            // vox lat lon [zoom] : build one square the voxel way and say how heavy it is
+            var srcV = new TileSources("/tmp/earthcache");
+            int vz = a.Length > 3 ? int.Parse(a[3]) : 14;
+            double vla = double.Parse(a[1]), vlo = double.Parse(a[2]);
+            var swV = Stopwatch.StartNew();
+            var tv = TileBuilder.Build(srcV, vz, (int)Geo.LonToX(vlo, vz), (int)Geo.LatToY(vla, vz), vz == 14 ? 1024 : 512);
+            Console.WriteLine("built in " + swV.ElapsedMilliseconds + " ms, size " + tv.Size + " m, columns " + tv.VN + ", block " + tv.VB);
+            Func<MeshData[], int> cnt = ms => { int n = 0; if (ms != null) foreach (var m in ms) if (m != null) n += m.Count; return n; };
+            Console.WriteLine("ground " + cnt(tv.Ground) + " water " + cnt(tv.Water) + " walls " + cnt(tv.Walls) + " roofs " + (tv.Roofs != null ? tv.Roofs.Count : 0)
+                + " roads " + (tv.Roads != null ? tv.Roads.Count : 0) + " bridges " + (tv.Bridges != null ? tv.Bridges.Count : 0) + " trees " + (tv.TreeSpots != null ? tv.TreeSpots.Count : 0));
+            return;
+        }
         if (a[0] == "ground")
         {
             // ground lat lon zoom size out.raw : the finished ground picture (RGBA, alpha = GroundKind) of one square

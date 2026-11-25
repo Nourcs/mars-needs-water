@@ -82,6 +82,44 @@ namespace MarsNeedsWater.Earth
         public byte[] WMask;
         public int MaskN;
 
+        // ---- the voxel look (Voxel.cs): the square as columns of blocks. Null when the square is smooth.
+        /// <summary>Columns along each side, and the height of one block (game metres).</summary>
+        public int VN; public float VB;
+        /// <summary>Per column, north row first: the top of the ground and of the water (Voxel.Dry where there is none), in blocks above sea level.</summary>
+        public short[] VTop, VWat;
+        /// <summary>The grid points at sea level (as Pos, without the elevation).</summary>
+        public float[] VBase;
+
+        int Col(double u, double v)
+        {
+            int i = (int)Math.Floor(u * VN), j = (int)Math.Floor(v * VN);
+            if (i < 0) i = 0; else if (i > VN - 1) i = VN - 1;
+            if (j < 0) j = 0; else if (j > VN - 1) j = VN - 1;
+            return j * VN + i;
+        }
+
+        /// <summary>Voxel squares: the top at u, v eased between the middles of the four columns round it, so wheels and feet climb steps as short ramps.</summary>
+        float Eased(double u, double v, bool water)
+        {
+            double gx = u * VN - 0.5, gy = v * VN - 0.5;
+            int i = (int)Math.Floor(gx), j = (int)Math.Floor(gy);
+            float fx = (float)(gx - i), fy = (float)(gy - j);
+            float sum = 0;
+            for (int k = 0; k < 4; k++)
+            {
+                int ci = i + (k & 1), cj = j + (k >> 1);
+                if (ci < 0) ci = 0; else if (ci > VN - 1) ci = VN - 1;
+                if (cj < 0) cj = 0; else if (cj > VN - 1) cj = VN - 1;
+                int c = cj * VN + ci;
+                float h = VTop[c] * VB;
+                if (water && VWat != null && VWat[c] != Voxel.Dry) h = VWat[c] * VB - Voxel.WaterDrop;
+                sum += h * ((k & 1) == 1 ? fx : 1f - fx) * ((k >> 1) == 1 ? fy : 1f - fy);
+            }
+            float x, y, z;
+            Interp(VBase, u, v, out x, out y, out z);
+            return y + sum;
+        }
+
         /// <summary>
         /// The top of whatever is at tile coordinates u (east) and v (south), each 0 to 1: the water surface over
         /// seas, lakes and rivers, otherwise the ground. Bridges and landmarks stand on this.
@@ -94,7 +132,11 @@ namespace MarsNeedsWater.Earth
         }
 
         /// <summary>Point on the ground mesh itself (the sea floor or lake bed under water).</summary>
-        public void Bed(double u, double v, out float x, out float y, out float z) { Interp(Pos, u, v, out x, out y, out z); }
+        public void Bed(double u, double v, out float x, out float y, out float z)
+        {
+            if (VTop != null) { Interp(VBase, u, v, out x, out y, out z); y += VTop[Col(u, v)] * VB; return; }
+            Interp(Pos, u, v, out x, out y, out z);
+        }
 
         /// <summary>Which way the ground faces at each grid point (the ground mesh's own normals), three numbers each.</summary>
         internal float[] Nrm;
@@ -113,6 +155,16 @@ namespace MarsNeedsWater.Earth
         public bool WaterAt(double u, double v, out float y)
         {
             y = 0;
+            if (VTop != null)
+            {
+                if (VWat == null) return false;
+                short w = VWat[Col(u, v)];
+                if (w == Voxel.Dry) return false;
+                float bx, bz;
+                Interp(VBase, u, v, out bx, out y, out bz);
+                y += w * VB - Voxel.WaterDrop;
+                return true;
+            }
             if (WPos == null) return false;
             int i = (int)Math.Floor(u * Grid), j = (int)Math.Floor(v * Grid);
             if (i < 0) i = 0; else if (i > Grid - 1) i = Grid - 1;
@@ -135,7 +187,7 @@ namespace MarsNeedsWater.Earth
             return true;
         }
 
-        static void Interp(float[] Pos, double u, double v, out float x, out float y, out float z)
+        internal static void Interp(float[] Pos, double u, double v, out float x, out float y, out float z)
         {
             double gx = u * Grid, gy = v * Grid;
             int i = (int)Math.Floor(gx), j = (int)Math.Floor(gy);
@@ -190,6 +242,7 @@ namespace MarsNeedsWater.Earth
         /// <summary>Height (tile-local y) of the top under a tile-local x,z: the water surface where there is water.</summary>
         public float HeightAt(float lx, float lz)
         {
+            if (VTop != null) return Eased(lx / Size + 0.5, 0.5 - lz / Size, true);
             float x, y, z;
             Surface(lx / Size + 0.5, 0.5 - lz / Size, out x, out y, out z);
             return y;
@@ -198,6 +251,7 @@ namespace MarsNeedsWater.Earth
         /// <summary>Ground height (tile-local y) under a tile-local x,z, the sea floor or lake bed under water.</summary>
         public float BedAt(float lx, float lz)
         {
+            if (VTop != null) return Eased(lx / Size + 0.5, 0.5 - lz / Size, false);
             float x, y, z;
             Bed(lx / Size + 0.5, 0.5 - lz / Size, out x, out y, out z);
             return y;
@@ -311,7 +365,7 @@ namespace MarsNeedsWater.Earth
                     float w = Math.Max(r.Style.MinPx, RoadNet.PaintWidth(r) * RoadScale / px);
                     // close up the road itself is drawn crisply on top (RoadNet): the picture only marks the ground
                     // as paved there, and keeps its colour well inside the road so no blurred edge shows beside it
-                    float inset = Z == 14 ? 1.6f : 0f;
+                    float inset = Z == 14 && !Voxel.On ? 1.6f : 0f;
                     foreach (int[] part in r.Plain) { var pts = Line(part, map, texSize); if (pts != null) ras.Line(pts, w + (Z == 14 ? 1f : 0f), r.Style.Paint, Raster.Paved, GroundKind.FromMask, inset); }
                     // a bridge is not ground. Close up it is a deck of its own; from afar it is drawn on,
                     // without changing what the ground under it is (so the sea below stays level)
@@ -370,8 +424,17 @@ namespace MarsNeedsWater.Earth
                 }
             }
             t.Texture = ras.Rgba;
-            BuildGround(t);
-            WaterMesh.Build(t);
+            if (Voxel.On)
+            {
+                var elev = new float[V * V];
+                for (int k = 0; k < V * V; k++) elev[k] = Geo.Elevation(hs[k]);
+                Voxel.Terrain(t, elev);
+            }
+            else
+            {
+                BuildGround(t);
+                WaterMesh.Build(t);
+            }
 
             // ---- things that stand on the ground: only on the closest level ----
             if (Z == 14)
@@ -380,8 +443,15 @@ namespace MarsNeedsWater.Earth
                 baseLayers.TryGetValue("infrastructure", out infra);
                 Buildings.Build(t, src, infra, zb);
                 RoadNet.Build(t, roads, seg);
+                if (Voxel.On) t.Roads = null;      // voxel look: streets are blocks of the ground itself
                 if (seg != null) Bridges.Build(t, src, roads, seg.Extent, (u, v) => { byte mk = ras.MaskAt(Math.Min(0.9995, Math.Max(0.0005, u)), Math.Min(0.9995, Math.Max(0.0005, v))); return mk == Raster.Ocean || mk == Raster.Water; });
                 BuildTrees(t, ras, baseLayers, zb);
+                if (Voxel.On)
+                {
+                    Voxel.Trees(t);
+                    float bh = t.Size / t.VN;
+                    t.Bridges = Voxel.FromPalette(t.Bridges, Style.Palette, bh, t.VB, bh, 5f);
+                }
             }
             return t;
         }

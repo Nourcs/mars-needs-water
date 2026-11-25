@@ -452,6 +452,19 @@ namespace MarsNeedsWater.Earth
             if (s == 0) s = 1;
             Rnd(ref s);
             var wall = new Pen { M = t.Walls[(int)((hash >> 8) % Chunks)] };
+            if (Voxel.On)
+            {
+                var uv = new List<double[]>(rings.Count);
+                foreach (Ring r in rings)
+                {
+                    var q = new double[r.N * 2];
+                    for (int i = 0; i < r.N; i++) { q[i * 2] = r.IX[i] / extent; q[i * 2 + 1] = r.IY[i] / extent; }
+                    uv.Add(q);
+                }
+                Voxel.Building(t, wall.M, t.Roofs, uv, top, bottom, realMin > 0 && bottom > gMin, k, hash, floors);
+                t.BuildingCount++;
+                return;
+            }
             if (k.Struct != BK.StNone && !isPart && k.Struct != BK.StCovered)
             {
                 // not a building: a shape of its own, raised from the outline

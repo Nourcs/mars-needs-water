@@ -138,7 +138,7 @@ namespace MarsNeedsWater.Earth
         void MakeMaterials()
         {
             // the realistic ground (EarthGround.shader); plain lit map colours if that is missing
-            groundBase = EarthGround.MakeMaterial();
+            groundBase = Voxel.On ? VoxelGround() : EarthGround.MakeMaterial();
             if (groundBase == null) groundBase = Mat(null, 0.05f);
 
             var pal = new Texture2D(16, 16, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
@@ -149,9 +149,29 @@ namespace MarsNeedsWater.Earth
             roadMat = EarthStreets.MakeMaterial();     // roads painted on the ground (EarthStreet.shader); plain colours if missing
 
             // every building, walls and roofs alike, is drawn by one material (EarthBuilding.shader)
-            Material building = EarthBuildings.MakeMaterial();
+            Material building = Voxel.On ? VoxelMaterial() : EarthBuildings.MakeMaterial();
+            if (Voxel.On) flatMat = building;
             wallMats = new Material[Buildings.Chunks];
             for (int k = 0; k < wallMats.Length; k++) wallMats[k] = building;
+        }
+
+        static Material voxelMat;
+
+        /// <summary>The one material of everything built from blocks except the ground (EarthVoxel.shader).</summary>
+        public static Material VoxelMaterial()
+        {
+            if (voxelMat != null) return voxelMat;
+            Shader sh = Shader.Find("MarsNeedsWater/EarthVoxel");
+            if (sh == null || !sh.isSupported) { Debug.LogWarning("EarthVoxel shader missing"); return Mat(null, 0.1f); }
+            voxelMat = new Material(sh) { name = "EarthVoxel", enableInstancing = true };
+            return voxelMat;
+        }
+
+        static Material VoxelGround()
+        {
+            Shader sh = Shader.Find("MarsNeedsWater/EarthVoxelGround");
+            if (sh == null || !sh.isSupported) { Debug.LogWarning("EarthVoxelGround shader missing"); return null; }
+            return new Material(sh) { name = "EarthVoxelGround" };
         }
 
         void SetUpScene()
@@ -348,6 +368,11 @@ namespace MarsNeedsWater.Earth
             t.Material = new Material(groundBase);
             t.Material.mainTexture = t.Texture;
             if (t.Material.HasProperty("_BaseMap")) t.Material.SetTexture("_BaseMap", t.Texture);
+            if (d.VTop != null)
+            {
+                t.Material.SetFloat("_VoxN", d.VN);
+                t.Material.SetFloat("_VoxSeed", (d.X * 31 + d.Y * 17 + d.Z * 7) % 1000);
+            }
 
             t.Patches = new GameObject[p.Ground.Length];
             for (int i = 0; i < p.Ground.Length; i++)
@@ -394,6 +419,7 @@ namespace MarsNeedsWater.Earth
             Child(t, "Roads", p.Roads, roadMat != null ? roadMat : flatMat, false);
             MeshFilter decks = Child(t, "Bridges", p.Bridges, flatMat, true);
             if (decks != null) colliders.Enqueue(new KeyValuePair<long, MeshFilter>(t.Key, decks));
+            if (Voxel.On) Child(t, "Trees", p.Trees, flatMat, true);
             TreesShown(t);
 
             Place(t);

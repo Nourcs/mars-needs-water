@@ -15,7 +15,7 @@ namespace MarsNeedsWater.Earth
 
         void StartGround()
         {
-            gameObject.AddComponent<EarthGrass>().Init(this);
+            if (!Voxel.On) gameObject.AddComponent<EarthGrass>().Init(this);     // no blades of grass on blocks
         }
 
         void GroundShifted(Vector3 delta)

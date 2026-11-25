@@ -7,6 +7,7 @@ namespace MarsNeedsWater.Earth
 
         void StartTrees()
         {
+            if (Voxel.On) return;       // voxel look: trees are blocks, built with each square (Voxel.Trees)
             trees = gameObject.AddComponent<EarthTrees>();
             trees.Init(this);
         }

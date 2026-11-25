@@ -63,6 +63,7 @@ namespace MarsNeedsWater.Earth
         {
             LandmarkMesh model = Landmarks.Model(m);
             if (model == null || model.Mesh.Count == 0) return;
+            if (Voxel.On) model = Voxel.Landmark(model, Voxel.BlockFor(14));
             MeshData d = model.Mesh;
             var l = new Live { Mark = m, Frame = new Frame(m.Lat, m.Lon), Model = model, Lift = new float[model.Parts], Settled = new bool[model.Parts] };
 
@@ -78,14 +79,25 @@ namespace MarsNeedsWater.Earth
             l.Mesh = new Mesh { name = m.Name };
             l.Mesh.MarkDynamic();
             if (n > 65000) l.Mesh.indexFormat = IndexFormat.UInt32;
-            l.Mesh.vertices = v; l.Mesh.normals = nrm; l.Mesh.uv = uv; l.Mesh.triangles = d.I.ToArray();
+            l.Mesh.vertices = v; l.Mesh.normals = nrm; l.Mesh.uv = uv;
+            if (d.X != null && d.X.Count == n * 4)
+            {
+                var u1 = new Vector4[n]; var u2 = new Vector4[n];
+                for (int i = 0; i < n; i++)
+                {
+                    u1[i] = new Vector4(d.X[i * 4], d.X[i * 4 + 1], d.X[i * 4 + 2], d.X[i * 4 + 3]);
+                    u2[i] = new Vector4(d.Y[i * 4], d.Y[i * 4 + 1], d.Y[i * 4 + 2], d.Y[i * 4 + 3]);
+                }
+                l.Mesh.SetUVs(1, u1); l.Mesh.SetUVs(2, u2);
+            }
+            l.Mesh.triangles = d.I.ToArray();
             l.Mesh.RecalculateBounds();
 
             l.Texture = new Texture2D(16, 16, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
             var px = new Color32[256];
             for (int i = 0; i < 256; i++) px[i] = new Color32((byte)(model.Palette[i] >> 16), (byte)(model.Palette[i] >> 8), (byte)model.Palette[i], 255);
             l.Texture.SetPixels32(px); l.Texture.Apply();
-            l.Material = EarthWorld.Mat(l.Texture, 0.15f);
+            l.Material = Voxel.On ? EarthWorld.VoxelMaterial() : EarthWorld.Mat(l.Texture, 0.15f);
 
             l.Root = new GameObject("Landmark: " + m.Name);
             l.Root.transform.SetParent(transform, false);
@@ -105,7 +117,8 @@ namespace MarsNeedsWater.Earth
             Live l;
             if (!live.TryGetValue(m, out l)) return;
             live.Remove(m);
-            Destroy(l.Mesh); Destroy(l.Texture); Destroy(l.Material); Destroy(l.Root);
+            Destroy(l.Mesh); Destroy(l.Texture); Destroy(l.Root);
+            if (!Voxel.On) Destroy(l.Material);
         }
 
         static readonly float[] Around = { 0f, 0f, 0.7f, 0f, -0.7f, 0f, 0f, 0.7f, 0f, -0.7f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f };
@@ -141,6 +154,7 @@ namespace MarsNeedsWater.Earth
                 }
                 if (!any) { all = false; continue; }
                 if (detailed) l.Settled[part] = true; else all = false;
+                if (Voxel.On) { float b = Voxel.BlockFor(14); lowest = Mathf.Round(lowest / b) * b; }      // blocks stay on the grid
                 if (Mathf.Abs(lowest - l.Lift[part]) < 0.02f) continue;
                 l.Lift[part] = lowest;
                 for (int i = l.Model.Start[part]; i < l.Model.Start[part + 1]; i++) { Vector3 r = l.Rest[i]; r.y += lowest; l.Now[i] = r; }
