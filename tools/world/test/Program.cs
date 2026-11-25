@@ -44,6 +44,16 @@ static class Program
                 var tc = TileBuilder.Build(srcC, 14, cx + dx, cy + dy, 1024);
                 cell = tc.Size / Gc;
                 hsC[((long)(cx + dx) << 32) | (uint)(cy + dy)] = alt(tc);
+                if (a.Length > 6 && cx + dx == int.Parse(a[4]) && cy + dy == int.Parse(a[5]))
+                {
+                    float[] hh = alt(tc); int ci = int.Parse(a[6]), cj = int.Parse(a[7]);
+                    for (int j = Math.Max(0, cj - 5); j <= Math.Min(Gc, cj + 5); j++)
+                    {
+                        var sb = new System.Text.StringBuilder();
+                        for (int i = Math.Max(0, ci - 6); i <= Math.Min(Gc, ci + 6); i++) sb.Append(FormattableString.Invariant($"{hh[j * Vc + i],6:F1}{(tc.WKind != null && tc.WKind[j * Vc + i] != 0 ? "w" : " ")}"));
+                        Console.WriteLine(sb);
+                    }
+                }
             }
             Console.WriteLine(FormattableString.Invariant($"centre 14/{cx}/{cy}, cell {cell:F2} m, spot at cell {(Geo.LonToX(clo, 14) - cx) * Gc:F1},{(Geo.LatToY(cla, 14) - cy) * Gc:F1}"));
             foreach (var kv in hsC)
@@ -76,7 +86,7 @@ static class Program
                     int ui = Math.Min(Gc - 1, (int)u), vj = Math.Min(Gc - 1, (int)v); double fu = u - ui, fv = v - vj;
                     double c = (h12[vj * Vc + ui] * (1 - fu) + h12[vj * Vc + ui + 1] * fu) * (1 - fv) + (h12[(vj + 1) * Vc + ui] * (1 - fu) + h12[(vj + 1) * Vc + ui + 1] * fu) * fv;
                     float d = (float)(kv.Value[j * Vc + i] - c);
-                    if (Math.Abs(d) > Math.Abs(w12)) { w12 = d; where = $"14/{tx}/{ty} cell {i},{j}"; }
+                    if (Math.Abs(d) > Math.Abs(w12)) { w12 = d; where = FormattableString.Invariant($"14/{tx}/{ty} cell {i},{j} (fine {kv.Value[j * Vc + i]:F1}, coarse {c:F1})"); }
                 }
             }
             Console.WriteLine(FormattableString.Invariant($"fine minus coarse (zoom 12), worst {w12:F2} m at {where}"));

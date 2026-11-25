@@ -38,6 +38,8 @@ namespace MarsNeedsWater.Earth
         public const int BuildingsMax = 14, TransportMax = 14, BaseMax = 13;
         public readonly Pmtiles Buildings, Transport, Base;
         public readonly Dem Dem;
+        /// <summary>Dry, sea or lake at the grid points of squares already looked at (see TileBuilder.Kinds).</summary>
+        internal readonly Once<long, byte[]> Kinds = new Once<long, byte[]>(600);
 
         public TileSources(string cacheRoot)
         {
@@ -271,18 +273,14 @@ namespace MarsNeedsWater.Earth
             return h;
         }
 
-        public static TileResult Build(TileSources src, int Z, int X, int Y, int texSize)
+        /// <summary>The ground picture of one square: land, water, buildings from afar, roads.</summary>
+        static Raster Paint(TileSources src, int Z, int X, int Y, int texSize, float size,
+            out int zb, out Dictionary<string, MvtLayer> baseLayers, out List<RoadItem> roads, out MvtLayer seg)
         {
-            var t = new TileResult { Z = Z, X = X, Y = Y, TexSize = texSize };
-            t.Lat = Geo.TileLat(Y + 0.5, Z);
-            t.Lon = Geo.TileLon(X + 0.5, Z);
-            t.Size = (float)Geo.TileSize(Z, t.Lat);
             var ras = new Raster(texSize, GroundKind.Look(GroundKind.Grass, 0));
-
-            // ---- ground picture ----
-            int zb = Math.Min(Z, TileSources.BaseMax);
-            var baseLayers = Mvt.Decode(src.Base.GetTile(zb, X >> (Z - zb), Y >> (Z - zb)), "land_cover", "land", "land_use", "water", "infrastructure");
-            PaintBase(ras, baseLayers, Z, X, Y, zb, t.Size);
+            zb = Math.Min(Z, TileSources.BaseMax);
+            baseLayers = Mvt.Decode(src.Base.GetTile(zb, X >> (Z - zb), Y >> (Z - zb)), "land_cover", "land", "land_use", "water", "infrastructure");
+            PaintBase(ras, baseLayers, Z, X, Y, zb, size);
 
             if (Z >= 12 && Z < 14)
             {
@@ -298,13 +296,12 @@ namespace MarsNeedsWater.Earth
 
             int zt = Math.Min(Z, TileSources.TransportMax);
             var tl = Mvt.Decode(src.Transport.GetTile(zt, X >> (Z - zt), Y >> (Z - zt)), "segment");
-            MvtLayer seg;
             tl.TryGetValue("segment", out seg);
-            List<RoadItem> roads = seg != null ? CollectRoads(seg, zt, X >> (Z - zt), Y >> (Z - zt), src) : new List<RoadItem>();
+            roads = seg != null ? CollectRoads(seg, zt, X >> (Z - zt), Y >> (Z - zt), src) : new List<RoadItem>();
             if (seg != null)
             {
                 var map = new Map(Z, X, Y, zt, seg.Extent);
-                float px = t.Size / texSize;
+                float px = size / texSize;
                 foreach (RoadItem r in roads)
                 {
                     if (r.Spec != null && r.Spec.Crosswalk) continue;      // drawn on the street up close only
@@ -318,24 +315,68 @@ namespace MarsNeedsWater.Earth
                     if (Z < 14) foreach (int[] part in r.Bridge) { var pts = Line(part, map, texSize); if (pts != null) ras.Line(pts, w, r.Style.Paint, Raster.Keep); }
                 }
             }
+            return ras;
+        }
+
+        /// <summary>Dry, sea or lake at each grid vertex of a square, as its ground picture has it.</summary>
+        static byte[] VertexKinds(Raster ras)
+        {
+            const int V = G + 1;
+            var kinds = new byte[V * V];
+            for (int j = 0; j <= G; j++)
+                for (int i = 0; i <= G; i++)
+                    kinds[j * V + i] = WaterMesh.KindOf(ras.MaskAt((i + 0.001) / G - 0.0005, (j + 0.001) / G - 0.0005));
+            return kinds;
+        }
+
+        static long KindKey(int Z, int X, int Y, int texSize) { return ((long)Z << 58) | ((long)(texSize >> 6) << 52) | ((long)X << 26) | (long)Y; }
+
+        /// <summary>
+        /// VertexKinds of any square, kept so each is worked out once. A square needs its neighbours' to give the
+        /// ground along a shared edge the same height from both sides.
+        /// </summary>
+        static byte[] Kinds(TileSources src, int Z, int X, int Y, int texSize)
+        {
+            return src.Kinds.Get(KindKey(Z, X, Y, texSize), () =>
+            {
+                int zb; Dictionary<string, MvtLayer> bl; List<RoadItem> roads; MvtLayer seg;
+                float size = (float)Geo.TileSize(Z, Geo.TileLat(Y + 0.5, Z));
+                return VertexKinds(Paint(src, Z, X, Y, texSize, size, out zb, out bl, out roads, out seg));
+            });
+        }
+
+        public static TileResult Build(TileSources src, int Z, int X, int Y, int texSize)
+        {
+            var t = new TileResult { Z = Z, X = X, Y = Y, TexSize = texSize };
+            t.Lat = Geo.TileLat(Y + 0.5, Z);
+            t.Lon = Geo.TileLon(X + 0.5, Z);
+            t.Size = (float)Geo.TileSize(Z, t.Lat);
+            int zb; Dictionary<string, MvtLayer> baseLayers; List<RoadItem> roads; MvtLayer seg;
+            Raster ras = Paint(src, Z, X, Y, texSize, t.Size, out zb, out baseLayers, out roads, out seg);
 
             // ---- heights ----
+            // Worked out on a grid that reaches a margin past the square on every side, from readings and from a
+            // dry/sea/lake map that belong to the place and not to this square (each point's kind comes from the
+            // one square that owns it). So the neighbours get exactly the same heights along a shared edge.
             int zd = Z - 2;
             var frame = new Frame(t.Lat, t.Lon);
             t.Pos = new float[(G + 1) * (G + 1) * 3];
+            const int V = G + 1, M = WaterMesh.Margin, E = G + 2 * M + 1;
             // sample two extra rings so bad readings in the source (spikes of hundreds of metres) can be spotted
-            int W = G + 5;
+            int W = E + 4;
             var raw = new float[W * W];
             for (int j = 0; j < W; j++)
                 for (int i = 0; i < W; i++)
-                    raw[j * W + i] = src.Dem.Pixel(zd, (long)X * G + i - 2, (long)Y * G + j - 2);
+                    raw[j * W + i] = src.Dem.Pixel(zd, (long)X * G + i - M - 2, (long)Y * G + j - M - 2);
             var win = new float[25];
-            const int V = G + 1;
-            var hs = new float[V * V];       // real metres: ground, then the sea floor or lake bed
-            var lv = new float[V * V];       // real metres: water surface (lakes and rivers)
-            var mk = new byte[V * V];
-            for (int j = 0; j <= G; j++)
-                for (int i = 0; i <= G; i++)
+            var hsE = new float[E * E];      // real metres: ground, then the sea floor or lake bed
+            var lvE = new float[E * E];      // real metres: water surface (lakes and rivers)
+            var kindE = new byte[E * E];
+            int tiles = 1 << Z;
+            byte[] own = src.Kinds.Get(KindKey(Z, X, Y, texSize), () => VertexKinds(ras));
+            var near = new byte[9][];
+            for (int j = 0; j < E; j++)
+                for (int i = 0; i < E; i++)
                 {
                     int c = (j + 2) * W + i + 2;
                     float h = raw[c];
@@ -344,11 +385,28 @@ namespace MarsNeedsWater.Earth
                         for (int di = -2; di <= 2; di++) win[q++] = raw[c + dj * W + di];
                     Array.Sort(win);
                     if (Math.Abs(h - win[12]) > 50f + 3f * (win[18] - win[6])) h = win[12];
-                    int k = j * V + i;
-                    hs[k] = h; lv[k] = win[12];
-                    mk[k] = ras.MaskAt((i + 0.001) / G - 0.0005, (j + 0.001) / G - 0.0005);
+                    int k = j * E + i;
+                    hsE[k] = h; lvE[k] = win[12];
+                    // the square that owns this point: the one it lies in, its north and west edges included
+                    int gi = i - M, gj = j - M;
+                    int ox = gi < 0 ? -1 : gi >= G ? 1 : 0, oy = gj < 0 ? -1 : gj >= G ? 1 : 0;
+                    int ty = Y + oy;
+                    if (ty < 0 || ty >= tiles) { oy = 0; ty = Y; gj = gj < 0 ? 0 : G; }
+                    int slot = (oy + 1) * 3 + ox + 1;
+                    if (near[slot] == null) near[slot] = ox == 0 && oy == 0 ? own : Kinds(src, Z, ((X + ox) % tiles + tiles) % tiles, ty, texSize);
+                    kindE[k] = near[slot][(gj - oy * G) * V + gi - ox * G];
                 }
-            WaterMesh.Shape(t, hs, lv, mk, ras);
+            WaterMesh.Heights(hsE, lvE, kindE, E, (float)(t.Size * Geo.Scale / G));
+            var hs = new float[V * V];
+            var lv = new float[V * V];
+            var kind = new byte[V * V];
+            for (int j = 0; j <= G; j++)
+                for (int i = 0; i <= G; i++)
+                {
+                    int k = j * V + i, e = (j + M) * E + i + M;
+                    hs[k] = hsE[e]; lv[k] = lvE[e]; kind[k] = kindE[e];
+                }
+            WaterMesh.Shape(t, kind, ras);
             GroundKind.Finish(ras, Z, X, Y, t.Size, hs, G);
             if (Z == 14) { t.Kinds = ras.Kind; t.Tint = GroundKind.Shrink(ras.Rgba, texSize, TileResult.TintN); }
             for (int j = 0; j <= G; j++)

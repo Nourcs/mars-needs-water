@@ -20,11 +20,91 @@ namespace MarsNeedsWater.Earth
         /// </summary>
         public const uint BedColour = 0x6e6a55;
 
+        /// <summary>How far past the square's own edge the heights are worked out, in grid cells (see Heights).</summary>
+        public const int Margin = 16;
+
+        public static byte KindOf(byte mask) { return mask == Raster.Ocean ? Sea : mask == Raster.Water ? Lake : Dry; }
+
         /// <summary>
-        /// hs: ground heights in real metres (changed here to the bed under water); lv: filled with the water level
-        /// in real metres; mk: the map's mask at each grid vertex.
+        /// Beds and banks. Works on a grid that reaches Margin cells past the square on every side (E points across),
+        /// and every rule looks no further than Margin cells, so two neighbouring squares work out exactly the same
+        /// height along the edge they share: no step, no wall. hs: ground heights in real metres (changed to the bed
+        /// under water); lv: the middle of the terrain readings round each point on the way in, the water level in
+        /// real metres on the way out; kind: Dry, Sea or Lake at each point.
         /// </summary>
-        public static void Shape(TileResult t, float[] hs, float[] lv, byte[] mk, Raster ras)
+        public static void Heights(float[] hs, float[] lv, byte[] kind, int E, float cellReal)
+        {
+            bool any = false;
+            for (int k = 0; k < E * E; k++) if (kind[k] != Dry) { any = true; break; }
+            if (!any) { for (int k = 0; k < E * E; k++) lv[k] = hs[k]; return; }
+
+            // distance from the shore in cells, no further than the margin: past that the bed stops getting deeper
+            var dist = new float[E * E];
+            for (int k = 0; k < E * E; k++) dist[k] = kind[k] == Dry ? 0f : 1e4f;
+            Chamfer(dist, E);
+
+            for (int k = 0; k < E * E; k++)
+            {
+                float dReal = Math.Min(dist[k], Margin) * cellReal;
+                if (kind[k] == Sea)
+                {
+                    lv[k] = 0f;
+                    hs[k] = Math.Min(hs[k], -(1.2f + dReal * 0.05f));
+                }
+                else if (kind[k] == Lake)
+                {
+                    // lake and river levels: the middle of the 5 x 5 terrain readings round each point
+                    hs[k] = lv[k] - Math.Min(40f, 0.8f + dReal * 0.08f);
+                }
+            }
+
+            // dry ground close to the sea is never below it: the terrain data has pits there (piers, bridge
+            // footings) that would otherwise be holes under sea level with no water in them. Only the sea: a pond
+            // or a stream on a hillside has lower ground below it by right, and lifting that to the water's level
+            // built a flat shelf round the water with a cliff on its downhill side.
+            for (int j = 0; j < E; j++)
+                for (int i = 0; i < E; i++)
+                {
+                    int k = j * E + i;
+                    if (kind[k] != Dry || hs[k] >= 0.4f) continue;
+                    bool sea = false;
+                    for (int jj = Math.Max(0, j - 4); jj <= Math.Min(E - 1, j + 4) && !sea; jj++)
+                        for (int ii = Math.Max(0, i - 4); ii <= Math.Min(E - 1, i + 4); ii++)
+                            if (kind[jj * E + ii] == Sea) { sea = true; break; }
+                    if (sea) hs[k] = 0.4f;
+                }
+
+            // the dry rim round the water: its surface carries on to the bank, and the bank stays just above it
+            for (int j = 0; j < E; j++)
+                for (int i = 0; i < E; i++)
+                {
+                    int k = j * E + i;
+                    if (kind[k] != Dry) continue;
+                    bool sea = false; int lakes = 0;
+                    for (int dj = -1; dj <= 1; dj++)
+                        for (int di = -1; di <= 1; di++)
+                        {
+                            int ii = i + di, jj = j + dj;
+                            if (ii < 0 || jj < 0 || ii > E - 1 || jj > E - 1) continue;
+                            int kk = jj * E + ii;
+                            if (kind[kk] == Sea) sea = true;
+                            else if (kind[kk] == Lake) lakes++;
+                        }
+                    if (sea)
+                    {
+                        lv[k] = 0f;
+                        if (hs[k] < 0.6f) hs[k] = 0.6f;
+                    }
+                    else if (lakes > 0)
+                    {
+                        if (hs[k] < lv[k] + 0.4f) hs[k] = lv[k] + 0.4f;
+                    }
+                    else lv[k] = hs[k];
+                }
+        }
+
+        /// <summary>Which grid cells hold water, for the surface mesh. kind: Dry, Sea or Lake at each grid vertex.</summary>
+        public static void Shape(TileResult t, byte[] kind, Raster ras)
         {
             // the map's water pixels, and which grid cells hold any
             int N = ras.N;
@@ -44,97 +124,11 @@ namespace MarsNeedsWater.Earth
                 }
             }
 
-            var kind = new byte[V * V];
             bool any = false;
-            for (int k = 0; k < V * V; k++)
-            {
-                kind[k] = mk[k] == Raster.Ocean ? Sea : mk[k] == Raster.Water ? Lake : Dry;
-                if (kind[k] != Dry) any = true;
-            }
-            if (!any && !anyPix) { for (int k = 0; k < V * V; k++) lv[k] = hs[k]; return; }
+            for (int k = 0; k < V * V; k++) if (kind[k] != Dry) { any = true; break; }
+            if (!any && !anyPix) return;
             t.WMask = mask;
             t.MaskN = N;
-            if (!any)
-            {
-                for (int k = 0; k < V * V; k++) lv[k] = hs[k];
-                t.WPos = new float[V * V * 3];
-                t.WCell = new byte[G * G];
-                t.WKind = new byte[V * V];
-                for (int c = 0; c < G * G; c++) if (pix[c]) t.WCell[c] = StreamCell;
-                return;
-            }
-
-            // distance from the shore in cells, counted only from dry spots inside this square
-            var dist = new float[V * V];
-            for (int k = 0; k < V * V; k++) dist[k] = kind[k] == Dry ? 0f : 1e4f;
-            Chamfer(dist);
-            float cellReal = (float)(t.Size * Geo.Scale / G);
-
-            // lake and river levels: the middle of the 5 x 5 terrain readings round each point. Those readings run
-            // past the square's edge, so two neighbouring squares get exactly the same level along their shared edge.
-            var level = new float[V * V];
-            for (int k = 0; k < V * V; k++) level[k] = lv[k];
-
-            for (int k = 0; k < V * V; k++)
-            {
-                float dReal = Math.Min(dist[k], 3f * G) * cellReal;
-                if (kind[k] == Sea)
-                {
-                    lv[k] = 0f;
-                    hs[k] = Math.Min(hs[k], -(1.2f + dReal * 0.05f));
-                }
-                else if (kind[k] == Lake)
-                {
-                    lv[k] = level[k];
-                    hs[k] = level[k] - Math.Min(40f, 0.8f + dReal * 0.08f);
-                }
-            }
-
-            // dry ground close to water is never below it: the terrain data has pits there (piers, bridge
-            // footings) that would otherwise be holes under the water level with no water in them
-            for (int j = 0; j <= G; j++)
-                for (int i = 0; i <= G; i++)
-                {
-                    int k = j * V + i;
-                    if (kind[k] != Dry) continue;
-                    float low = float.MaxValue;
-                    for (int jj = Math.Max(0, j - 4); jj <= Math.Min(G, j + 4); jj++)
-                        for (int ii = Math.Max(0, i - 4); ii <= Math.Min(G, i + 4); ii++)
-                        {
-                            int kk = jj * V + ii;
-                            if (kind[kk] != Dry && lv[kk] < low) low = lv[kk];
-                        }
-                    if (low < float.MaxValue && hs[k] < low + 0.4f) hs[k] = low + 0.4f;
-                }
-
-            // the dry rim round the water: its surface carries on to the bank, and the bank stays just above it
-            for (int j = 0; j <= G; j++)
-                for (int i = 0; i <= G; i++)
-                {
-                    int k = j * V + i;
-                    if (kind[k] != Dry) continue;
-                    bool sea = false; int lakes = 0;
-                    for (int dj = -1; dj <= 1; dj++)
-                        for (int di = -1; di <= 1; di++)
-                        {
-                            int ii = i + di, jj = j + dj;
-                            if (ii < 0 || jj < 0 || ii > G || jj > G) continue;
-                            int kk = jj * V + ii;
-                            if (kind[kk] == Sea) sea = true;
-                            else if (kind[kk] == Lake) lakes++;
-                        }
-                    if (sea)
-                    {
-                        lv[k] = 0f;
-                        if (hs[k] < 0.6f) hs[k] = 0.6f;
-                    }
-                    else if (lakes > 0)
-                    {
-                        // its own reading, not its neighbours' (they may lie in the next square)
-                        if (hs[k] < lv[k] + 0.4f) hs[k] = lv[k] + 0.4f;
-                    }
-                    else lv[k] = hs[k];
-                }
 
             t.WPos = new float[V * V * 3];
             t.WCell = new byte[G * G];
@@ -152,30 +146,30 @@ namespace MarsNeedsWater.Earth
         }
 
         /// <summary>Two-pass chamfer distance (1, 1.414 cells) from the cells holding 0.</summary>
-        static void Chamfer(float[] dist)
+        static void Chamfer(float[] dist, int E)
         {
-            for (int j = 0; j <= G; j++)
-                for (int i = 0; i <= G; i++)
+            for (int j = 0; j < E; j++)
+                for (int i = 0; i < E; i++)
                 {
-                    int k = j * V + i;
+                    int k = j * E + i;
                     if (dist[k] == 0) continue;
                     float d = dist[k];
                     if (i > 0) d = Math.Min(d, dist[k - 1] + 1f);
-                    if (j > 0) d = Math.Min(d, dist[k - V] + 1f);
-                    if (i > 0 && j > 0) d = Math.Min(d, dist[k - V - 1] + 1.414f);
-                    if (i < G && j > 0) d = Math.Min(d, dist[k - V + 1] + 1.414f);
+                    if (j > 0) d = Math.Min(d, dist[k - E] + 1f);
+                    if (i > 0 && j > 0) d = Math.Min(d, dist[k - E - 1] + 1.414f);
+                    if (i < E - 1 && j > 0) d = Math.Min(d, dist[k - E + 1] + 1.414f);
                     dist[k] = d;
                 }
-            for (int j = G; j >= 0; j--)
-                for (int i = G; i >= 0; i--)
+            for (int j = E - 1; j >= 0; j--)
+                for (int i = E - 1; i >= 0; i--)
                 {
-                    int k = j * V + i;
+                    int k = j * E + i;
                     if (dist[k] == 0) continue;
                     float d = dist[k];
-                    if (i < G) d = Math.Min(d, dist[k + 1] + 1f);
-                    if (j < G) d = Math.Min(d, dist[k + V] + 1f);
-                    if (i < G && j < G) d = Math.Min(d, dist[k + V + 1] + 1.414f);
-                    if (i > 0 && j < G) d = Math.Min(d, dist[k + V - 1] + 1.414f);
+                    if (i < E - 1) d = Math.Min(d, dist[k + 1] + 1f);
+                    if (j < E - 1) d = Math.Min(d, dist[k + E] + 1f);
+                    if (i < E - 1 && j < E - 1) d = Math.Min(d, dist[k + E + 1] + 1.414f);
+                    if (i > 0 && j < E - 1) d = Math.Min(d, dist[k + E - 1] + 1.414f);
                     dist[k] = d;
                 }
         }
